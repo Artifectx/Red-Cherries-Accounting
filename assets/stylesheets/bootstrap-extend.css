@@ -1,0 +1,114 @@
+/* Extra small devices (portrait phones, less than 576px)
+   No media query since this is the default in Bootstrap */
+
+/* Small devices (landscape phones, 576px and up) */
+@media (max-width: 576px) { 
+    .hide-for-tab-mobile {
+        display: none !important;
+    }
+    
+    .welcome-to-rc-accounting {
+        display: none !important;
+        text-align: center;
+        color: #f34541; 
+        font-size: 34px;
+    }
+    
+    .btnSize{
+        margin-top: 3.3%;
+    }
+    
+    .pull-left {
+        font-size: 18px;
+    }
+    
+    .coming-soon-image {
+        padding-left: 22%;
+        width: 250px;
+    }
+    
+    .coming-soon-module-name {
+        text-align: center;
+        font-size: 18px;
+    }
+    
+    .home-left-margin {
+        display: none !important;
+    }
+    
+    .home-right-margin {
+        display: none !important;
+    }
+    
+    .home-for-desktop {
+        display: none !important;
+    }
+    
+    .system-modules {
+        font-size: 18px;
+    }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) { 
+    .welcome-to-rc-accounting {
+        text-align: center;
+        color: #f34541; 
+        font-size: 34px;
+    }
+    
+    .coming-soon-image {
+        padding-left: 33%;
+    }
+    
+    .coming-soon-module-name {
+        text-align: center;
+    }
+    
+    .home-for-mobile {
+        display: none !important;
+    }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) { 
+    .welcome-to-rc-accounting {
+        text-align: center;
+        color: #f34541; 
+        font-size: 34px;
+    }
+    
+    .coming-soon-image {
+        padding-left: 33%;
+    }
+    
+    .coming-soon-module-name {
+        text-align: center;
+    }
+    
+    .home-for-mobile {
+        display: none !important;
+    }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) { 
+    .welcome-to-rc-accounting {
+        text-align: center;
+        color: #f34541; 
+        font-size: 34px;
+    }
+    
+    .coming-soon-image {
+        padding-left: 33%;
+    }
+    
+    .coming-soon-module-name {
+        text-align: center;
+    }
+    
+    .home-for-mobile {
+        display: none !important;
+    }
+}
+

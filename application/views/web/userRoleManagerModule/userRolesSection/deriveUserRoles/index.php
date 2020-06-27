@@ -1,0 +1,383 @@
+<section id='content'>
+	<div class='container'>
+		<div class='row' id='content-wrapper'>
+			<div class='col-xs-12'>
+				<div class='row'>
+					<div class='col-sm-12'>
+						<div class='page-header'>
+							<h1 class='pull-left'>
+								<i class='icon-table'></i>
+								<span><?php echo $this->lang->line('Derive User Roles') ?></span>
+							</h1>
+
+							<div class='pull-right'></div>
+						</div>
+					</div>
+				</div>
+
+				<!--Showing messages-->
+				<div class='msg_data'></div>
+                <div class='msg_instant' align="center"></div>
+				<div class='form'>
+					<div class='row'>
+						<div class='col-sm-12'>
+							<div class='box'>
+								<div class='box-header <?php echo BOXHEADER; ?>-background'>
+									<div class='title' <?php echo $menuFormatting; ?>><?php echo $this->lang->line('Derive User Roles') ?></div>
+									<div class='actions'>
+										<a class="btn box-collapse btn-xs btn-link" href="#"><i></i></a>
+									</div>
+								</div>
+								<div class='box-content'>
+									<div class='msg_data'></div>
+									<div class='validation'></div>
+									<form class='form form-horizontal validate-form save_form'>
+										<div class='form-group'>
+											<label
+												class='control-label col-sm-3'><?php echo $this->lang->line('Role') ?> *</label>
+
+											<div class='col-sm-4 controls'>
+												<select name="role_id" id="role_id" class="form-control">
+													<option value=''><?php echo $this->lang->line('-- Select Role --'); ?></option>
+													<?php
+													if ($user_roles != null) {
+														foreach($user_roles as $raw){
+															if($raw->role_id !=1) {
+																?>
+																<option
+																	value="<?php echo $raw->role_id; ?>"<?php echo set_select('role_id', $raw->role_id, FALSE) ?>><?php echo $raw->user_role_name; ?></option>
+																<?php
+															}
+														}
+													}
+													?>
+												</select>
+												<div id="role_idError" class="red"></div>
+											</div>
+										</div>
+										<div class='form-group'>
+											<label
+												class='control-label col-sm-3 col-sm-3'><?php echo $this->lang->line('Derive User Role') ?> *</label>
+
+											<div class='col-sm-4 controls'>
+												<input class='form-control' id='derive_user_role_name' name='derive_user_role_name'
+													   placeholder='<?php echo $this->lang->line('Derive User Role') ?>'
+													   type='text' value="<?php echo set_value('derive_user_role_name'); ?>">
+												<div id="derive_user_role_nameError" class="red"></div>
+											</div>
+										</div>
+										<div class='form-actions' style='margin-bottom:0'>
+											<div class='row'>
+												<div class='col-sm-9 col-sm-offset-3'>
+													<?php
+													if (isset($URM_User_Roles_Add_Derive_User_Role_Permissions)){
+													?>
+													<button class='btn btn-success save' onclick='saveData();'
+															type='button' <?php echo $menuFormatting; ?>>
+														<i class='icon-save'></i>
+														<?php echo $this->lang->line('Save') ?>
+													</button>
+													<?php
+													}
+													?>
+
+													<button class='btn btn-primary' type='reset' <?php echo $menuFormatting; ?>>
+														<i class='icon-undo'></i>
+														<?php echo $this->lang->line('Refresh') ?>
+													</button>
+													<button class='btn btn-warning cancel' onclick='cancelData();'
+															type='button' <?php echo $menuFormatting; ?>>
+														<i class='icon-ban-circle'></i>
+														<?php echo $this->lang->line('Close') ?>
+													</button>
+												</div>
+											</div>
+										</div>
+									</form>
+
+									<!--edit form-->
+									<div class='edit_form'></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div id='table'>
+					<div class="msg_delete"></div>
+					<div class='row'>
+						<div class='col-sm-12'>
+							<div class='box bordered-box <?php echo BOXHEADER; ?>-border' style='margin-bottom:0;'>
+								<?php
+								if (isset($URM_User_Roles_Add_Derive_User_Role_Permissions)){ ?>
+									<button class='btn btn-success btn-sm new'
+											type='button' <?php echo $menuFormatting; ?>>
+										<?php echo $this->lang->line('Add New Derive User Role') ?>
+									</button>
+								<?php
+								}
+								?>
+								<p>&nbsp;
+
+								<div class='loader' align="center"><img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/> Loading data...</div>
+
+								<!--showing tabale-->
+								<div id="dataTable">
+								</div>
+								<!--end table -->
+
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+<script src="<?php echo base_url(); ?>ajax/jquery.js"></script>
+<script src="<?php echo base_url(); ?>ajax/validate.js"></script>
+
+<script>
+	$(document).ready(function () {
+        $(".msg_instant").hide();
+		getTableData();
+		DeriveUserRoles.init();
+	});
+
+	$(".new").click(function () {
+		$(".msg_data").hide();
+		$(".msg_delete").hide();
+		$(".validation").hide();
+		$(".form").show();
+		$(".edit_form").hide();
+
+	});
+
+	function cancelData() {
+		DeriveUserRoles.cancelData();
+	}
+
+	function saveData() {
+		if(validateForm_save()) {
+            $(".msg_instant").show();
+            $(".msg_instant").html('<img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/>Saving data...');
+			DeriveUserRoles.saveData();
+            window.scrollTo(0,0);
+		}
+	}
+
+	function editData() {
+		if(validateForm_edit()) {
+            $(".msg_instant").show();
+            $(".msg_instant").html('<img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/>Updating data...');
+			DeriveUserRoles.editData();
+            window.scrollTo(0,0);
+		}
+	}
+
+	function get(id){
+		$(".loader").show();
+		$(".msg_data").hide();
+		$(".msg_delete").hide();
+		$(".validation").hide();
+		DeriveUserRoles.getData(id);
+	}
+
+	function del(id){
+		$(".msg_data").hide();
+		$(".msg_delete").hide();
+		$(".validation").hide();
+		DeriveUserRoles.deleteData(id);
+	}
+
+	var DeriveUserRoles = {
+
+		cancelData: function () {
+			$(".form").hide();
+		},
+
+		saveData: function () {
+			var msg = '<div class="alert alert-success alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-ok-sign"></i>' +
+				'<?php echo $this->lang->line('success')?></h4>' +
+				'<?php echo $this->lang->line('success_saved')?>' +
+				'</div>';
+        
+			$.ajax({
+				type: "POST",
+				url: "<?php echo base_url(); ?>userRoleManagerModule/userRolesSection/derive_user_roles_controller/add",
+				data: {
+					'role_id': $("#role_id").val(),
+					'derive_user_role_name': $("#derive_user_role_name").val(),
+                    <?php echo $this->security->get_csrf_token_name(); ?>:'<?php echo $this->security->get_csrf_hash(); ?>'
+                },
+                dataType: 'html',
+                beforeSend: function () {
+                    $(".save:input").attr('disabled', true);
+                },
+                success: function (response) {
+                    
+                    $(".msg_instant").hide();
+                    
+                    if (response == 'ok') {
+                        $(".validation").hide();
+                        $(".msg_data").show();
+                        $(".msg_data").html(msg);
+                        $(".save:input").attr('disabled', false);
+
+                        $(".form").hide();
+                        $(".edit_form").hide();
+
+                        clearForm();
+                        getTableData();
+                    }
+                    else {
+                        $(".msg_data").hide();
+                        $(".validation").show();
+                        $(".validation").html(response);
+                        $(".save:input").attr('disabled', false);
+                    }
+                }
+            });
+        },
+
+        editData: function () {
+            var msg = '<div class="alert alert-success alert-dismissable">' +
+                '<a class="close" href="#" data-dismiss="alert">x </a>' +
+                '<h4><i class="icon-ok-sign"></i>' +
+                '<?php echo $this->lang->line('success')?></h4>' +
+                '<?php echo $this->lang->line('success_updated')?>' +
+                '</div>';
+
+            $.ajax({
+                type: "POST",
+                url: "<?php echo base_url(); ?>userRoleManagerModule/userRolesSection/derive_user_roles_controller/edit",
+                data: {
+                    'id': $("#id").val(),
+                    'derive_user_role_name': $("#derive_user_role_name_edit").val(),
+                    'role_id': $("#role_id_edit").val(),
+                    <?php echo $this->security->get_csrf_token_name(); ?>:'<?php echo $this->security->get_csrf_hash(); ?>'
+                },
+                dataType: 'html',
+                    beforeSend:function () {
+                    $(".save:input").attr('disabled', true);
+                },
+                success: function (response) {
+                    
+                    $(".msg_instant").hide();
+                    
+                    if (response == 'ok') {
+                        $(".validation").hide();
+                        $(".msg_data").show();
+                        $(".msg_data").html(msg);
+                        $(".save:input").attr('disabled', false);
+
+                        $(".form").hide();
+                        $(".edit_form").hide();
+                        getTableData();
+                    }
+                    else {
+                        $(".msg_data").hide();
+                        $(".validation").show();
+                        $(".validation").html(responce);
+                        $(".save:input").attr('disabled', false);
+                    }
+                }
+            });
+        },
+
+        deleteData: function (id) {
+            var bConfirm = confirm("<?php echo $this->lang->line('Are you sure you want to delete this').$this->lang->line('Derive User Role') ?>?");
+            if (bConfirm) {
+
+                $(".msg_instant").show();
+                $(".msg_instant").html('<img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/>Deleting...');
+
+                $.ajax({
+                    type: "POST",
+                    url: "<?php echo base_url(); ?>userRoleManagerModule/userRolesSection/derive_user_roles_controller/delete",
+                    data: {'id': id,
+                        <?php echo $this->security->get_csrf_token_name(); ?>:'<?php echo $this->security->get_csrf_hash(); ?>'
+                    },
+                    dataType: 'html',
+                    success:function (response) {
+                        $(".msg_instant").hide();
+                        $(".msg_delete").show();
+                        $(".msg_delete").html(response);
+
+                        $(".form").hide();
+                        $(".edit_form").hide();
+                        getTableData();
+                    }
+                });
+            }
+        },
+
+        getData: function (id) {
+            $.ajax({
+                type: "POST",
+                url: "<?php echo base_url(); ?>userRoleManagerModule/userRolesSection/derive_user_roles_controller/get",
+                data: {
+                    'id': id,
+                    <?php echo $this->security->get_csrf_token_name(); ?>:'<?php echo $this->security->get_csrf_hash(); ?>'
+                },
+                dataType: 'html',
+                    success:function (response) {
+                    $(".form").show();
+                    $(".save_form").hide();
+                    $(".edit_form").show();
+                    $(".edit_form").html(response);
+                    $(".loader").hide();
+                }
+            });
+        },
+
+        init : function () {
+            $("#table").show();
+            $(".form").hide();
+            $(".edit_form").hide();
+            $(".msg_data").hide();
+            $(".msg_delete").hide();
+            $(".validation").hide();
+        }
+	}
+
+	//form validation save
+	function validateForm_save() {
+		return (isSelected("role_id", "<?php echo $this->lang->line('user_role').' '.$this->lang->line('field is required')?>")
+			&& isNotEmpty("derive_user_role_name", "<?php echo $this->lang->line('derive_user_role_name').' '.$this->lang->line('field is required')?>")
+		);
+	}
+
+	//form validation edit
+	function validateForm_edit() {
+		return (isSelected("role_id_edit", "<?php echo $this->lang->line('user_role').' '.$this->lang->line('field is required')?>")
+			&& isNotEmpty("derive_user_role_name_edit", "<?php echo $this->lang->line('derive_user_role_name').' '.$this->lang->line('field is required')?>")
+		);
+	}
+
+	//get all data
+	function getTableData(){
+		$(".loader").show();
+		$.ajax({
+			type: "POST",
+			url: "<?php echo base_url(); ?>userRoleManagerModule/userRolesSection/derive_user_roles_controller/getTableData",
+			data: {
+		<?php echo $this->security->get_csrf_token_name(); ?>:'<?php echo $this->security->get_csrf_hash(); ?>'
+	},
+	dataType: 'html',
+		success:
+	function (response) {
+		$("#dataTable").html(response);
+		$(".loader").hide();
+		$('.table').dataTable();
+	}
+	})
+	}
+
+	function clearForm(){
+		$("#role_id").val('');
+		$("#derive_user_role_name").val('');
+	}
+</script>

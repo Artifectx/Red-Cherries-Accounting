@@ -1,0 +1,44 @@
+.red {
+    /*background-color: #f2dede;*/
+    border-color: #eed3d7;
+    color: #d9534f;
+    font-size: 12px;
+}
+
+.page{
+    min-height:550px;
+}
+
+.page_load{
+    visibility: hidden;
+    display: none;
+}
+
+.page_load_show{
+    visibility: visible;
+}
+
+.systemModulesHeader{
+    margin-top: 1%;
+    margin-left: 1%;
+    font-weight: bold;
+    font-size: 20px;
+    color: #ffffff;
+    display: inline-block;
+}
+
+.btnSize{
+    margin-top: -0.5%;
+    height: 55%;
+}
+
+.defaultModuleCheckbox{
+    margin-top: 0%;
+    cursor: pointer; 
+    vertical-align: central;
+    display: inline;
+}
+
+.header-left-nav{
+    padding: 10px;
+}
