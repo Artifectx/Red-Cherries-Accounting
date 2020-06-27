@@ -1,4 +1,4 @@
-expense-tracker
-===============
+Red Cherries Accounting
+=======================
 
-Web based system of tracking personal/organizational expenses
+Web based system of tracking personal/organizational accounting information.
