@@ -1,4 +1,25 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php 
+
+/**
+ *  Red Cherries Accounting is a web based accounting software solution 
+ *  for Small and Medium Enterprices (SME) to manage financial information. 
+ *  Copyright (C) 2020  Artifectx Solutions (Pvt) Ltd
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 require_once dirname(__FILE__) . '/tcpdf/tcpdf.php';
 
@@ -68,11 +89,11 @@ class Pdf_short_bill extends TCPDF {
 		$this->Cell(0, 10, 'Software By Artifectx Solutions (Pvt) Ltd.', 0, false, 'C', 0, '', 0, false, 'T', 'M');
 		$this->Ln(4);
 		$this->SetFont('helvetica', '', 7);
-		$this->Cell(0, 10, 'Tel : +94779738068 / +94779089655', 0, false, 'C', 0, '', 0, false, 'T', 'M');
+		$this->Cell(0, 10, 'Tel : +94-77-973-80-68', 0, false, 'C', 0, '', 0, false, 'T', 'M');
 		$this->Ln(3);
 		$this->Cell(0, 10, 'Web : www.artifectx.com', 0, false, 'C', 0, '', 0, false, 'T', 'M');
 		$this->Ln(3);
-		$this->Cell(0, 10, 'Email : info@artifectx.com', 0, false, 'C', 0, '', 0, false, 'T', 'M');
+		$this->Cell(0, 10, 'Email : contact.artifectx@gmail.com', 0, false, 'C', 0, '', 0, false, 'T', 'M');
 	}
 }
 

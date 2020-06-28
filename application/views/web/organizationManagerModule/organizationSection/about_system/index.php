@@ -1,3 +1,24 @@
+<?php 
+/**
+ *  Red Cherries Accounting is a web based accounting software solution 
+ *  for Small and Medium Enterprices (SME) to manage financial information. 
+ *  Copyright (C) 2020  Artifectx Solutions (Pvt) Ltd
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+?>
+
 <section id='content'>
     <div class='container'>
         <div class='row' id='content-wrapper'>
@@ -32,12 +53,12 @@
                                     <div class='box-content light_color_background'>
 <!--                                        <p class="text-info" align="left" style='font-size:20px; margin-top:20px; margin-left:240px; margin-bottom:20px;'>
                                             <strong>
-                                                <?php echo $this->lang->line('Best online ERP solution from Artifectx Solutions.') ?>
+                                                <?php echo $this->lang->line('Best online accounting management solution from Artifectx Solutions.') ?>
                                             </strong>
                                         </p>-->
                                         <div class='form-group'>
                                             <label class='control-label col-sm-12' style='text-align: center; font-size: 20px; color: #598af3;'>
-                                                <?php echo $this->lang->line('Best online ERP solution from Artifectx Solutions.') ?>
+                                                <?php echo $this->lang->line('Best online accounting management solution from Artifectx Solutions.') ?>
                                             </label>
                                         </div>
                                         <div class='form-group'>
@@ -55,68 +76,25 @@
                                                 <ul class="list-group">
                                                     <h5><?php echo $this->lang->line('Organization') ?></h5>
                                                     <li class="list-group-item" style='margin-top:20px;'>
-                                                        <?php echo $this->lang->line('Allows to manage company locations, people, company basic information and company '
-                                                                . 'structure. The information adding under this module is common to the other modules of Red Cherries Accounting. Module is '
-                                                                . 'completely implemented and available in version 5.0 Beta 1');?>
+                                                        <?php echo $this->lang->line('Allows to manage company locations, people, company basic information and company structure. The information adding under this module is common to the other modules of Red Cherries Accounting.');?>
                                                     </li>
 
-                                                    <br>
-                                                    <h5><?php echo $this->lang->line('Stock Manager') ?></h5>
-                                                    <li  class="list-group-item" style='margin-top:20px;'>
-                                                        <?php echo $this->lang->line('This module consists of five sections called "Administration", "Finished Good Inventory", "Raw Material Inventory", '
-                                                                                   . '"Sales" and "Reports". The "Administration" section allows to manage warehouses, unit and unit conversions, tax details, '
-                                                                                   . 'vehicles, delivery routes and system configurations. System configurations allow to configure the system for '
-                                                                                   . 'different behaviors. "Finished Good Inventory" and "Raw Material Inventory" allows to manage finished good and raw material '
-                                                                                   . 'stock respectively. System allows to manage warehouse and lorry stock with different transactions. "Sales" section allows '
-                                                                                   . 'to manage sales invoices and sales returns. "Reports" section allows to generate different types of reports for '
-                                                                                   . 'stock balances, transactions, sales and sales returns. Module is completely implemented and available in version 5.0 Beta 1');?>
-                                                    </li>
-
-                                                    <br>
-                                                    <h5><?php echo $this->lang->line('Production Manager') ?></h5>
-                                                    <li  class="list-group-item" style='margin-top:20px;'>
-                                                        <?php echo $this->lang->line('Allows to manage the process of producing finished goods in a production line. Careful monitoring of raw materials issued to production line '
-                                                                                   . 'and exact usage and calculate final product cost considering other costing parameters is handled in this module. Module provides variation '
-                                                                                   . 'reports to evaluate the efficiency of production line thereby adjusting parameters to fine tune the efficiency and minimize loses. '
-                                                                                   . 'Initial module implementation is completed and is available in version 6.0. Further development of remaining features will be available in future versions.');?>
-                                                    </li>
-
-                                                    <br>
-                                                    <h5><?php echo $this->lang->line('HR Manager') ?></h5>
-                                                    <li class="list-group-item" style='margin-top:20px;'>
-                                                        <?php echo $this->lang->line("All employees personal details and job details can be maintained in the system. Module has features to track employee attendance "
-                                                                                   . "details and employee leave application details. Further it allows to evaluate employee performance and employee on boarding and "
-                                                                                   . "off bording details. Initial module implementation is completed and is available in version 6.0. Further development of remaining features will be available in future versions.") ?>
-                                                    </li>
-                                                    
-                                                    <br>
-                                                    <h5><?php echo $this->lang->line('Payroll Manager') ?></h5>
-                                                    <li class="list-group-item" style='margin-top:20px;'>
-                                                        <?php echo $this->lang->line("Employee salary details can be maintained in this module. Different types of earnings and deductions can be added and payroll process "
-                                                                                   . "can be done by generating a salary payment detail script for banks. Module implementation will be completed in version 8.0") ?>
-                                                    </li>
-                                                    
                                                     <br>
                                                     <h5><?php echo $this->lang->line('Service Manager') ?></h5>
                                                     <li  class="list-group-item" style='margin-top:20px;'>
-                                                        <?php echo $this->lang->line('Allows to manage donations, reserve services(Including reserving rooms/halls etc.), trainings and other types of services. Reservations can be seen on a calendar. '
-                                                                                   . 'Further, module has features to collect advance payments and collect final payments. Initial module implementation is completed and is available in version 6.0. Further development of remaining features will be available in future versions.') ?>
+                                                        <?php echo $this->lang->line('Allows to manage services information of an organization. Donation management service is available and more services related requirements can be implemented as sub modules.') ?>
                                                     </li>
                                                     
                                                     <br>
                                                     <h5><?php echo $this->lang->line('Accounts Manager') ?></h5>
                                                     <li  class="list-group-item" style='margin-top:20px;'>
-                                                        <?php echo $this->lang->line('Allows to create a chart of account structure and create prime entry books. Journal entries can be added for a financial year and if required '
-                                                                                   . 'based on locations. Trial balance, balance sheet and profit and lose accounts can be generated as reports with different search options. Module is completely integrated with Stock Manager and Production Manager modules.'
-                                                                                   . ' Initial module implementation is completed and is available in version 5.0 Beta 8. Further development of remaining features will be available in future versions.') ?>
+                                                        <?php echo $this->lang->line('Allows to create chart of account structure and create prime entry books. Journal entries can be added for a financial year and if required based on locations. Supplier purchasing and customer sales information and their respective return information can be added. Payments can be added as cash, cheques and credit cards. Cheques can be handled in the system very easily. Trial balance, balance sheet and profit and loss accounts can be generated as reports with different search options.') ?>
                                                     </li>
                                                     
                                                     <br>
                                                     <h5><?php echo $this->lang->line('User Role Manager') ?></h5>
                                                     <li  class="list-group-item" style='margin-top:20px;'>
-                                                        <?php echo $this->lang->line('Admin and a normal user roles available with default user role permissions. New users can be created for type of admin or normal user. When required '
-                                                                                   . 'additional user roles can be created with custom permissions and can be assigned to users. Module is completely implemented and available '
-                                                                                   . 'in version 5.0 Beta 1');?>
+                                                        <?php echo $this->lang->line('Admin and a normal user role available with default user role permissions. New users can be created for type of admin or normal user. When required additional user roles can be created with custom permissions and can be assigned to users. Complete language pack is available so that language translations can be added easily.');?>
                                                     </li>
 
                                                     <br>
@@ -131,21 +109,9 @@
                                                         <?php echo $this->lang->line('Live Chat, Phone, Email') ?>
                                                     </li>
                                                     <br>
-                                                    <h5><?php echo $this->lang->line('Latest Updates') ?></h5>
-                                                    <li  class="list-group-item">
-                                                        For latest feature updates and more information, please refer our web site and live demo. <br><br>
-                                                        
-                                                        Web Site : <a target = '_blank' href="<?php echo 'https://www.e-erplanner.com/'; ?>">www.e-erplanner.com</a><br><br>
-                                                        
-                                                        Demo : <a target = '_blank' href="<?php echo 'https://demo.e-erplanner.com/'; ?>">demo.e-erplanner.com</a><br>
-                                                        Username/Password : admin/demo@eerplan <br><br>
-                                                        Keep your system upto date with latest system features. Contact us to upgrade your system free of charge.
-                                                    </li>
-                                                    <br>
                                                     <h5><?php echo $this->lang->line('For more info contact : ') ?></h5>
                                                     <li  class="list-group-item">
                                                         Sam : +94-77-9738068 <br>
-                                                        Mike : +94-77-9089655 <br>
                                                         web : <a target = '_blank' href="<?php echo 'https://www.artifectx.com'; ?>">www.artifectx.com</a><br>
                                                         Email : contact.artifectx@gmail.com
                                                     </li>

@@ -1,3 +1,24 @@
+<?php 
+/**
+ *  Red Cherries Accounting is a web based accounting software solution 
+ *  for Small and Medium Enterprices (SME) to manage financial information. 
+ *  Copyright (C) 2020  Artifectx Solutions (Pvt) Ltd
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -125,7 +146,7 @@ if($dataGoogleAnalytics != null) {
 <header>
 	<nav class='navbar navbar-default'>
 		<a class='navbar-brand' href='<?php echo base_url(); ?>'>
-			<img width="55px" height="55px" class="logo1" alt="Red Cherries Accounting" style="margin-top: 3%"
+			<img width="110px" height="55px" class="logo1" alt="Red Cherries Accounting" style="margin-top: 1%; margin-left:-20%;"
 				 src="<?php echo base_url(); ?>assets/images/logo.png"/>
 		</a>
 

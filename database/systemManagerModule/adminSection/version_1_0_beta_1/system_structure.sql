@@ -37,9 +37,6 @@ CREATE TABLE `system_module_section_features` (
   CONSTRAINT `system_module_section_features_ibfk_1` FOREIGN KEY (`module_section_id`) REFERENCES `system_module_sections` (`module_section_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*ALTER TABLE admin_permissions
-  DROP FOREIGN KEY `admin_permissions_ibfk_1`;*/
-
 /*Table structure for table `system_common_web_settings` */
 DROP TABLE IF EXISTS `system_common_web_settings`;
 
@@ -146,7 +143,7 @@ DROP TABLE IF EXISTS `system_language_strings`;
 
 CREATE TABLE `system_language_strings` (
   `language_string_id` int(11) NOT NULL AUTO_INCREMENT,
-  `language_string` varchar(255) DEFAULT NULL,
+  `language_string` varchar(500) DEFAULT NULL,
   `language_string_type` varchar(100) DEFAULT NULL,
   `product_code` varchar(255) DEFAULT '',
   `system_module_id` int(11) DEFAULT NULL,
@@ -164,7 +161,7 @@ CREATE TABLE `system_language_translations` (
   `language_translation_id` int(11) NOT NULL AUTO_INCREMENT,
   `language_string_id` int(11) DEFAULT NULL,
   `language_name` varchar(100) DEFAULT NULL,
-  `translated_string` varchar(255) DEFAULT NULL,
+  `translated_string` varchar(500) DEFAULT NULL,
   `product_code` varchar(255) DEFAULT '',
   `actioned_user_id` int(11) DEFAULT NULL,
   `action_date` datetime DEFAULT NULL,

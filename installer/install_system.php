@@ -1,5 +1,24 @@
 <?php
 
+/**
+ *  Red Cherries Accounting is a web based accounting software solution 
+ *  for Small and Medium Enterprices (SME) to manage financial information. 
+ *  Copyright (C) 2020  Artifectx Solutions (Pvt) Ltd
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 error_reporting(E_ERROR | E_PARSE);
 
 include('../application/config/database.php');
@@ -18,9 +37,9 @@ if ($taskType == 'install') {
 	install($newVersionNo, $mysqli);
 } else if ($taskType == 'upgrade') {
 	if (mysqli_query($mysqli, "SELECT * FROM `common_configurations`")) {
-		$result = mysqli_fetch_array(mysqli_query($mysqli, "SELECT `config_filed_value` FROM `common_configurations` WHERE `config_filed_name` LIKE 'e_stock_manager_version_number'"));
+		$result = mysqli_fetch_array(mysqli_query($mysqli, "SELECT `config_filed_value` FROM `common_configurations` WHERE `config_filed_name` LIKE 'red_cherries_os_version_number'"));
 	} else if (mysqli_query($mysqli, "SELECT * FROM `system_common_configurations`")) {
-		$result = mysqli_fetch_array(mysqli_query($mysqli, "SELECT `config_filed_value` FROM `system_common_configurations` WHERE `config_filed_name` LIKE 'e_stock_manager_version_number'"));
+		$result = mysqli_fetch_array(mysqli_query($mysqli, "SELECT `config_filed_value` FROM `system_common_configurations` WHERE `config_filed_name` LIKE 'red_cherries_os_version_number'"));
 	}
 
 	$currentVersionNo = $result['config_filed_value'];

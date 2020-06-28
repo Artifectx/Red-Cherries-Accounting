@@ -1,3 +1,23 @@
+<?php 
+/**
+ *  Red Cherries Accounting is a web based accounting software solution 
+ *  for Small and Medium Enterprices (SME) to manage financial information. 
+ *  Copyright (C) 2020  Artifectx Solutions (Pvt) Ltd
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+?>
 
 </div>
 </section>
@@ -317,21 +337,7 @@ if ($show_footer) { ?>
 
   /* $('#main-nav .navigation > .nav > li > a').css({"background-color":"#f34541"});*/
 </script>
-<!-- / END - page related files and scripts [optional] -->
-<!--<script language="JavaScript">
-    var data = '&r=' + escape(document.referrer)
-        + '&n=' + escape(navigator.userAgent)
-        + '&p=' + escape(navigator.userAgent)
-        + '&g=' + escape(document.location.href);
 
-    if (navigator.userAgent.substring(0,1)>'3')
-        data = data + '&sd=' + screen.colorDepth
-            + '&sw=' + escape(screen.width+'x'+screen.height);
-
-    document.write('<a href="http://www.1freecounter.com/stats.php?i=87791" target=\"_blank\" >');
-    document.write('<img alt="Free Counter" border=0 hspace=0 '+'vspace=0 src="http://www.1freecounter.com/counter.php?i=87791' + data + '">');
-    document.write('</a>');
-</script>-->
 </body>
 
 </html>

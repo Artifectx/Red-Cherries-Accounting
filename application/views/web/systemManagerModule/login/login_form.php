@@ -1,3 +1,23 @@
+<?php 
+/**
+ *  Red Cherries Accounting is a web based accounting software solution 
+ *  for Small and Medium Enterprices (SME) to manage financial information. 
+ *  Copyright (C) 2020  Artifectx Solutions (Pvt) Ltd
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+?>
 
 <body class='contrast-red login contrast-background'>
 <div class='middle-container'>
@@ -9,7 +29,7 @@
 						<p>&nbsp;</p>
 						<div class='col-sm-12'>
 							<div class='text-center'>
-								<img width="233" height="233" src="<?php echo base_url(); ?>assets/images/logo_login.png"/>
+								<img width="350" height="180" src="<?php echo base_url(); ?>assets/images/logo_login.png"/>
 							</div>
 						</div>
 					</div>
@@ -63,7 +83,6 @@
 							<div class='text-center'>
 								<a href='#' role="button" data-toggle="modal">
 									<i class='icon-user1'></i>
-									<?php //echo $this->lang->line('New to xStock')?>
 									<strong>Red Cherries Accounting Version <?php echo $version_no ?><br>Copyright &copy; 2020 Red Cherries Accounting By Artifectx<?php //echo $this->lang->line('Sign up')?></strong>
 								</a>
 							</div>
@@ -120,140 +139,6 @@
 					</div>
 				</div>
 			</div>
-
-			<!--Sign Up popup-->
-			<div id="sign_up" class="modal fade" aria-hidden="true" data-keyboard="true" data-backdrop="static" tabindex="-1">
-				<div class="modal-dialog">
-					<div class="modal-content">
-						<div class="modal-header">
-							<button aria-hidden='true' class='close' data-dismiss='modal' type='button'>x</button>
-							<h4 align="center"><?php echo $this->lang->line('Red Cherries Accounting Request Quote & Free Account Sign Up') ?></h4>
-						</div>
-						<div class="modal-body">
-							<div class='col-sm-12'>
-								<div class='box-content'>
-									<div class='msg_data'></div>
-									<div class='validation'></div>
-									<form class='form form-horizontal validate-form save_form'>
-										<div class='form-group'>
-											<label
-												class='control-label col-sm-4'><?php echo $this->lang->line('First Name') ?> *</label>
-											<div class='col-sm-6 controls'>
-												<input class='form-control' id='first_name' name='first_name'
-													   placeholder='<?php echo $this->lang->line('First Name') ?>'
-													   type='text' value="<?php echo set_value('first_name'); ?>">
-												<div id="first_nameError" class="red"></div>
-											</div>
-										</div>
-										<div class='form-group'>
-											<label
-												class='control-label col-sm-4'><?php echo $this->lang->line('Last Name') ?> *</label>
-											<div class='col-sm-6 controls'>
-												<input class='form-control' id='last_name' name='last_name'
-													   placeholder='<?php echo $this->lang->line('Last Name') ?>'
-													   type='text' value="<?php echo set_value('last_name'); ?>">
-												<div id="last_nameError" class="red"></div>
-											</div>
-										</div>
-										<div class='form-group'>
-											<label
-												class='control-label col-sm-4'><?php echo $this->lang->line('Comapany Name') ?> *</label>
-											<div class='col-sm-6 controls'>
-												<input class='form-control' id='comapany_name' name='comapany_name'
-													   placeholder='<?php echo $this->lang->line('Comapany Name') ?>'
-													   type='text' value="<?php echo set_value('comapany_name'); ?>">
-												<div id="comapany_nameError" class="red"></div>
-											</div>
-										</div>
-										<div class='form-group'>
-											<label
-												class='control-label col-sm-4'><?php echo $this->lang->line('Job Title') ?> *</label>
-											<div class='col-sm-6 controls'>
-												<input class='form-control' id='job_title' name='job_title'
-													   placeholder='<?php echo $this->lang->line('Job Title') ?>'
-													   type='text' value="<?php echo set_value('job_title'); ?>">
-												<div id="job_titleError" class="red"></div>
-											</div>
-										</div>
-										<div class='form-group'>
-											<label
-												class='control-label col-sm-4'><?php echo $this->lang->line('Contact Email') ?> *</label>
-											<div class='col-sm-6 controls'>
-												<input class='form-control' id='contact_email' name='contact_email'
-													   placeholder='<?php echo $this->lang->line('Contact Email') ?>'
-													   type='text' value="<?php echo set_value('contact_email'); ?>">
-												<div id="contact_emailError" class="red"></div>
-											</div>
-										</div>
-										<div class='form-group'>
-											<label
-												class='control-label col-sm-4'><?php echo $this->lang->line('Contact Phone') ?> *</label>
-											<div class='col-sm-6 controls'>
-												<input class='form-control' id='contact_phone' name='contact_phone'
-													   placeholder='<?php echo $this->lang->line('Contact Phone') ?>'
-													   type='text' value="<?php echo set_value('contact_phone'); ?>">
-												<div id="contact_phoneError" class="red"></div>
-											</div>
-										</div>
-										<div class='form-group'>
-											<label
-												class='control-label col-sm-4'><?php echo $this->lang->line('Country') ?> *</label>
-											<div class='col-sm-6 controls'>
-												<select name="country" id="country" class="form-control">
-													<option value=''> <?php echo $this->lang->line('-- Select Country --') ?></option>
-													<?php
-													if ($country != null) {
-														foreach($country as $raw){
-																?>
-																<option
-																	value="<?php echo $raw->country_name; ?>"<?php echo set_select('country', $raw->country_name, FALSE) ?>><?php echo $raw->country_name; ?></option>
-																<?php
-														}
-													}
-													?>
-												</select>
-												<div id="countryError" class="red"></div>
-											</div>
-										</div>
-										<div class='form-group'>
-											<label
-												class='control-label col-sm-4'><?php echo $this->lang->line('No of Employees') ?> *</label>
-											<div class='col-sm-6 controls'>
-												<input class='form-control' id='no_of_employees' name='no_of_employees'
-													   placeholder='<?php echo $this->lang->line('No of Employees') ?>'
-													   type='text' value="<?php echo set_value('no_of_employees'); ?>">
-												<div id="no_of_employeesError" class="red"></div>
-											</div>
-										</div>
-											<div class='row'>
-												<div class='col-sm-9 col-sm-offset-3'>
-													<button class='btn btn-success save' onclick='signUp();'
-															type='button'>
-														<i class='icon-save'></i>
-														<?php echo $this->lang->line('Submit') ?>
-													</button>
-													<button class='btn btn-warning cancel'
-															type='button' aria-hidden='true' data-dismiss='modal'>
-														<i class='icon-ban-circle'></i>
-														<?php echo $this->lang->line('Close') ?>
-													</button>
-												</div>
-											</div>
-									</form>
-								</div>
-							</div>
-						</div>
-						<div class="modal-footer">
-							<strong>For more info contact : </strong><br>
-							Sam   : +94-77-9738068<br>
-							Mike  : +94-77-9089655<br>
-							web   : www.artifectx.com <br>
-							Email : info@artifectx.com
-						</div>
-					</div>
-				</div>
-			</div>
-
 		</div>
 	</div>
 </div>
@@ -263,10 +148,6 @@
 
 <script>
 	$(document).ready(function () {
-		/*var delay=2500;
-		setTimeout(function() {
-			$("#sign_up").modal('show');
-		}, delay);*/
 
 		$(".msg_data").hide();
 		$(".validation").hide();
@@ -314,60 +195,6 @@
 						$(".msg_data").html(msg);
 						$(".save:input").attr('disabled', false);
 						$("#email").val('');
-					}
-					else {
-						$(".msg_data").hide();
-						$(".validation").show();
-						$(".validation").html(responce);
-						$(".save:input").attr('disabled', false);
-					}
-				}
-			})
-		}
-	}
-
-	function signUp(){
-		if($("#first_name").val() == '')validateFormSignUp();
-		else if ($("#last_name").val() == '')validateFormSignUp();
-		else if ($("#comapany_name").val() == '')validateFormSignUp();
-		else if ($("#job_title").val() == '')validateFormSignUp();
-		else if ($("#contact_email").val() == '')validateFormSignUp();
-		else if ($("#contact_phone").val() == '')validateFormSignUp();
-		else if ($("#country").val() == '')validateFormSignUp();
-		else if ($("#no_of_employees").val() == '')validateFormSignUp();
-		else {
-			var msg = '<div class="alert alert-success alert-dismissable">' +
-				'<a class="close" href="#" data-dismiss="alert">x </a>' +
-				'<h4><i class="icon-ok-sign"></i>' +
-				'<?php echo $this->lang->line('success')?></h4>' +
-				'<?php echo $this->lang->line('success_submit')?>' +
-				'</div>';
-
-			$.ajax({
-				type: "POST",
-				url: "<?php echo base_url(); ?>login/signUp",
-				data: {
-					'first_name': $("#first_name").val(),
-					'last_name': $("#last_name").val(),
-					'comapany_name': $("#comapany_name").val(),
-					'job_title': $("#job_title").val(),
-					'contact_email': $("#contact_email").val(),
-					'contact_phone': $("#contact_phone").val(),
-					'country': $("#country").val(),
-					'no_of_employees': $("#no_of_employees").val(),
-					<?php echo $this->security->get_csrf_token_name(); ?>:'<?php echo $this->security->get_csrf_hash(); ?>'
-				},
-				dataType: 'html',
-					beforeSend: function () {
-					$(".save:input").attr('disabled', true);
-				},
-				success: function (responce) {
-					if (responce == 'ok') {
-						$(".validation").hide();
-						$(".msg_data").show();
-						$(".msg_data").html(msg);
-						$(".save:input").attr('disabled', false);
-						clearForm();
 					}
 					else {
 						$(".msg_data").hide();

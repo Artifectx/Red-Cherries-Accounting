@@ -1,7 +1,9 @@
 
 /*Add version number*/
 INSERT  INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
-('e_stock_manager_version_number', '1.0 Beta 1');
+('red_cherries_os_version_number', '1.0 Beta 1'),
+('red_cherries_erp_version_number', '8.0 Beta 1'),
+('red_cherries_system_type', 'OS');
 
 INSERT INTO `system_modules` VALUES (1,'Organization',1,0,'organization.png','systemManagerModule/dashboard_controller/organizationManager'),
 (2,'Stock Manager',0,0,'stock_manager.png','systemManagerModule/dashboard_controller/dashboardStockManager'),
@@ -102,7 +104,7 @@ INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,
 ('Product is deleted','display_string','0',''),
 ('GIN is deleted','display_string','0',''),
 ('Username','display_string','0',''),
-('Welcome To e-ER Planner','display_string','0',''),
+('Welcome To Red Cherries ERP','display_string','0',''),
 ('Organization','display_string','0',''),
 ('Stock Manager','display_string','0',''),
 ('Production Manager','display_string','0',''),
@@ -490,7 +492,7 @@ INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,
 ('Enable Point of Sales','display_string','2','System Configurations Screen'),
 ('POS Screen','display_string','2','System Configurations Screen'),
 ('Stock','display_string','2','System Configurations Screen'),
-('e-ER Planner POS Sign In','display_string','2','System Configurations Screen'),
+('Red Cherries ERP POS Sign In','display_string','2','System Configurations Screen'),
 ('Sign In','display_string','2','System Configurations Screen'),
 ('Screen','display_string','2','System Configurations Screen'),
 ('Sales List','display_string','2','System Configurations Screen'),
@@ -533,7 +535,7 @@ INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,
 ('Select prime entry book/s for account transactions for updating finish good market price increments','display_string','2','System Configurations Screen'),
 ('Select prime entry book/s for account transactions for updating finish good market price deductions','display_string','2','System Configurations Screen'),
 ('Allow users to quickly sigin to POS sales invoice by entering password, without sign off current user','display_string','2','System Configurations Screen'),
-('e-ER Planner POS Quick Sign In','display_string','2','System Configurations Screen'),
+('Red Cherries ERP POS Quick Sign In','display_string','2','System Configurations Screen'),
 ('Authorizer approval is required to delete on hold POS sales invoices','display_string','2','System Configurations Screen'),
 ('Authorizer to Delete On Hold POS Invoices','display_string','2','System Configurations Screen'),
 ('Select prime entry book/s for account transactions for normal dispatch','display_string','2','System Configurations Screen'),
@@ -1299,9 +1301,9 @@ INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,
 ('Raw Material Batch Quantities','display_string','2','Warehouse Stock Balance Screen'),
 ('Journal entry for raw material warehouse stock update number : ','display_string','2','Warehouse Stock Balance Update Screen'),
 ('About System','display_string','0',''),
-('About e-ER Planner','display_string','0',''),
-('e-ER Planner Overview','display_string','0',''),
-('Tell about e-ER Planner to a friend','display_string','0',''),
+('About Red Cherries ERP','display_string','0',''),
+('Red Cherries ERP Overview','display_string','0',''),
+('Tell about Red Cherries ERP to a friend','display_string','0',''),
 ('E-mail address of your friend','display_string','0',''),
 ('System Modules : ','display_string','0',''),
 ('Best online ERP solution from Artifectx Solutions.','display_string','0',''),
@@ -1321,7 +1323,7 @@ INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,
 ('Comprehensive User Guides','display_string','0',''),
 ('Message','display_string','0',''),
 ('Latest Updates','display_string','0',''),
-('Allows to manage company locations, people, company basic information and company structure. The information adding under this module is common to the other modules of e-ER Planner. Module is completely implemented and available in version 5.0 Beta 1','display_string','0',''),
+('Allows to manage company locations, people, company basic information and company structure. The information adding under this module is common to the other modules of Red Cherries ERP. Module is completely implemented and available in version 5.0 Beta 1','display_string','0',''),
 ('This module consists of five sections called "Administration", "Finished Good Inventory", "Raw Material Inventory", "Sales" and "Reports". The "Administration" section allows to manage warehouses, unit and unit conversions, tax details, vehicles, delivery','display_string','0',''),
 ('Allows to manage the process of producing finished goods in a production line. Careful monitoring of raw materials issued to production line and exact usage and calculate final product cost considering other costing parameters is handled in this module. M','display_string','0',''),
 ('All employees personal details and job details can be maintained in the system. Module has features to track employee attendance details and employee leave application details. Further it allows to evaluate employee performance and employee on boarding an','display_string','0',''),
@@ -1422,7 +1424,7 @@ INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,
 (' for sales invoice free issue','display_string','2','Sales Invoice Screen'),
 (' for sales invoice sample issue','display_string','2','Sales Invoice Screen'),
 ('Open Point of Sales Screen','display_string','2','Sales Invoice Screen'),
-('e-ER Planner POS Sales Invoice','display_string','2','Sales Invoice Screen'),
+('Red Cherries ERP POS Sales Invoice','display_string','2','Sales Invoice Screen'),
 ('Previuos Invoice','display_string','2','Sales Invoice Screen'),
 ('Next Invoice','display_string','2','Sales Invoice Screen'),
 ('Invoice No','display_string','2','Sales Invoice Screen'),
@@ -1445,7 +1447,7 @@ INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,
 ('Open Invoice','display_string','2','Sales Invoice Screen'),
 ('Closed Invoice','display_string','2','Sales Invoice Screen'),
 ('Sales Invoice Over Discount Authorization','display_string','2','Sales Invoice Screen'),
-('e-ER Planner POS Sales Invoice List','display_string','2','Sales Invoice Screen'),
+('Red Cherries ERP POS Sales Invoice List','display_string','2','Sales Invoice Screen'),
 ('Sales Invoice Item List','display_string','2','Sales Invoice Screen'),
 ('Down Arrow - Select Invoices Downwards','display_string','2','Sales Invoice Screen'),
 ('Up Arrow - Select Invoices Upwards','display_string','2','Sales Invoice Screen'),
@@ -3297,7 +3299,7 @@ INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`
 ('28','English','Product is deleted'),
 ('29','English','GIN is deleted'),
 ('30','English','Username'),
-('31','English','Welcome To e-ER Planner'),
+('31','English','Welcome To Red Cherries ERP'),
 ('32','English','Organization'),
 ('33','English','Stock Manager'),
 ('34','English','Production Manager'),
@@ -3685,7 +3687,7 @@ INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`
 ('416','English','Enable Point of Sales'),
 ('417','English','POS Screen'),
 ('418','English','Stock'),
-('419','English','e-ER Planner POS Sign In'),
+('419','English','Red Cherries ERP POS Sign In'),
 ('420','English','Sign In'),
 ('421','English','Screen'),
 ('422','English','Sales List'),
@@ -3728,7 +3730,7 @@ INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`
 ('459','English','Select prime entry book/s for account transactions for updating finish good market price increments'),
 ('460','English','Select prime entry book/s for account transactions for updating finish good market price deductions'),
 ('461','English','Allow users to quickly sigin to POS sales invoice by entering password, without sign off current user'),
-('462','English','e-ER Planner POS Quick Sign In'),
+('462','English','Red Cherries ERP POS Quick Sign In'),
 ('463','English','Authorizer approval is required to delete on hold POS sales invoices'),
 ('464','English','Authorizer to Delete On Hold POS Invoices'),
 ('465','English','Select prime entry book/s for account transactions for normal dispatch'),
@@ -4494,9 +4496,9 @@ INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`
 ('1225','English','Raw Material Batch Quantities'),
 ('1226','English','Journal entry for raw material warehouse stock update number : '),
 ('1227','English','About System'),
-('1228','English','About e-ER Planner'),
-('1229','English','e-ER Planner Overview'),
-('1230','English','Tell about e-ER Planner to a friend'),
+('1228','English','About Red Cherries ERP'),
+('1229','English','Red Cherries ERP Overview'),
+('1230','English','Tell about Red Cherries ERP to a friend'),
 ('1231','English','E-mail address of your friend'),
 ('1232','English','System Modules : '),
 ('1233','English','Best online ERP solution from Artifectx Solutions.'),
@@ -4516,7 +4518,7 @@ INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`
 ('1247','English','Comprehensive User Guides'),
 ('1248','English','Message'),
 ('1249','English','Latest Updates'),
-('1250','English','Allows to manage company locations, people, company basic information and company structure. The information adding under this module is common to the other modules of e-ER Planner. Module is completely implemented and available in version 5.0 Beta 1'),
+('1250','English','Allows to manage company locations, people, company basic information and company structure. The information adding under this module is common to the other modules of Red Cherries ERP. Module is completely implemented and available in version 5.0 Beta 1'),
 ('1251','English','This module consists of five sections called "Administration", "Finished Good Inventory", "Raw Material Inventory", "Sales" and "Reports". The "Administration" section allows to manage warehouses, unit and unit conversions, tax details, vehicles, delivery'),
 ('1252','English','Allows to manage the process of producing finished goods in a production line. Careful monitoring of raw materials issued to production line and exact usage and calculate final product cost considering other costing parameters is handled in this module. M'),
 ('1253','English','All employees personal details and job details can be maintained in the system. Module has features to track employee attendance details and employee leave application details. Further it allows to evaluate employee performance and employee on boarding an'),
@@ -4617,7 +4619,7 @@ INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`
 ('1348','English',' for sales invoice free issue'),
 ('1349','English',' for sales invoice sample issue'),
 ('1350','English','Open Point of Sales Screen'),
-('1351','English','e-ER Planner POS Sales Invoice'),
+('1351','English','Red Cherries ERP POS Sales Invoice'),
 ('1352','English','Previuos Invoice'),
 ('1353','English','Next Invoice'),
 ('1354','English','Invoice No'),
@@ -4640,7 +4642,7 @@ INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`
 ('1371','English','Open Invoice'),
 ('1372','English','Closed Invoice'),
 ('1373','English','Sales Invoice Over Discount Authorization'),
-('1374','English','e-ER Planner POS Sales Invoice List'),
+('1374','English','Red Cherries ERP POS Sales Invoice List'),
 ('1375','English','Sales Invoice Item List'),
 ('1376','English','Down Arrow - Select Invoices Downwards'),
 ('1377','English','Up Arrow - Select Invoices Upwards'),
@@ -6929,3 +6931,76 @@ SET @languageStringId = LAST_INSERT_ID();
 
 INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Select cheque in hand chart of account');
+
+/*Data for the table `system_language_strings` */
+INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('About Red Cherries Accounting', 'message', '0', '');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','About Red Cherries Accounting');
+
+/*Data for the table `system_language_strings` */
+INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Red Cherries Accounting Overview', 'message', '0', '');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Red Cherries Accounting Overview');
+
+/*Data for the table `system_language_strings` */
+INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Best online accounts management solution from Artifectx Solutions.', 'message', '0', '');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Best online accounts management solution from Artifectx Solutions.');
+
+
+/*Data for the table `system_language_strings` */
+INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Allows to manage company locations, people, company basic information and company structure. The information adding under this module is common to the other modules of Red Cherries Accounting.', 'message', '0', '');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Allows to manage company locations, people, company basic information and company structure. The information adding under this module is common to the other modules of Red Cherries Accounting.');
+
+/*Data for the table `system_language_strings` */
+INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Allows to manage services information of an organization. Donation management service is available and more services related requirements can be implemented as sub modules.', 'message', '0', '');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Allows to manage services information of an organization. Donation management service is available and more services related requirements can be implemented as sub modules.');
+
+/*Data for the table `system_language_strings` */
+INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Allows to create chart of account structure and create prime entry books. Journal entries can be added for a financial year and if required based on locations. Supplier purchasing and customer sales information and their respective return information can be added. Payments can be added as cash, cheques and credit cards. Cheques can be handled in the system very easily. Trial balance, balance sheet and profit and loss accounts can be generated as reports with different search options.', 'message', '0', '');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Allows to create chart of account structure and create prime entry books. Journal entries can be added for a financial year and if required based on locations. Supplier purchasing and customer sales information and their respective return information can be added. Payments can be added as cash, cheques and credit cards. Cheques can be handled in the system very easily. Trial balance, balance sheet and profit and loss accounts can be generated as reports with different search options.');
+
+/*Data for the table `system_language_strings` */
+INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Admin and a normal user role available with default user role permissions. New users can be created for type of admin or normal user. When required additional user roles can be created with custom permissions and can be assigned to users. Complete language pack is available so that language translations can be added easily.', 'message', '0', '');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Admin and a normal user role available with default user role permissions. New users can be created for type of admin or normal user. When required additional user roles can be created with custom permissions and can be assigned to users. Complete language pack is available so that language translations can be added easily.');
+
+/*Data for the table `system_language_strings` */
+INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Tell about Red Cherries Accounting to a friend', 'message', '0', '');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Tell about Red Cherries Accounting to a friend');
