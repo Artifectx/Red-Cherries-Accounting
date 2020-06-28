@@ -1,4 +1,24 @@
 <?php
+
+/**
+ *  Red Cherries Accounting is a web based accounting software solution 
+ *  for Small and Medium Enterprices (SME) to manage financial information. 
+ *  Copyright (C) 2020  Artifectx Solutions (Pvt) Ltd
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 ob_start();
 defined('BASEPATH') OR exit('No direct script access allowed');
 
@@ -104,49 +124,30 @@ class About_system_controller extends CI_Controller {
 			$html.='';
 			$from = "sendartifectxmail.gmail.com";
 			$name = "Artifectx Red Cherries Accounting";
-			$sub = "Red Cherries Accounting By Artifectx - Online Enterprise Resource Management Software";
+			$sub = "Red Cherries Accounting By Artifectx - Free and Open Source Online Accounts Management Software";
 			$msg .= $message;
 			$msg .= "<br><br>";
 			$msg .='<table style="font-family: ambleregular, sans-serif; color:#fff" cellspacing=4 cellpadding=4 width="100%">
 						<tr>
-							<td bgcolor="#00cc30" colspan="3" style="text-align:center;">
+							<td bgcolor="#ff9999" colspan="3" style="text-align:center;">
 								<h3 align="center" style="font-family: ambleregular, sans-serif;">
-									<strong>Artifectx Red Cherries Accounting - Online Enterprise Resource Management Software</strong>
+									<strong>Artifectx Red Cherries Accounting - Free and Open Source Online Accounts Management Software</strong>
 								</h3>
 							</td>
 						</tr>
 						<tr>
 							<td bgcolor="#eafaea" colspan="3" style="text-align:center; color:#00acec;">
 								<h4 align="center" style="font-family: ambleregular, sans-serif;">
-									Simple yet powerful ERP solution from Artifectx. Manage your 
-									enterprice information effectively and more support available to configure the system to fulfil your actual requirements. 
-									Checkout our live demo for system features and visit our 
-									Red Cherries Accounting web site https://www.e-erplanner.com for more information.
+									Simple yet powerful accounts management solution from Artifectx. Manage your 
+									accounting information effectively and more support available to configure the system to fulfil your actual requirements. 
 								</h4>
 							</td>
 						</tr>
 						<tr>
-							<td bgcolor="#eafaea" colspan="3" style="text-align:center; color:#00acec;">
-								<strong>Online Demo : </strong>https://demo.e-erplanner.com
-							</td>
-						</tr>
-						<tr>
-							<td bgcolor="#eafaea" colspan="3" style="text-align:center; color:#00acec;">
-								<strong>Username : </strong>admin / Password : demo@eerplan
-							</td>
-						</tr>
-						<tr>
-							<td bgcolor="#eafaea" colspan="3" style="text-align:center;">
-								<strong style="color:#ff33cc;">
-									Select the modules you need and pay only for selected modules.
-								</strong>
-							</td>
-						</tr>
-						<tr>
-							<td bgcolor="#00cc30" style="font-weight: bold; text-align:center; font-size:14px;" width="30%">
+							<td bgcolor="#ff9999" style="font-weight: bold; text-align:center; font-size:14px;" width="30%">
 								Module
 							</td>
-							<td bgcolor="#00cc30" style="font-weight: bold; text-align:center; font-size:14px" width="40%">
+							<td bgcolor="#ff9999" style="font-weight: bold; text-align:center; font-size:14px" width="40%">
 								Details
 							</td>
 						</tr>
@@ -155,53 +156,8 @@ class About_system_controller extends CI_Controller {
 								Organization
 							</td>
 							<td style="font-family: ambleregular; color:#000; background-color:#eafaea;font-size:12px">
-								Allows to manage company locations, people, company basic information and company 
-								structure. The information adding under this module is common to the other modules of Red Cherries Accounting. Module is 
-								completely implemented and available in version 4.0 Beta 1.
-							</td>
-						</tr>
-						<tr>
-							<td style="font-family: ambleregular; color:#000; background-color:#eafaea;font-size:12px">
-								Stock Manager
-							</td>
-							<td style="font-family: ambleregular; color:#000; background-color:#eafaea;font-size:12px">
-								This module consists of five sections called "Administration", "Finished Good Inventory", "Raw Material Inventory", 
-								"Sales" and "Reports". The "Administration" section allows to manage warehouses, unit and unit conversions, tax details, 
-								vehicles, delivery routes and system configurations. System configurations allow to configure the system for 
-								different behaviors. "Finished Good Inventory" and "Raw Material Inventory" allows to manage finished good and raw material 
-								stock respectively. System allows to manage warehouse and lorry stock with different transactions. "Sales" section allows 
-								to manage sales invoices and sales returns. "Reports" section allows to generate different types of reports for 
-								stock balances, transactions, sales and sales returns. Module is completely implemented and available in version 4.0 Beta 1.
-							</td>
-						</tr>
-						<tr>
-							<td style="font-family: ambleregular; color:#000; background-color:#eafaea;font-size:12px">
-								Production Manager
-							</td>
-							<td style="font-family: ambleregular; color:#000; background-color:#eafaea;font-size:12px">
-								Allows to manage the process of producing finished goods in a production line. Careful monitoring of raw materials issued to production line 
-								and exact usage and calculate final product cost considering other costing parameters is handled in this module. Module provides variation 
-								reports to evaluate the efficiency of production line thereby adjusting parameters to fine tune the efficiency and minimize loses. 
-								Initial module implementation is completed and is available in version 6.0. Further development of remaining features will be available in future versions.
-							</td>
-						</tr>
-						<tr>
-							<td style="font-family: ambleregular; color:#000; background-color:#eafaea;font-size:12px">
-								HR Manager
-							</td>
-							<td style="font-family: ambleregular; color:#000; background-color:#eafaea;font-size:12px">
-								All employees personal details and job details can be maintained in the system. Module has features to track employee attendance 
-								details and employee leave application details. Further it allows to evaluate employee performance and employee on boarding and 
-								off bording details. Initial module implementation is completed and is available in version 6.0. Further development of remaining features will be available in future versions.
-							</td>
-						</tr>
-						<tr>
-							<td style="font-family: ambleregular; color:#000; background-color:#eafaea;font-size:12px">
-								Payroll Manager
-							</td>
-							<td style="font-family: ambleregular; color:#000; background-color:#eafaea;font-size:12px">
-								Employee salary details can be maintained in this module. Different types of earnings and deductions can be added and payroll process 
-								can be done by generating a salary payment detail script for banks. Module implementation will be completed in version 8.0.
+								Allows to manage company locations, people, company basic information and company structure. 
+                                The information adding under this module is common to the other modules of Red Cherries Accounting.
 							</td>
 						</tr>
 						<tr>
@@ -209,8 +165,8 @@ class About_system_controller extends CI_Controller {
 								Service Manager
 							</td>
 							<td style="font-family: ambleregular; color:#000; background-color:#eafaea;font-size:12px">
-								Allows to manage donations, reserve services(Including reserving rooms/halls etc.), trainings and other types of services. Reservations can be seen on a calendar. 
-								Further, module has features to collect advance payments and collect final payments. Initial module implementation is completed and is available in version 6.0. Further development of remaining features will be available in future versions.
+								Allows to manage services information of an organization. Donation management service is available and more 
+                                services related requirements can be implemented as sub modules.
 							</td>
 						</tr>
 						<tr>
@@ -218,9 +174,10 @@ class About_system_controller extends CI_Controller {
 								Accounts Manager
 							</td>
 							<td style="font-family: ambleregular; color:#000; background-color:#eafaea;font-size:12px">
-								Allows to create a chart of account structure and create prime entry books. Journal entries can be added for a financial year and if required 
-								based on locations. Trial balance, balance sheet and profit and lose accounts can be generated as reports with different search options. Module is completely integrated with Stock Manager and Production Manager modules.
-								Initial module implementation is completed and is available in version 4.0. Further development of remaining features will be available in future versions.
+								Allows to create chart of account structure and create prime entry books. Journal entries can be added for a financial 
+                                year and if required based on locations. Supplier purchasing and customer sales information and their respective return 
+                                information can be added. Payments can be added as cash, cheques and credit cards. Cheques can be handled in the system 
+                                very easily. Trial balance, balance sheet and profit and loss accounts can be generated as reports with different search options.
 							</td>
 						</tr>
 						<tr>
@@ -228,67 +185,20 @@ class About_system_controller extends CI_Controller {
 								User Role Manager
 							</td>
 							<td style="font-family: ambleregular; color:#000; background-color:#eafaea;font-size:12px">
-								Admin and a normal user roles available with default user role permissions. New users can be created for type of admin or normal user. When required 
-								additional user roles can be created with custom permissions and can be assigned to users. Module is completely implemented and available 
-								in version 4.0 Beta 1.
+								Admin and a normal user role available with default user role permissions. New users can be created for type of admin or 
+                                normal user. When required additional user roles can be created with custom permissions and can be assigned to users. 
+                                Complete language pack is available so that language translations can be added easily.
 							</td>
 						</tr>
 
 						<tr>
-							<td colspan="3"><hr style="border-top: 2px solid #00cc30;"></td>
-						</tr>
-
-						<tr>
-							<td colspan="3">
-								<h2 align="center" style="font-family: ambleregular, sans-serif; color:#00acec; font-size:18px">
-									<strong>Price Details</strong>
-								</h2>
-							</td>
-						</tr>
-						<tr>
-							<td colspan="3">
-								<h4 align="center" style="font-family: ambleregular, sans-serif; color:#ff9900; font-size:14px">
-									<strong>Software Price</strong>
-								</h4>
-							</td>
-						</tr>
-						<tr>
-							<td colspan="3">
-								<h4 align="center" style="font-family: ambleregular, sans-serif; color:#00acec; font-size:12px">
-									Software price is based on module selection.
-									Visit Red Cherries Accounting web site https://www.e-erplanner.com and request a quote for your selected modules.
-									<strong style="color:#ff33cc;">
-										Lifetime license with no yearly subscription fee.
-									</strong>
-								</h4>
-							</td>
-						</tr>
-						<tr>
-							<td colspan="3">
-								<h4 align="center" style="font-family: ambleregular, sans-serif; color:#ff9900; font-size:14px">
-									<strong>Support Service Package</strong>
-								</h4>
-							</td>
-						</tr>
-						<tr>
-							<td colspan="3">
-								<h4 align="center" style="font-family: ambleregular, sans-serif; color:#00acec; font-size:12px">
-									To get more advanced support, we offer you a one year support service package. 
-									The package includes three major new feature development requests (A major feature is an estimation
-									of 40 engineering hours from development, quality assurance and project management) and one formal 
-									training program. Additional new feature requests will be implemented with software cost estimations 
-									which will not cover with support service package.
-								</h4>
-							</td>
-						</tr>
-						<tr>
-							<td colspan="3"><hr style="border-top: 2px solid #00cc30;"></td>
+							<td colspan="3"><hr style="border-top: 2px solid #ff9999;"></td>
 						</tr>
 
 						<tr>
 							<td colspan="3">
 								<h2 align="center" style="font-family: ambleregular, sans-serif; color:#00acec; font-size:18px">
-									<strong>Free Support & Updates</strong>
+									<strong>Support & Updates</strong>
 								</h2>
 							</td>
 						</tr>
@@ -296,18 +206,15 @@ class About_system_controller extends CI_Controller {
 							<td colspan="3">
 								<h4 align="center" style="font-family: ambleregular, sans-serif; color:#00acec; font-size:12px">
 									<strong>
-										We offer trainings (At the time of initial deployment) and user guides for each of system module sections. 
-										User guides are included in the system so that users can download.<br><br>You will get unlimited free 
-										upgrades for latest releases. We encourage you to keep your system upgraded to the latest version so 
-										that you will get new features and bug fixes for already identified issues.<br><br>
+										We offer training and cloud hosting services for our valuable customers. Please contact us for more information.<br><br>
 									</strong>
 								</h4>
 							</td>
 						</tr>
 						<tr>
-							<td colspan="3"><hr style="border-top: 2px solid #00cc30;"></td>
+							<td colspan="3"><hr style="border-top: 2px solid #ff9999;"></td>
 						</tr>
-						 <tr>
+						<tr>
 							<td colspan="3">
 								<h2 align="center" style="font-family: ambleregular, sans-serif; color:#00acec; font-size:18px">
 									<strong>For more info contact</strong>
@@ -322,10 +229,6 @@ class About_system_controller extends CI_Controller {
 										<td style="text-align:center; color:#49bf67; width:160px;">+94-77-9738068</td>
 									</tr>
 									<tr>
-										<td style="text-align:center; color:#00acec;">Mike (Secondary Contact)</td>
-										<td style="text-align:center; color:#49bf67;">+94-77-9089655</td>
-									</tr>
-									<tr>
 										<td style="text-align:center; color:#00acec;">Web</td>
 										<td style="text-align:center; color:#49bf67;">https://www.artifectx.com</td>
 									</tr>
@@ -338,10 +241,10 @@ class About_system_controller extends CI_Controller {
 
 						</tr>
 						<tr>
-							<td colspan="3"><hr style="border-top: 2px solid #00cc30;"></td>
+							<td colspan="3"><hr style="border-top: 2px solid #ff9999;"></td>
 						</tr>
 						<tr>
-							<td bgcolor="#00cc30" colspan="3">
+							<td bgcolor="#ff9999" colspan="3">
 								<h4 align="center" style="font-family: ambleregular, sans-serif;">
 									<strong>
 										Artifectx Solutions : The best place to get a quality software solution for your business requirements...
@@ -351,34 +254,20 @@ class About_system_controller extends CI_Controller {
 						</tr>
 					</table>';
 
-			//<td align="center"><img src="'.$baseURL.'assets/images/help.jpeg"/></td>
-			//<td align="center"><img src="'.$baseURL.'assets/images/configure.png"/></td>
-
 			$config = array();
 			$config['useragent']           = "CodeIgniter";
-			//$config['mailpath']            = "C:\xampp\mailtodisk\mailtodisk.exe"; // or "/usr/sbin/sendmail"
 			$config['mailpath']            = "/usr/sbin/sendmail";
 			$config['protocol']            = "smtp";
 			$config['smtp_host']           = "ssl://smtp.gmail.com";
-			$config['smtp_user']           = "sendartifectxmail@gmail.com";
-			$config['smtp_pass']           = "CakckArtifectx123";
+            
+            //Please add your smtp user and the password
+			$config['smtp_user']           = "";
+			$config['smtp_pass']           = "";
+            
 			$config['smtp_port']           = "465";
 			$config['mailtype'] = 'html';
 			$config['charset']  = 'iso-8859-1';
 			$config['wordwrap'] = TRUE;
-
-			/*$config = array();
-			$config['useragent']           = "CodeIgniter";
-			$config['mailpath']            = "C:\xampp\mailtodisk\mailtodisk.exe"; // or "/usr/sbin/sendmail"
-			$config['protocol']            = "smtp";
-			$config['smtp_host']           = "mail.artifectx.com";
-			$config['smtp_user']           = "info@artifectx.com";
-			$config['smtp_pass']           = "Cakck@20562060";
-			$config['smtp_port']           = "25";
-			$config['mailtype'] = 'html';
-			$config['charset']  = 'iso-8859-1';
-			$config['wordwrap'] = TRUE;*/
-
 
 			$this->load->library('email',$config);
 
