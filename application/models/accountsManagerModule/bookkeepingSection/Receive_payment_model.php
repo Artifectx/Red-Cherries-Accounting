@@ -273,6 +273,18 @@ class Receive_payment_model extends CI_Model {
 		}
 	}
     
+    public function getReceivePaymentMethodRecordForCreditCardPayment($creditCardPaymentId) {
+		$this->db->where('credit_card_payment_id', $creditCardPaymentId);
+		$this->db->where('last_action_status !=','deleted');
+		$this->db->limit(1);
+		$query = $this->db->get('acm_bookkeeping_receive_payment_method_records');
+		if ($query->num_rows() == 1) {
+			return $query->result();
+		} else {
+			return false;
+		}
+	}
+    
     public function getReceivePaymentByIdConsideringDeleted($receivePaymentId) {
 		$this->db->where('receive_payment_id', $receivePaymentId);
 		$this->db->limit(1);

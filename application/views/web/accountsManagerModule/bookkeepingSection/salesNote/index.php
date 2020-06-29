@@ -281,6 +281,22 @@
 																</div>
 															</div>
                                                             <div class='form-group'>
+																<label class='control-label col-sm-3'><?php echo $this->lang->line('Credit Card Payment') ?></label>
+																<div class='col-sm-4 controls'>
+																	<input class='form-control' id='credit_card_payment' name='credit_card_payment' disabled
+																		   placeholder='<?php echo $this->lang->line('Credit Card Payment') ?>' type='text' 
+																		   value="<?php echo set_value('credit_card_payment'); ?>">
+																	<div id="credit_card_paymentError" class="red"></div>
+																</div>
+																<div class='col-sm-4 controls'>
+																	<button class='btn btn-success save' id="add_credit_card_payment"
+																			onclick='addCreditCardPayment();' type='button'>
+																		<i class='icon-save'></i>
+																		<?php echo $this->lang->line('Credit Card Payments') ?>
+																	</button>	
+																</div>
+															</div>
+                                                            <div class='form-group'>
                                                                 <label class='control-label col-sm-3'><?php echo $this->lang->line('Balance Amount') ?></label>
                                                                 <div class='col-sm-4 controls' id='sales_balance_amount_div'>
                                                                     <input class='form-control' id='sales_balance_amount_on_payment' name='sales_balance_amount_on_payment' disabled
@@ -621,7 +637,7 @@
 												<div class='box-content'>
 													<div class='form-group'>
 														<div class='col-sm-12 controls'>
-                                                            <input class='form-control' id='receive_payment_id' name='receive_payment_id' type='hidden'>
+                                                            <input class='form-control' id='receive_payment_id_in_cash_payment' name='receive_payment_id_in_cash_payment' type='hidden'>
 															<input class='form-control' id='cash_payment_id' name='cash_payment_id' type='hidden'>
 															<input class='form-control' id='sales_note_id_in_cash_payment' name='sales_note_id_in_cash_payment' type='hidden'>
 															<input class='form-control' id='sales_journal_entry_id_in_cash_payment' name='sales_journal_entry_id_in_cash_payment' type='hidden'>
@@ -715,6 +731,169 @@
 					</div>
 				</div>
 			</div>
+            
+            <div class='modal fade' id='modal-sales_note_credit_card_payments' tabindex='-1'>
+				<div class='modal-dialog' style="height:550px;width:800px">
+					<div class='modal-content'>
+						<div class='modal-header'>
+							<button aria-hidden='true' class='close' data-dismiss='modal' type='button'>x</button>
+							<h4 class='modal-title' id='modal_title'><?php echo $this->lang->line('Credit Card Payments') ?></h4>
+						</div>
+
+						<form enctype="text/plain" accept-charset="utf-8" name="formname" id="credit_card_payment_form"  method="post" action="">
+							<div class='modal-body'>
+								<div class='modal_msg_data'></div>
+								<div id='table'>
+									<div class='row'>
+										<div class='col-sm-12'>
+											<div class='box' id="add_edit_credit_card_payment">
+												<div class='box-header <?php echo BOXHEADER; ?>-background'>
+													<div class='title'><?php echo $this->lang->line('Credit Card Details') ?></div>
+													<div class='actions'>
+														<a class='btn box-collapse btn-xs btn-link' href='#'><i></i>
+														</a>
+													</div>
+												</div>
+												<div class='box-content'>
+													<div class='form-group'>
+														<div class='col-sm-12 controls'>
+															<input class='form-control' id='receive_payment_id_in_credit_card_payment' name='receive_payment_id_in_credit_card_payment' type='hidden'>
+															<input class='form-control' id='credit_card_payment_id' name='credit_card_payment_id' type='hidden'>
+															<input class='form-control' id='sales_note_id_in_credit_card_payment' name='sales_note_id_in_credit_card_payment' type='hidden'>
+															<input class='form-control' id='sales_journal_entry_id_in_credit_card_payment' name='sales_journal_entry_id_in_credit_card_payment' type='hidden'>
+															<input class='form-control' id='customer_id_in_credit_card_payment' name='customer_id_in_credit_card_payment' type='hidden'>
+															<input class='form-control' id='location_id_in_credit_card_payment' name='location_id_in_credit_card_payment' type='hidden'>
+															
+															<label class='control-label col-sm-8'><?php echo $this->lang->line('Date') ?> *</label>
+															<div class='col-sm-6 controls'>
+																<div class='datepicker-input input-group' id='credit_card_payment_datepicker'>
+																	<input class='form-control' id='credit_card_payment_date' name='credit_card_payment_date'
+																		   data-format='YYYY-MM-DD' placeholder='<?php echo $this->lang->line('Date') ?>' type='text' value="<?php echo date('Y-m-d') ?>">
+																	  <span class="input-group-addon">
+																			<span class="glyphicon glyphicon-calendar"/>
+																	  </span>
+																</div>
+																<div id="credit_card_payment_dateError" class="red"></div>
+															</div>
+														</div>
+													</div>
+													<div class='form-group'>
+                                                        <div class='col-sm-12 controls'>
+                                                            <label class='control-label col-sm-8'><?php echo $this->lang->line("Payment Account") ?> *</label>
+                                                            <div class='col-sm-6 controls'>
+                                                                <select id="payment_account_init" class="form-control"><option><?php echo $this->lang->line('-- Select --') ?></option></select>
+                                                                <!--Payment account drop down-->
+                                                                <div id="payment_account_dropdown">
+                                                                </div>
+                                                                <!--End payment account drop down-->
+                                                                <div id="payment_account_idError" class="red"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class='form-group'>
+                                                        <div class='col-sm-12 controls'>
+                                                            <label class='control-label col-sm-8'><?php echo $this->lang->line("Card Type") ?></label>
+                                                            <div class='col-sm-6 controls'>
+                                                                <select id='credit_card_type_init' class='form-control'>
+                                                                    <option value=''><?php echo $this->lang->line('-- Select --') ?></option>
+                                                                    <option value='Visa'><?php echo $this->lang->line('Visa') ?></option>
+                                                                    <option value='Master'><?php echo $this->lang->line('Master') ?></option>
+                                                                </select>
+                                                                <div id='credit_card_type_idError' class='red'></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class='form-group'>
+                                                        <div class='col-sm-12 controls'>
+                                                            <label class='control-label col-sm-8'><?php echo $this->lang->line("Card Payment") ?> *</label>
+                                                            <div class='col-sm-6 controls'>
+                                                                <input class='form-control pos-screen-two-text-field' id='credit_card_payment_amount' name='credit_card_payment_amount' placeholder='<?php echo $this->lang->line('Card Payment') ?>' type='text' value=''>
+                                                                <div id='credit_card_payment_amountError' class='red'></div>
+                                                            </div>
+                                                            <div class='col-sm-6 controls'>
+																<label class='control-label col-sm-5'><?php echo $this->lang->line('Credit Balance') ?></label>
+																<div class='col-sm-6 controls'>
+																	<input class='form-control' id='credit_card_credit_balance' name='credit_card_credit_balance'
+																		   type='text' disabled value="">
+																</div>
+															</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class='form-group'>
+                                                        <div class='col-sm-12 controls'>
+                                                            <div class='col-sm-8 controls'></div>
+                                                            <div class='col-sm-6 controls'>
+                                                                <input type='checkbox' name='include_bank_charge' id='include_bank_charge' style='vertical-align: text-bottom;' onchange='handleIncludeBankChargeSelect(this.id);'>
+                                                                <label for='include_bank_charge'><?php echo $this->lang->line('Include Bank Charge') ?></label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class='form-group'>
+                                                        <div class='col-sm-12 controls'>
+                                                            <label class='control-label col-sm-8'><?php echo $this->lang->line("Total Card Payment") ?></label>
+                                                            <div class='col-sm-6 controls'>
+                                                                <input class='form-control pos-screen-two-text-field' id='total_card_payment' name='total_card_payment' placeholder='<?php echo $this->lang->line('Total Card Payment') ?>' type='text' disabled value=''>
+                                                                <div id='total_card_paymentError' class='red'></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+													<br><br><br><br><br>
+													<p style="margin-bottom:130px">&nbsp;</p>
+													<div class='form-actions' style='margin-bottom:0'>
+														<div class='row'>
+															<div class='col-sm-9 col-sm-offset-3'>
+																<?php
+																if (isset($ACM_Bookkeeping_Add_Sales_Note_Permissions)) {
+																	?>
+																	<button class='btn btn-success save' id="save_receive_credit_card_payment_data"
+																			onclick='saveReceiveCreditCardPaymentData();' type='button'>
+																		<i class='icon-save'></i>
+																		<?php echo $this->lang->line('Save') ?>
+																	</button>
+																	<?php
+																}
+																?>
+
+																<button class='btn btn-primary' type='reset' onclick="clearCreditCardPaymentForm();">
+																	<i class='icon-undo'></i>
+																	<?php echo $this->lang->line('Refresh') ?>
+																</button>
+																<button class='btn btn-warning cancel' onclick='cancelCreditCardPaymentData();'
+																		type='button'>
+																	<i class='icon-ban-circle'></i>
+																	<?php echo $this->lang->line('Close') ?>
+																</button>
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+
+											<div id='table'>
+												<div class='row'>
+													<div class='col-sm-12'>
+														<div class='box bordered-box <?php echo BOXHEADER; ?>-border' style='margin-bottom:0;'>
+															<a class='btn btn-success btn-sm' type='button' onclick="showAddEditCreditCardPaymentForm(this.id);"><?php echo $this->lang->line('Add New Credit Card Payment') ?></a>
+															<p>&nbsp;
+															<!--showing table-->
+															<div id="creditCardPaymentDataTable">
+															</div>
+															<!--end table -->
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</form>
+						<div class='modal-footer'>
+							<button class='btn btn-warning cancel' id="btnClose" data-dismiss='modal' type='button'><?php echo $this->lang->line('Close') ?></button>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 
 <script src="<?php echo base_url(); ?>ajax/jquery.js"></script>
@@ -725,6 +904,7 @@
 	var SalesNoteScreenOperationStatus = '';
 	var SalesNoteIncomeChequeScreenOperationStatus = 'Add';
 	var SalesNoteCashPaymentScreenOperationStatus = 'Add';
+    var SalesNoteCreditCardPaymentScreenOperationStatus = 'Add';
 	
 	var SalesNotePaymentDataSaved = false;
 	var SalesNoteCancelled = false;
@@ -742,6 +922,10 @@
 		});
 		
 		$("#cash_payment_datepicker").datetimepicker({
+			format: 'YYYY-MM-DD'
+		});
+        
+        $("#credit_card_payment_datepicker").datetimepicker({
 			format: 'YYYY-MM-DD'
 		});
 		
@@ -901,6 +1085,27 @@
 		SalesNote.getReceiveChequePaymentList(salesNoteId);
 		openSalesNoteChequePaymentDialog();
 	}
+    
+    function addCreditCardPayment() {
+		
+		var salesNoteId = '';
+		if (SalesNoteScreenOperationStatus == "Add") {
+			salesNoteId = $("#sales_note_id").val();
+			$("#sales_note_id_in_credit_card_payment").val(salesNoteId);
+			$("#sales_journal_entry_id_in_credit_card_payment").val($("#sales_journal_entry_id").val());
+			$("#customer_id_in_credit_card_payment").val($("#customer_id").val());
+			$("#location_id_in_credit_card_payment").val($("#location").val());
+		} else if (SalesNoteScreenOperationStatus == "View") {
+			salesNoteId = $("#sales_note_id_edit").val();
+			$("#sales_note_id_in_credit_card_payment").val(salesNoteId);
+			$("#sales_journal_entry_id_in_credit_card_payment").val($("#sales_journal_entry_id_edit").val());
+			$("#customer_id_in_credit_card_payment").val($("#customer_id_edit").val());
+			$("#location_id_in_credit_card_payment").val($("#location_edit").val());
+		}
+		
+		SalesNote.getReceiveCreditCardPaymentList(salesNoteId);
+		openSalesNoteCreditCardPaymentDialog();
+	}
 
 	function loadPreviousMonthTransactionDetails() {
 		var currentMonth = $("#current_month").val();
@@ -1039,11 +1244,13 @@
                         $("#sales_balance_amount_on_payment").val(balancePayment.toFixed(2));
 						$("#cash_credit_balance").val(balancePayment.toFixed(2));
 						$("#cheque_credit_balance").val(balancePayment.toFixed(2));
+                        $("#credit_card_credit_balance").val(balancePayment.toFixed(2));
 					} else if (SalesNoteScreenOperationStatus == "View") {
                         $("#sales_balance_amount_edit").val(balancePayment.toFixed(2));
 						$("#sales_balance_amount_on_payment_edit").val(balancePayment.toFixed(2));
 						$("#cash_credit_balance").val(balancePayment.toFixed(2));
 						$("#cheque_credit_balance").val(balancePayment.toFixed(2));
+                        $("#credit_card_credit_balance").val(balancePayment.toFixed(2));
 					}
 				} else {
 					if (SalesNoteScreenOperationStatus == "Add") {
@@ -1149,11 +1356,13 @@
                             $("#sales_balance_amount_on_payment").val(balancePayment.toFixed(2));
 							$("#cash_credit_balance").val(balancePayment.toFixed(2));
 							$("#cheque_credit_balance").val(balancePayment.toFixed(2));
+                            $("#credit_card_credit_balance").val(balancePayment.toFixed(2));
 						} else if (SalesNoteScreenOperationStatus == "View") {
 							$("#sales_balance_amount_edit").val(balancePayment.toFixed(2));
                             $("#sales_balance_amount_on_payment_edit").val(balancePayment.toFixed(2));
 							$("#cash_credit_balance").val(balancePayment.toFixed(2));
 							$("#cheque_credit_balance").val(balancePayment.toFixed(2));
+                            $("#credit_card_credit_balance").val(balancePayment.toFixed(2));
 						}
 					}
 				}
@@ -1246,11 +1455,13 @@
                     $("#sales_balance_amount_on_payment").val(balancePayment.toFixed(2));
                     $("#cash_credit_balance").val(balancePayment.toFixed(2));
                     $("#cheque_credit_balance").val(balancePayment.toFixed(2));
+                    $("#credit_card_credit_balance").val(balancePayment.toFixed(2));
                 } else if (SalesNoteScreenOperationStatus == "View") {
                     $("#sales_balance_amount_edit").val(balancePayment.toFixed(2));
                     $("#sales_balance_amount_on_payment_edit").val(balancePayment.toFixed(2));
                     $("#cash_credit_balance").val(balancePayment.toFixed(2));
                     $("#cheque_credit_balance").val(balancePayment.toFixed(2));
+                    $("#credit_card_credit_balance").val(balancePayment.toFixed(2));
                 }
 			}
 			
@@ -1348,11 +1559,13 @@
                             $("#sales_balance_amount_on_payment").val(balancePayment.toFixed(2));
 							$("#cash_credit_balance").val(balancePayment.toFixed(2));
 							$("#cheque_credit_balance").val(balancePayment.toFixed(2));
+                            $("#credit_card_credit_balance").val(balancePayment.toFixed(2));
 						} else if (SalesNoteScreenOperationStatus == "View") {
 							$("#sales_balance_amount_edit").val(balancePayment.toFixed(2));
                             $("#sales_balance_amount_on_payment_edit").val(balancePayment.toFixed(2));
 							$("#cash_credit_balance").val(balancePayment.toFixed(2));
 							$("#cheque_credit_balance").val(balancePayment.toFixed(2));
+                            $("#credit_card_credit_balance").val(balancePayment.toFixed(2));
 						}
 					}
 				}
@@ -1378,11 +1591,13 @@
                         $("#sales_balance_amount_on_payment").val(balancePayment.toFixed(2));
 						$("#cash_credit_balance").val(balancePayment.toFixed(2));
 						$("#cheque_credit_balance").val(balancePayment.toFixed(2));
+                        $("#credit_card_credit_balance").val(balancePayment.toFixed(2));
 					} else if (SalesNoteScreenOperationStatus == "View") {
 						$("#sales_balance_amount_edit").val(balancePayment.toFixed(2));
                         $("#sales_balance_amount_on_payment_edit").val(balancePayment.toFixed(2));
 						$("#cash_credit_balance").val(balancePayment.toFixed(2));
 						$("#cheque_credit_balance").val(balancePayment.toFixed(2));
+                        $("#credit_card_credit_balance").val(balancePayment.toFixed(2));
 					}
 				}
 			}
@@ -1473,11 +1688,13 @@
                             $("#sales_balance_amount_on_payment").val(balancePayment.toFixed(2));
 							$("#cash_credit_balance").val(balancePayment.toFixed(2));
 							$("#cheque_credit_balance").val(balancePayment.toFixed(2));
+                            $("#credit_card_credit_balance").val(balancePayment.toFixed(2));
 						} else if (SalesNoteScreenOperationStatus == "View") {
 							$("#sales_balance_amount_edit").val(balancePayment.toFixed(2));
                             $("#sales_balance_amount_on_payment_edit").val(balancePayment.toFixed(2));
 							$("#cash_credit_balance").val(balancePayment.toFixed(2));
 							$("#cheque_credit_balance").val(balancePayment.toFixed(2));
+                            $("#credit_card_credit_balance").val(balancePayment.toFixed(2));
 						}
 					}
 				}
@@ -1503,11 +1720,13 @@
                         $("#sales_balance_amount_on_payment").val(balancePayment.toFixed(2));
 						$("#cash_credit_balance").val(balancePayment.toFixed(2));
 						$("#cheque_credit_balance").val(balancePayment.toFixed(2));
+                        $("#credit_card_credit_balance").val(balancePayment.toFixed(2));
 					} else if (SalesNoteScreenOperationStatus == "View") {
 						$("#sales_balance_amount_edit").val(balancePayment.toFixed(2));
                         $("#sales_balance_amount_on_payment_edit").val(balancePayment.toFixed(2));
 						$("#cash_credit_balance").val(balancePayment.toFixed(2));
 						$("#cheque_credit_balance").val(balancePayment.toFixed(2));
+                        $("#credit_card_credit_balance").val(balancePayment.toFixed(2));
 					}
 				}
 			}
@@ -1535,6 +1754,15 @@
 		clearCashPaymentForm();
 		$("#add_edit_cash_payment").show();
 	}
+    
+    function showAddEditCreditCardPaymentForm() {
+		SalesNote.hideMessageDisplay();
+        SalesNote.getCardPaymentAccountData();
+		SalesNoteCreditCardPaymentScreenOperationStatus = "Add";
+		$("#credit_card_payment_id").val('');
+		clearCreditCardPaymentForm();
+		$("#add_edit_credit_card_payment").show();
+	}
 
 	function cancelChequePaymentData() {
 		 SalesNote.hideMessageDisplay();
@@ -1544,6 +1772,11 @@
 	function cancelCashPaymentData() {
 		 SalesNote.hideMessageDisplay();
 		$("#add_edit_cash_payment").hide();
+	}
+    
+    function cancelCreditCardPaymentData() {
+		 SalesNote.hideMessageDisplay();
+		$("#add_edit_credit_card_payment").hide();
 	}
 
 	function saveReceiveChequePaymentData() {
@@ -1601,7 +1834,7 @@
 
 		salesNoteId = $("#sales_note_id_in_cash_payment").val();
 		
-		var receiveCashPaymentId = $("#receive_payment_id").val();
+		var receiveCashPaymentId = $("#receive_payment_id_in_cash_payment").val();
         var cashPaymentId = $("#cash_payment_id").val();
 		var salesNoteJournalEntryId = $("#sales_journal_entry_id_in_cash_payment").val();
 		var customerId = $("#customer_id_in_cash_payment").val();
@@ -1623,6 +1856,39 @@
 
 		if (validateForm_saveSalesInvoiceCashPaymentFormData() && $("#cash_amount").val() != "0.00") {
 			SalesNote.saveReceiveCashPaymentData(salesNoteId, receiveCashPaymentId, cashPaymentId, salesNoteJournalEntryId, customerId, locationId, date, amount);
+		}
+	}
+    
+    function saveReceiveCreditCardPaymentData() {
+
+		var salesNoteId = '';
+
+		salesNoteId = $("#sales_note_id_in_credit_card_payment").val();
+		
+		var receiveCreditCardPaymentId = $("#receive_payment_id_in_credit_card_payment").val();
+        var creditCardPaymentId = $("#credit_card_payment_id").val();
+		var salesNoteJournalEntryId = $("#sales_journal_entry_id_in_credit_card_payment").val();
+		var customerId = $("#customer_id_in_credit_card_payment").val();
+		var locationId = $("#location_id_in_credit_card_payment").val();
+		var date = $("#credit_card_payment_date").val();
+        var cardType = $("#credit_card_type_init").val();
+		var amount = $("#credit_card_payment_amount").val();
+        var paymentAccountId = $("#payment_account_id").val();
+
+		if (amount != "") {
+			var creditCardAmountData = amount.split(".");
+			var creditCardAmountDataSize = creditCardAmountData.length;
+
+			if (creditCardAmountDataSize == 1) {
+				amount = amount + ".00";
+				$("#credit_card_payment_amount").val(amount);
+			}
+		} else {
+			$("#credit_card_payment_amount").val("0.00");
+		}
+
+		if (validateForm_saveSalesInvoiceCreditCardPaymentFormData() && $("#credit_card_payment_amount").val() != "0.00") {
+			SalesNote.saveReceiveCreditCardPaymentData(salesNoteId, receiveCreditCardPaymentId, creditCardPaymentId, salesNoteJournalEntryId, customerId, locationId, date, cardType, amount, paymentAccountId);
 		}
 	}
 
@@ -1652,6 +1918,20 @@
 		SalesNoteCashPaymentScreenOperationStatus = "View";
         SalesNote.hideMessageDisplay();
 		SalesNote.getCashPaymentData(salesNoteId, cashPaymentId);
+	}
+    
+    function getCreditCardPaymentData(creditCardPaymentId) {
+        var salesNoteId = '';
+
+		if (SalesNoteScreenOperationStatus == "Add") {
+			salesNoteId = $("#sales_note_id").val();
+		} else {
+			salesNoteId = $("#sales_note_id_edit").val();
+		}
+        
+		SalesNoteCreditCardPaymentScreenOperationStatus = "View";
+        SalesNote.hideMessageDisplay();
+		SalesNote.getCreditCardPaymentData(salesNoteId, creditCardPaymentId);
 	}
 
 	function deleteReceiveChequePayment(receiveChequePaymentId) {
@@ -1752,6 +2032,7 @@
 							$("#sales_note_payment_save").attr('disabled', true);
 							$("#add_cash_payment").attr('disabled', true);
 							$("#add_cheque_payment").attr('disabled', true);
+                            $("#add_credit_card_payment").attr('disabled', true);
 							
 							$("#cancel_sales_note_button_on_sales_note_save").remove();
 							$("#cancel_sales_note_button_on_sales_note_payment_save").remove();
@@ -1841,6 +2122,7 @@
 							$("#sales_note_payment_save").attr('disabled', false);
 							$("#add_cash_payment").attr('disabled', false);
 							$("#add_cheque_payment").attr('disabled', false);
+                            $("#add_credit_card_payment").attr('disabled', false);
 							
 							$("#cancel_sales_note_button_on_sales_note_save").remove();
 							$("#cancel_sales_note_button_on_sales_note_payment_save").remove();
@@ -1955,6 +2237,7 @@
 						$("#cancel_sales_note_button_on_sales_note_payment_save").attr('disabled', false);
 						$("#add_cash_payment").attr('disabled', false);
 						$("#add_cheque_payment").attr('disabled', false);
+                        $("#add_credit_card_payment").attr('disabled', false);
 						$("#sales_note_id").val(response.salesNoteId)
 						$("#sales_journal_entry_id").val(response.salesJournalEntryId);
 						var year = $("#current_year").val();
@@ -2199,17 +2482,21 @@
 						'<?php echo $this->security->get_csrf_token_name(); ?>':
 						'<?php echo $this->security->get_csrf_hash(); ?>'
 					},
+                    beforeSend: function () {
+                        $(".save").attr('disabled', true);
+                    },
 					dataType: 'json',
 					success:
 					function (response) {
 						if (response.result == "ok") {
-							if (SalesNoteScreenOperationStatus == "Add") {
+							if (SalesNoteScreenOperationStatus == "Add" && SalesNoteIncomeChequeScreenOperationStatus == "Add") {
 								$("#cash_payment").val(response.cashPaymentAmount);
 								$("#cheque_payment").val(response.chequePaymentAmount);
 								$("#sales_balance_amount").val(response.balancePaymentAmount);
                                 $("#sales_balance_amount_on_payment").val(response.balancePaymentAmount);
 								$("#cash_credit_balance").val(response.balancePaymentAmount);
 								$("#cheque_credit_balance").val(response.balancePaymentAmount);
+                                $("#credit_card_credit_balance").val(response.balancePaymentAmount);
 							} else if (SalesNoteScreenOperationStatus == "View") {
 								$("#cash_payment_edit").val(response.cashPaymentAmount);
 								$("#cheque_payment_edit").val(response.chequePaymentAmount);
@@ -2217,16 +2504,19 @@
                                 $("#sales_balance_amount_on_payment_edit").val(response.balancePaymentAmount);
 								$("#cash_credit_balance").val(response.balancePaymentAmount);
 								$("#cheque_credit_balance").val(response.balancePaymentAmount);
+                                $("#credit_card_credit_balance").val(response.balancePaymentAmount);
 							}
 							
 							$(".modal_msg_data").show();
 							$(".modal_msg_data").html(msg);
 							SalesNote.getReceiveChequePaymentList(salesNoteId);
 							clearChequeForm();
+                            $(".save").attr('disabled', false);
 						} else if (response.result == 'incorrect_prime_entry_book_selected_for_sales_invoice_transaction') {
 							$(".validation").hide();
 							$(".modal_msg_data").show();
 							$(".modal_msg_data").html(msg_incorrect_prime_entry_book_selected_for_sales_invoice_transaction);
+                            $(".save").attr('disabled', false);
 						}
 					}
 				})
@@ -2250,6 +2540,9 @@
 						'<?php echo $this->security->get_csrf_token_name(); ?>':
 						'<?php echo $this->security->get_csrf_hash(); ?>'
 					},
+                    beforeSend: function () {
+                        $(".save").attr('disabled', true);
+                    },
 					dataType: 'json',
 					success:
 					function (response) {
@@ -2261,6 +2554,7 @@
                                 $("#sales_balance_amount_on_payment").val(response.balancePaymentAmount);
 								$("#cash_credit_balance").val(response.balancePaymentAmount);
 								$("#cheque_credit_balance").val(response.balancePaymentAmount);
+                                $("#credit_card_credit_balance").val(response.balancePaymentAmount);
 							} else if (SalesNoteScreenOperationStatus == "View") {
 								$("#cash_payment_edit").val(response.cashPaymentAmount);
 								$("#cheque_payment_edit").val(response.chequePaymentAmount);
@@ -2268,20 +2562,24 @@
                                 $("#sales_balance_amount_on_payment_edit").val(response.balancePaymentAmount);
 								$("#cash_credit_balance").val(response.balancePaymentAmount);
 								$("#cheque_credit_balance").val(response.balancePaymentAmount);
+                                $("#credit_card_credit_balance").val(response.balancePaymentAmount);
 							}
 							
 							$(".modal_msg_data").show();
 							$(".modal_msg_data").html(msg);
 							SalesNote.getReceiveChequePaymentList(salesNoteId);
 							clearChequeForm();
+                            $(".save").attr('disabled', false);
 						} else if (response.result == 'incorrect_prime_entry_book_selected_for_sales_invoice_transaction') {
 							$(".validation").hide();
 							$(".modal_msg_data").show();
 							$(".modal_msg_data").html(msg_incorrect_prime_entry_book_selected_for_sales_invoice_transaction);
+                            $(".save").attr('disabled', false);
 						} else if (response.result == 'no_changes_to_save') {
 							$(".validation").hide();
 							$(".modal_msg_data").show();
 							$(".modal_msg_data").html(msg_no_changes_to_save);
+                            $(".save").attr('disabled', false);
 						}
 					}
 				})
@@ -2339,6 +2637,7 @@
                                 $("#sales_balance_amount_on_payment").val(response.balancePaymentAmount);
                                 $("#cash_credit_balance").val(response.balancePaymentAmount);
                                 $("#cheque_credit_balance").val(response.balancePaymentAmount);
+                                $("#credit_card_credit_balance").val(response.balancePaymentAmount);
                             } else if (SalesNoteScreenOperationStatus == "View") {
                                 $("#cash_payment_edit").val(response.cashPaymentAmount);
                                 $("#cheque_payment_edit").val(response.chequePaymentAmount);
@@ -2346,6 +2645,7 @@
                                 $("#sales_balance_amount_on_payment_edit").val(response.balancePaymentAmount);
                                 $("#cash_credit_balance").val(response.balancePaymentAmount);
                                 $("#cheque_credit_balance").val(response.balancePaymentAmount);
+                                $("#credit_card_credit_balance").val(response.balancePaymentAmount);
                             }
 
 							$(".modal_msg_data").show();
@@ -2390,11 +2690,146 @@
                             $("#sales_balance_amount_on_payment_edit").val(response.balancePaymentAmount);
                             $("#cash_credit_balance").val(response.balancePaymentAmount);
                             $("#cheque_credit_balance").val(response.balancePaymentAmount);
+                            $("#credit_card_credit_balance").val(response.balancePaymentAmount);
 							
 							$(".modal_msg_data").show();
 							$(".modal_msg_data").html(msg);
 							SalesNote.getReceiveCashPaymentList(salesNoteId);
 							clearCashPaymentForm();
+                            $("#add_edit_cash_payment").hide();
+                            $(".save").attr('disabled', false);
+						} else if (response.result == 'incorrect_prime_entry_book_selected_for_sales_invoice_transaction') {
+							$(".validation").hide();
+							$(".modal_msg_data").show();
+							$(".modal_msg_data").html(msg_incorrect_prime_entry_book_selected_for_sales_invoice_transaction);
+                            $(".save").attr('disabled', false);
+						} else if (response.result == 'no_changes_to_save') {
+							$(".validation").hide();
+							$(".modal_msg_data").show();
+							$(".modal_msg_data").html(msg_no_changes_to_save);
+                            $(".save").attr('disabled', false);
+						}
+					}
+				})
+			}
+		},
+        
+        saveReceiveCreditCardPaymentData: function (salesNoteId, receiveCreditCardPaymentId, creditCardPaymentId, salesNoteJournalEntryId, customerId, locationId, date, cardType, amount, paymentAccountId) {
+
+			var msg = '<div class="alert alert-success alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-ok-sign"></i>' +
+				'<?php echo $this->lang->line('success')?></h4>' +
+				'<?php echo $this->lang->line('success_saved')?>' +
+				'</div>';
+
+			var msg_incorrect_prime_entry_book_selected_for_sales_invoice_transaction = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('incorrect_prime_entry_book_selected_for_sales_invoice_transaction')?>' +
+				'</div>';
+
+			var msg_no_changes_to_save = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('no_changes_to_save')?>' +
+				'</div>';
+
+			if (SalesNoteCreditCardPaymentScreenOperationStatus == "Add") {
+				$.ajax({
+					type: "POST",
+					url: "<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/sales_note_controller/saveReceiveCreditCardPaymentData",
+					data: {
+						'sales_note_id' : salesNoteId,
+						'sales_note_journal_entry_id' : salesNoteJournalEntryId,
+						'customer_id' : customerId,
+						'location_id' : locationId,
+						'date' : date,
+                        'card_type' : cardType,
+						'amount' : amount,
+                        'payment_account_id' : paymentAccountId,
+						'<?php echo $this->security->get_csrf_token_name(); ?>':
+						'<?php echo $this->security->get_csrf_hash(); ?>'
+					},
+                    beforeSend: function () {
+                        $(".save").attr('disabled', true);
+                    },
+					dataType: 'json',
+					success:
+					function (response) {
+						if (response.result == "ok") {
+                            if (SalesNoteScreenOperationStatus == "Add" && SalesNoteCreditCardPaymentScreenOperationStatus == "Add") {
+                                $("#cash_payment").val(response.cashPaymentAmount);
+                                $("#cheque_payment").val(response.chequePaymentAmount);
+                                $("#credit_card_payment").val(response.creditCardPaymentAmount);
+                                $("#sales_balance_amount").val(response.balancePaymentAmount);
+                                $("#sales_balance_amount_on_payment").val(response.balancePaymentAmount);
+                                $("#cash_credit_balance").val(response.balancePaymentAmount);
+                                $("#cheque_credit_balance").val(response.balancePaymentAmount);
+                                $("#credit_card_credit_balance").val(response.balancePaymentAmount);
+                            } else if (SalesNoteScreenOperationStatus == "View") {
+                                $("#cash_payment_edit").val(response.cashPaymentAmount);
+                                $("#cheque_payment_edit").val(response.chequePaymentAmount);
+                                $("#credit_card_payment_edit").val(response.creditCardPaymentAmount);
+                                $("#sales_balance_amount_edit").val(response.balancePaymentAmount);
+                                $("#sales_balance_amount_on_payment_edit").val(response.balancePaymentAmount);
+                                $("#cash_credit_balance").val(response.balancePaymentAmount);
+                                $("#cheque_credit_balance").val(response.balancePaymentAmount);
+                                $("#credit_card_credit_balance").val(response.balancePaymentAmount);
+                            }
+
+							$(".modal_msg_data").show();
+							$(".modal_msg_data").html(msg);
+							SalesNote.getReceiveCreditCardPaymentList(salesNoteId);
+							clearCreditCardPaymentForm();
+                            $("#add_edit_cash_payment").hide();
+                            $(".save").attr('disabled', false);
+						} else if (response.result == 'incorrect_prime_entry_book_selected_for_sales_invoice_transaction') {
+							$(".validation").hide();
+							$(".modal_msg_data").show();
+							$(".modal_msg_data").html(msg_incorrect_prime_entry_book_selected_for_sales_invoice_transaction);
+                            $(".save").attr('disabled', false);
+						}
+					}
+				})
+			} else if (SalesNoteCreditCardPaymentScreenOperationStatus == "View") {
+				$.ajax({
+					type: "POST",
+					url: "<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/sales_note_controller/editReceiveCreditCardPaymentData",
+					data: {
+                        'receive_payment_id' : receiveCreditCardPaymentId,
+                        'credit_card_payment_id' : creditCardPaymentId,
+						'sales_note_id' : salesNoteId,
+						'customer_id' : customerId,
+						'location_id' : locationId,
+						'date' : date,
+                        'card_type' : cardType,
+						'amount' : amount,
+						'<?php echo $this->security->get_csrf_token_name(); ?>':
+						'<?php echo $this->security->get_csrf_hash(); ?>'
+					},
+                    beforeSend: function () {
+                        $(".save").attr('disabled', true);
+                    },
+					dataType: 'json',
+					success:
+					function (response) {
+						if (response.result == "ok") {
+                            $("#cash_payment_edit").val(response.cashPaymentAmount);
+                            $("#cheque_payment_edit").val(response.chequePaymentAmount);
+                            $("#credit_card_payment_edit").val(response.creditCardPaymentAmount);
+                            $("#sales_balance_amount_edit").val(response.balancePaymentAmount);
+                            $("#sales_balance_amount_on_payment_edit").val(response.balancePaymentAmount);
+                            $("#cash_credit_balance").val(response.balancePaymentAmount);
+                            $("#cheque_credit_balance").val(response.balancePaymentAmount);
+                            $("#credit_card_credit_balance").val(response.balancePaymentAmount);
+							
+							$(".modal_msg_data").show();
+							$(".modal_msg_data").html(msg);
+							SalesNote.getReceiveCreditCardPaymentList(salesNoteId);
+							clearCreditCardPaymentForm();
                             $("#add_edit_cash_payment").hide();
                             $(".save").attr('disabled', false);
 						} else if (response.result == 'incorrect_prime_entry_book_selected_for_sales_invoice_transaction') {
@@ -2473,12 +2908,14 @@
 							$("#credit_payment").val(response.creditPaymentAmount);
 							$("#cash_credit_balance").val(response.creditPaymentAmount);
 							$("#cheque_credit_balance").val(response.creditPaymentAmount);
+                            $("#credit_card_credit_balance").val(response.creditPaymentAmount);
 						} else if (SalesNoteScreenOperationStatus == "View") {
 							$("#cash_payment_edit").val(response.cashPaymentAmount);
 							$("#cheque_payment_edit").val(response.chequePaymentAmount);
 							$("#credit_payment_edit").val(response.creditPaymentAmount);
 							$("#cash_credit_balance").val(response.creditPaymentAmount);
 							$("#cheque_credit_balance").val(response.creditPaymentAmount);
+                            $("#credit_card_credit_balance").val(response.creditPaymentAmount);
 						}
 
 						$(".modal_msg_data").show();
@@ -2519,6 +2956,7 @@
                             $("#sales_balance_amount_on_payment").val(response.balancePaymentAmount);
 							$("#cash_credit_balance").val(response.balancePaymentAmount);
 							$("#cheque_credit_balance").val(response.balancePaymentAmount);
+                            $("#credit_card_credit_balance").val(response.balancePaymentAmount);
 						} else if (SalesNoteScreenOperationStatus == "View") {
 							$("#cash_payment_edit").val(response.cashPaymentAmount);
 							$("#cheque_payment_edit").val(response.chequePaymentAmount);
@@ -2526,6 +2964,7 @@
                             $("#sales_balance_amount_on_payment_edit").val(response.balancePaymentAmount);
 							$("#cash_credit_balance").val(response.balancePaymentAmount);
 							$("#cheque_credit_balance").val(response.balancePaymentAmount);
+                            $("#credit_card_credit_balance").val(response.balancePaymentAmount);
 						}
 
 						$(".modal_msg_data").show();
@@ -2555,6 +2994,7 @@
 					$("#edit_sales_note_form_content").html(response.result);
 					$("#cash_credit_balance").val(response.balancePayment);
 					$("#cheque_credit_balance").val(response.balancePayment);
+                    $("#credit_card_credit_balance").val(response.balancePayment);
 					$("#sales_note_edit_box_title").text('<?php echo $this->lang->line('Edit Sales Note') ?>');
 					$(".loader").hide();
 					$("#datepicker_sales_note_date_edit").datetimepicker({
@@ -2618,6 +3058,25 @@
 					$("#cashPaymentDataTable").empty();
 					$("#cashPaymentDataTable").html(response);
 					$(".cashPaymentTable").dataTable();
+				}
+			})
+		},
+        
+        getReceiveCreditCardPaymentList: function(salesNoteId) {
+			$.ajax({
+				type: "POST",
+				url: "<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/sales_note_controller/getReceiveCreditCardPaymentList",
+				data: {
+					'sales_note_id': salesNoteId,
+					'<?php echo $this->security->get_csrf_token_name(); ?>':
+					'<?php echo $this->security->get_csrf_hash(); ?>'
+				},
+				dataType: 'html',
+				success:
+				function (response) {
+					$("#creditCardPaymentDataTable").empty();
+					$("#creditCardPaymentDataTable").html(response);
+					$(".creditCardPaymentTable").dataTable();
 				}
 			})
 		},
@@ -2689,7 +3148,7 @@
 				function (response) {
 					if (response.result == "ok") {
 						$("#add_edit_cash_payment").show();
-                        $("#receive_payment_id").val(response.receiveCashPaymentId);
+                        $("#receive_payment_id_in_cash_payment").val(response.receiveCashPaymentId);
 						$("#cash_payment_id").val(cashPaymentId);
 						$("#cash_payment_date").val(response.date);
 						$("#cash_amount").val(response.amount);
@@ -2698,6 +3157,41 @@
                             $("#save_receive_cash_payment_data").prop('disabled', true);
                         } else {
                             $("#save_receive_cash_payment_data").prop('disabled', false);
+                        }
+					}
+				}
+			})
+		},
+        
+        getCreditCardPaymentData: function (salesNoteId, creditCardPaymentId) {
+
+			$.ajax({
+				type: "POST",
+				url: "<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/sales_note_controller/getCreditCardPaymentData",
+				data: {
+                    'sales_note_id' : salesNoteId,
+					'credit_card_payment_id' : creditCardPaymentId,
+					'<?php echo $this->security->get_csrf_token_name(); ?>':
+					'<?php echo $this->security->get_csrf_hash(); ?>'
+				},
+				dataType: 'json',
+				success:
+				function (response) {
+					if (response.result == "ok") {
+						$("#add_edit_credit_card_payment").show();
+                        $("#receive_payment_id_in_credit_card_payment").val(response.creditCardPaymentId);
+						$("#credit_card_payment_id").val(creditCardPaymentId);
+						$("#credit_card_payment_date").val(response.date);
+                        $("#credit_card_type_init").val(response.cardType);
+						$("#credit_card_payment_amount").val(response.amount);
+                        
+                        SalesNote.getCardPaymentAccountDataWithSavedOption(response.paymentAccountId, "Yes");
+                        $("#payment_account_id").attr("disabled", true);
+                        
+                        if (response.salesNoteStatus == "Claimed") {
+                            $("#save_receive_credit_card_payment_data").prop('disabled', true);
+                        } else {
+                            $("#save_receive_credit_card_payment_data").prop('disabled', false);
                         }
 					}
 				}
@@ -2869,6 +3363,46 @@
 					}
 			})
 		},
+        
+        //get card payment account drop down
+		getCardPaymentAccountData: function () {
+			$.ajax({
+				type: "POST",
+				url: "<?php echo base_url(); ?>accountsManagerModule/adminSection/system_configurations_controller/getCardPaymentAccountData",
+				data: {
+					'<?php echo $this->security->get_csrf_token_name(); ?>':
+					'<?php echo $this->security->get_csrf_hash(); ?>'
+				},
+				dataType: 'json',
+				success:
+				function (response) {
+                    $('#payment_account_init').hide();
+                    $("#payment_account_dropdown").empty();
+                    $("#payment_account_dropdown").html(response.paymentAccountList);
+				}
+			});
+		},
+        
+        //get card payment account drop down
+		getCardPaymentAccountDataWithSavedOption: function (paymentAccountId, disableForEdit) {
+			$.ajax({
+				type: "POST",
+				url: "<?php echo base_url(); ?>accountsManagerModule/adminSection/system_configurations_controller/getCardPaymentAccountDataWithSavedOption",
+				data: {
+                    'payment_account_id' : paymentAccountId,
+                    'disable_for_edit' : disableForEdit,
+					'<?php echo $this->security->get_csrf_token_name(); ?>':
+					'<?php echo $this->security->get_csrf_hash(); ?>'
+				},
+				dataType: 'json',
+				success:
+				function (response) {
+                    $('#payment_account_init').hide();
+                    $("#payment_account_dropdown").empty();
+                    $("#payment_account_dropdown").html(response.paymentAccountList);
+				}
+			});
+		},
 
 		init : function () {
 			$("#table").show();
@@ -2882,6 +3416,7 @@
 			$("#cancel_sales_note_button_on_sales_note_payment_save").attr('disabled', true);
 			$("#add_cash_payment").attr('disabled', true);
 			$("#add_cheque_payment").attr('disabled', true);
+            $("#add_credit_card_payment").attr('disabled', true);
 		},
 
 		hideMessageDisplay : function () {
@@ -2907,7 +3442,6 @@
 	function validateSalesNotePaymentForm() {
 		return (validateCustomerSaleableReturnAmount()
 			&& validateCustomerMarketReturnAmount()
-			&& validateChequePaymentData()
 		);
 	}
 
@@ -2991,31 +3525,7 @@
 		}
 	}
 	
-	function validateChequePaymentData() {
-		if (SalesNoteScreenOperationStatus == "Add") {
-			if ($("#enable_cheque_payment").prop("checked") == true) {
-				return (isNotEmpty("cheque_number", "<?php echo $this->lang->line('Cheque Number').' '.$this->lang->line('field is required')?>")
-					   && isNotEmpty("bank", "<?php echo $this->lang->line('Bank').' '.$this->lang->line('field is required')?>")
-					   && isNotEmpty("cheque_date", "<?php echo $this->lang->line('Cheque Date').' '.$this->lang->line('field is required')?>")
-					   && isNotEmpty("cheque_payment", "<?php echo $this->lang->line('Cheque Payment').' '.$this->lang->line('field is required')?>")
-				);
-			} else {
-				return true;
-			}
-		} else if (SalesNoteScreenOperationStatus == "View") {
-			if ($("#enable_cheque_payment").prop("checked") == true) {
-				return (isNotEmpty("cheque_number_edit", "<?php echo $this->lang->line('Cheque Number').' '.$this->lang->line('field is required')?>")
-					   && isNotEmpty("bank_edit", "<?php echo $this->lang->line('Bank').' '.$this->lang->line('field is required')?>")
-					   && isNotEmpty("cheque_date_edit", "<?php echo $this->lang->line('Cheque Date').' '.$this->lang->line('field is required')?>")
-					   && isNotEmpty("cheque_payment_edit", "<?php echo $this->lang->line('Cheque Payment').' '.$this->lang->line('field is required')?>")
-				);
-			} else {
-				return true;
-			}
-		}
-	}
-	
-	//form validation edit 
+	//form validation save 
 	function validateForm_saveSalesInvoiceIncomeChequeData() {
 		return (isNotEmpty("cheque_payment_date", "<?php echo $this->lang->line('Date').' '.$this->lang->line('field is required')?>")
 			 && isNotEmpty("cheque_number", "<?php echo $this->lang->line('cheque_number').' '.$this->lang->line('field is required')?>")
@@ -3024,10 +3534,17 @@
 			 && isFlootPositive("cheque_amount", "<?php echo $this->lang->line('Amount').' '.$this->lang->line('is not valid')?>"));
 	}
 
-	//form validation edit 
+	//form validation save 
 	function validateForm_saveSalesInvoiceCashPaymentFormData() {
 		return (isNotEmpty("cash_payment_date", "<?php echo $this->lang->line('Date').' '.$this->lang->line('field is required')?>")
 			 && isFlootPositive("cash_amount", "<?php echo $this->lang->line('Amount').' '.$this->lang->line('is not valid')?>"));
+	}
+    
+    //form validation save 
+	function validateForm_saveSalesInvoiceCreditCardPaymentFormData() {
+		return (isNotEmpty("credit_card_payment_date", "<?php echo $this->lang->line('Date').' '.$this->lang->line('field is required')?>")
+			 && isFlootPositive("credit_card_payment_amount", "<?php echo $this->lang->line('Card Payment').' '.$this->lang->line('is not valid')?>")
+             && isSelected("payment_account_id", "<?php echo $this->lang->line('Payment Account').' '.$this->lang->line('field is required')?>"));
 	}
 
 	//get all data
@@ -3092,6 +3609,7 @@
 		$("#sales_note_payment_save").attr('disabled', true);
 		$("#add_cash_payment").attr('disabled', true);
 		$("#add_cheque_payment").attr('disabled', true);
+        $("#add_credit_card_payment").attr('disabled', true);
 		$("#cancel_sales_note_button_on_sales_note_save").remove();
 		$("#cancel_sales_note_button_on_sales_note_payment_save").remove();
 
@@ -3127,8 +3645,20 @@
 		$("#add_edit_cash_payment").hide();
 	}
 
-	function closeSalesNoteChequePaymentDialog() {
+	function closeSalesNoteCashPaymentDialog() {
 		$("#modal-sales_note_cash_payments").modal('hide');
+	}
+    
+    function openSalesNoteCreditCardPaymentDialog() {
+		$(".validation").hide();
+		$(".msg_data").hide();
+        $(".modal_msg_data").hide();
+		$("#modal-sales_note_credit_card_payments").modal('show');
+		$("#add_edit_credit_card_payment").hide();
+	}
+
+	function closeSalesNoteCreditCardPaymentDialog() {
+		$("#modal-sales_note_credit_card_payments").modal('hide');
 	}
 	
 	function clearChequeForm() {
@@ -3145,6 +3675,15 @@
 	function clearCashPaymentForm() {
 		$("#cash_payment_date").val(moment().format('YYYY-MM-DD'));
 		$("#cash_amount").val('');
+	}
+    
+    function clearCreditCardPaymentForm() {
+		$("#credit_card_payment_date").val(moment().format('YYYY-MM-DD'));
+        $("#payment_account_id").val('0');
+		$("#credit_card_type_init").val('');
+        $("#include_bank_charge").prop('checked', false);
+		$("#credit_card_payment_amount").val('');
+        $("#total_card_payment").val('');
 	}
 </script>
 

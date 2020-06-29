@@ -16,7 +16,7 @@ INSERT INTO `system_modules` VALUES (1,'Organization',1,0,'organization.png','sy
 
 INSERT INTO `system_module_sections` VALUES (1,'Administration',1,0,2,NULL),(2,'Product Information',1,0,8,NULL),(3,'Finish Good Inventory',1,0,2,NULL),(4,'Reports',1,0,2,NULL),(5,'Sales',1,0,2,NULL),(6,'Raw Material Inventory',1,0,2,NULL),(7,'Administration',1,0,7,NULL),(8,'Bookkeeping',1,0,7,NULL),(9,'User Roles',1,0,8,NULL),(10,'Organization',1,0,1,NULL),(11,'Administration',1,0,4,NULL),(12,'Administration',1,0,5,NULL),(13,'Administration',1,0,6,1),(14,'Administration',1,0,1,NULL),(16,'Reports',1,0,7,NULL),(17,'Personal Details',1,0,4,NULL),(18,'Time & Attendance',1,0,4,NULL),(19,'Analytics',1,0,4,NULL),(20,'Administration',1,0,6,2),(21,'Administration',1,0,6,3),(22,'Reservation',1,0,6,1),(23,'Donation',1,0,6,3),(24,'Reports',1,0,6,3),(25,'Administration',1,0,3,NULL),(26,'Production',1,0,3,NULL),(27,'Reports',1,0,3,NULL),(28,'Employee Leave',1,0,4,NULL);
 
-INSERT INTO `system_module_section_features` VALUES (1,1,'Administration Section','No'),(2,10,'Company Information','Yes'),(3,14,'Locations','Yes'),(4,2,'User Roles Section','No'),(5,9,'Default User Roles','Yes'),(6,9,'Derive User Roles','Yes'),(7,2,'System Module Sections','Yes'),(8,2,'System Module Section Features','Yes'),(9,9,'Permissions','Yes'),(10,3,'Finish Good Inventory Section','No'),(11,3,'Categories','Yes'),(12,3,'Sub Categories','Yes'),(13,1,'Units','Yes'),(14,1,'Warehouses','Yes'),(15,3,'Products','Yes'),(16,4,'Reports Section','No'),(17,4,'Finish Good Inventory Reports','Yes'),(18,1,'Units Conversions','Yes'),(19,14,'People','Yes'),(20,1,'Vehicle','Yes'),(21,3,'Warehouse Opening Stock','Yes'),(22,3,'Good Receive Note','Yes'),(23,3,'Good Dispatch Note','Yes'),(24,3,'Good Issue Note','Yes'),(25,3,'Good Return Note','Yes'),(26,3,'Warehouse Stock Balance','Yes'),(27,9,'Default User Role Permissions','Yes'),(28,9,'Derive User Role Permissions','Yes'),(29,10,'Company Structure','Yes'),(30,1,'System Configurations','Yes'),(31,9,'Users','Yes'),(32,1,'Tax Types','Yes'),(33,1,'User Actions','Yes'),(34,1,'Tax Chains','Yes'),(35,1,'Delivery Routes','Yes'),(36,3,'Lorry Stock Balance','Yes'),(37,4,'Raw Material Inventory Reports','Yes'),(38,4,'Sales Reports','Yes'),(39,5,'Sales Invoice','Yes'),(40,6,'Raw Material Inventory Section','No'),(41,6,'Categories','Yes'),(42,6,'Sub Categories','Yes'),(43,6,'Raw Materials','Yes'),(44,6,'Warehouse Opening Stock','Yes'),(45,6,'Purchase Order','Yes'),(46,6,'Good Receive Note','Yes'),(47,6,'Good Dispatch Note','Yes'),(48,6,'Good Issue Note','Yes'),(49,6,'Good Return Note','Yes'),(50,6,'Warehouse Stock Balance','Yes'),(51,6,'Lorry Stock Balance','Yes'),(52,5,'Sales Section','No'),(53,3,'Warehouse Stock Update','Yes'),(54,6,'Warehouse Stock Update','Yes'),(55,7,'Bookkeeping Section','No'),(56,7,'Chart of Accounts','Yes'),(57,3,'Purchase Order','Yes'),(58,5,'Sales Return','Yes'),(59,7,'Prime Entry Book','Yes'),(60,8,'Journal Entry','Yes'),(61,8,'General Ledger','Yes'),(62,8,'Administration Section','No'),(63,9,'Product Information Section','No'),(64,10,'Organization Section','No'),(65,11,'Administration Section','No'),(66,12,'Administration Section','No'),(67,13,'Administration Section','No'),(68,14,'Administration Section','No'),(69,7,'System Configurations','Yes'),(71,16,'Bookkeeping Reports','Yes'),(72,11,'Administration Section','No'),(73,11,'Departments','Yes'),(74,11,'Job Titles','Yes'),(75,11,'Employment Status','Yes'),(76,11,'Job Categories','Yes'),(77,11,'Career Paths','Yes'),(78,11,'Screen Field Availability','Yes'),(79,11,'Data Import','Yes'),(80,17,'Personal Details Section','No'),(81,17,'Employee List','Yes'),(82,18,'Time & Attendance Section','No'),(83,18,'Working Shifts','Yes'),(84,18,'Employee Working Rosters','Yes'),(85,18,'Employee Attendance','Yes'),(86,18,'Employee Timesheets','Yes'),(87,19,'Analytics Section','No'),(88,19,'Dynamic Reports','Yes'),(89,3,'Supplier Return','Yes'),(90,1,'Data Import','No'),(91,3,'Product Disposal','Yes'),(92,6,'Supplier Return','Yes'),(93,6,'Raw Material Disposal','Yes'),(94,14,'Google Analytics','Yes'),(95,13,'Administration Section','No'),(96,20,'Administration Section','No'),(97,21,'Administration Section','No'),(98,22,'Reservation','No'),(99,13,'Buildings','Yes'),(100,13,'Halls','Yes'),(101,13,'Rooms','Yes'),(102,1,'Sales Terminals','Yes'),(103,14,'Data Import','No'),(104,1,'Data Import','No'),(105,21,'Programs','Yes'),(106,23,'Collect Donations','Yes'),(107,23,'Program Progress','Yes'),(108,21,'System Configurations','Yes'),(109,24,'Donation Reports','Yes'),(110,1,'Stock Manager Dashboard','Yes'),(111,7,'Accounts Manager Dashboard','Yes'),(112,14,'Territories','Yes'),(113,8,'Purchase Note','Yes'),(114,8,'Sales Note','Yes'),(115,8,'Customer Return Note','Yes'),(116,8,'Supplier Return Note','Yes'),(117,8,'Receive A Payment','Yes'),(118,8,'Make A Payment','Yes'),(119,8,'Cheque List','Yes'),(120,8,'Chart Of Account Balances','Yes'),(121,8,'Stakeholder Account Balances','Yes'),(122,11,'System Configurations','Yes'),(123,14,'Calendar Day Types','Yes'),(124,14,'Organization Calendar','Yes'),(125,14,'System Configurations','Yes'),(126,25,'Administration Section','No'),(127,25,'Machines','Yes'),(128,25,'Production Cost Components','Yes'),(129,25,'Production Process Components','Yes'),(130,25,'Production Processes','Yes'),(131,26,'Raw Material Preparation','Yes'),(132,26,'Finish Good Production','Yes'),(133,27,'Raw Material Preparation Reports','Yes'),(134,27,'Finish Good Production Reports','Yes'),(135,25,'Production Manager Dashboard','Yes'),(136,25,'System Configurations','Yes'),(137,26,'Production Calendar','Yes'),(138,26,'Raw Material Return Note','Yes'),(139,26,'Production Dispatch Note','Yes'),(140,6,'Production Output Note','Yes'),(141,3,'Production Output Note','Yes'),(142,14,'Welfare Companies','Yes'),(143,1,'Cash Units','Yes'),(144,7,'Bank','Yes'),(145,2,'System Language Pack','No'),(146,17,'My Profile','Yes'),(147,1,'Wholesales Categories','Yes'),(148,14,'Welfare Company Credit Accounts','Yes'),(149,28,'Employee Leave Section','No'),(150,28,'Leave Types','Yes');
+INSERT INTO `system_module_section_features` VALUES (1,1,'Administration Section','No'),(2,10,'Company Information','Yes'),(3,14,'Locations','Yes'),(4,2,'User Roles Section','No'),(5,9,'Default User Roles','Yes'),(6,9,'Derive User Roles','Yes'),(7,2,'System Module Sections','Yes'),(8,2,'System Module Section Features','Yes'),(9,9,'Permissions','Yes'),(10,3,'Finish Good Inventory Section','No'),(11,3,'Categories','Yes'),(12,3,'Sub Categories','Yes'),(13,1,'Units','Yes'),(14,1,'Warehouses','Yes'),(15,3,'Products','Yes'),(16,4,'Reports Section','No'),(17,4,'Finish Good Inventory Reports','Yes'),(18,1,'Units Conversions','Yes'),(19,14,'People','Yes'),(20,1,'Vehicle','Yes'),(21,3,'Warehouse Opening Stock','Yes'),(22,3,'Good Receive Note','Yes'),(23,3,'Good Dispatch Note','Yes'),(24,3,'Good Issue Note','Yes'),(25,3,'Good Return Note','Yes'),(26,3,'Warehouse Stock Balance','Yes'),(27,9,'Default User Role Permissions','Yes'),(28,9,'Derive User Role Permissions','Yes'),(29,10,'Company Structure','Yes'),(30,1,'System Configurations','Yes'),(31,9,'Users','Yes'),(32,1,'Tax Types','Yes'),(33,1,'User Actions','Yes'),(34,1,'Tax Chains','Yes'),(35,1,'Delivery Routes','Yes'),(36,3,'Lorry Stock Balance','Yes'),(37,4,'Raw Material Inventory Reports','Yes'),(38,4,'Sales Reports','Yes'),(39,5,'Sales Invoice','Yes'),(40,6,'Raw Material Inventory Section','No'),(41,6,'Categories','Yes'),(42,6,'Sub Categories','Yes'),(43,6,'Raw Materials','Yes'),(44,6,'Warehouse Opening Stock','Yes'),(45,6,'Purchase Order','Yes'),(46,6,'Good Receive Note','Yes'),(47,6,'Good Dispatch Note','Yes'),(48,6,'Good Issue Note','Yes'),(49,6,'Good Return Note','Yes'),(50,6,'Warehouse Stock Balance','Yes'),(51,6,'Lorry Stock Balance','Yes'),(52,5,'Sales Section','No'),(53,3,'Warehouse Stock Update','Yes'),(54,6,'Warehouse Stock Update','Yes'),(55,7,'Bookkeeping Section','No'),(56,7,'Chart of Accounts','Yes'),(57,3,'Purchase Order','Yes'),(58,5,'Sales Return','Yes'),(59,7,'Prime Entry Book','Yes'),(60,8,'Journal Entry','Yes'),(61,8,'General Ledger','Yes'),(62,8,'Administration Section','No'),(63,9,'Product Information Section','No'),(64,10,'Organization Section','No'),(65,11,'Administration Section','No'),(66,12,'Administration Section','No'),(67,13,'Administration Section','No'),(68,14,'Administration Section','No'),(69,7,'System Configurations','Yes'),(71,16,'Bookkeeping Reports','Yes'),(72,11,'Administration Section','No'),(73,11,'Departments','Yes'),(74,11,'Job Titles','Yes'),(75,11,'Employment Status','Yes'),(76,11,'Job Categories','Yes'),(77,11,'Career Paths','Yes'),(78,11,'Screen Field Availability','Yes'),(79,11,'Data Import','Yes'),(80,17,'Personal Details Section','No'),(81,17,'Employee List','Yes'),(82,18,'Time & Attendance Section','No'),(83,18,'Working Shifts','Yes'),(84,18,'Employee Working Rosters','Yes'),(85,18,'Employee Attendance','Yes'),(86,18,'Employee Timesheets','Yes'),(87,19,'Analytics Section','No'),(88,19,'Dynamic Reports','Yes'),(89,3,'Supplier Return','Yes'),(90,1,'Data Import','No'),(91,3,'Product Disposal','Yes'),(92,6,'Supplier Return','Yes'),(93,6,'Raw Material Disposal','Yes'),(94,14,'Google Analytics','Yes'),(95,13,'Administration Section','No'),(96,20,'Administration Section','No'),(97,21,'Administration Section','No'),(98,22,'Reservation','No'),(99,13,'Buildings','Yes'),(100,13,'Halls','Yes'),(101,13,'Rooms','Yes'),(102,1,'Sales Terminals','Yes'),(103,14,'Data Import','No'),(104,1,'Data Import','No'),(105,21,'Programs','Yes'),(106,23,'Collect Donations','Yes'),(107,23,'Program Progress','Yes'),(108,21,'System Configurations','Yes'),(109,24,'Donation Reports','Yes'),(110,1,'Stock Manager Dashboard','Yes'),(111,7,'Accounts Manager Dashboard','Yes'),(112,14,'Territories','Yes'),(113,8,'Purchase Note','Yes'),(114,8,'Sales Note','Yes'),(115,8,'Customer Return Note','Yes'),(116,8,'Supplier Return Note','Yes'),(117,8,'Receive A Payment','Yes'),(118,8,'Make A Payment','Yes'),(119,8,'Cheque List','Yes'),(120,8,'Chart Of Account Balances','Yes'),(121,8,'Stakeholder Account Balances','Yes'),(122,11,'System Configurations','Yes'),(123,14,'Calendar Day Types','Yes'),(124,14,'Organization Calendar','Yes'),(125,14,'System Configurations','Yes'),(126,25,'Administration Section','No'),(127,25,'Machines','Yes'),(128,25,'Production Cost Components','Yes'),(129,25,'Production Process Components','Yes'),(130,25,'Production Processes','Yes'),(131,26,'Raw Material Preparation','Yes'),(132,26,'Finish Good Production','Yes'),(133,27,'Raw Material Preparation Reports','Yes'),(134,27,'Finish Good Production Reports','Yes'),(135,25,'Production Manager Dashboard','Yes'),(136,25,'System Configurations','Yes'),(137,26,'Production Calendar','Yes'),(138,26,'Raw Material Return Note','Yes'),(139,26,'Production Dispatch Note','Yes'),(140,6,'Production Output Note','Yes'),(141,3,'Production Output Note','Yes'),(142,14,'Welfare Companies','Yes'),(143,1,'Cash Units','Yes'),(144,7,'Bank','Yes'),(145,2,'System Language Pack','No'),(146,17,'My Profile','Yes'),(147,1,'Wholesales Categories','Yes'),(148,14,'Welfare Company Credit Accounts','Yes'),(149,28,'Employee Leave Section','No'),(150,28,'Leave Types','Yes'),(151,8,'Opening Balances','Yes');
 
 INSERT INTO `system_sub_modules` VALUES (1,6,'Reservation Manager',1,0,'reservation_manager.png','systemManagerModule/dashboard_controller/dashboardReservationManager'),(2,6,'School Manager',1,0,'school_manager.png','systemManagerModule/dashboard_controller/dashboardSchoolManager'),(3,6,'Donation Manager',1,0,'donation_manager.png','systemManagerModule/dashboard_controller/dashboardDonationManager');
 
@@ -3265,7 +3265,36 @@ INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,
 ('Save Opening Balances', 'display_string', '7', 'Opening Balances Screen'),
 ('Payee or Payer', 'display_string', '7', 'Opening Balances Screen'),
 ('Opening Balance Date', 'display_string', '7', 'Opening Balances Screen'),
-('Select opening balance equity chart of account', 'display_string', '7', 'Opening Balances Screen');
+('Select opening balance equity chart of account', 'display_string', '7', 'Opening Balances Screen'),
+('Dr Amount', 'message', '7', 'Opening Balances Screen'),
+('Cr Amount', 'message', '7', 'Opening Balances Screen'),
+('Debit amount total and Credit amount total not equal!', 'message', '7', 'Opening Balances Screen'),
+('Opening balance equity account is not specified in opening balance configurations!', 'message', '7', 'Opening Balances Screen'),
+('Journal entry for sales note sales entry for Sales Note number : ', 'message', '7', 'Sales Note Screen'),
+('Journal entry for sales note cost entry for Sales Note  number : ', 'message', '7', 'Sales Note Screen'),
+('Journal entry for sales note discount for Sales Note number : ', 'message', '7', 'Sales Note Screen'),
+('Journal entry for sales note free issue for Sales Note number : ', 'message', '7', 'Sales Note Screen'),
+('Journal entry for receiving sales items for Purchase Note number : ', 'message', '7', 'Purchase Note Screen'),
+('Journal entry for receiving free items for Purchase Note number : ', 'message', '7', 'Purchase Note Screen'),
+('Journal entry for saleable return sales entry for Customer Return Note number : ', 'message', '7', 'Customer Return Note Screen'),
+('Journal entry for saleable return cost entry for Customer Return Note number : ', 'message', '7', 'Customer Return Note Screen'),
+('Journal entry for market return sales entry for Customer Return Note number : ', 'message', '7', 'Customer Return Note Screen'),
+('Journal entry for market return cost entry for Customer Return Note number : ', 'message', '7', 'Customer Return Note Screen'),
+('Journal entry for saleable return for Supplier Return Note number : ', 'message', '7', 'Supplier Return Note Screen'),
+('Journal entry for market return for Supplier Return Note number : ', 'message', '7', 'Supplier Return Note Screen'),
+('Select cheque in hand chart of account', 'message', '7', 'System Configurations Screen'),
+('About Red Cherries Accounting', 'message', '0', ''),
+('Red Cherries Accounting Overview', 'message', '0', ''),
+('Best online accounts management solution from Artifectx Solutions.', 'message', '0', ''),
+('Allows to manage company locations, people, company basic information and company structure. The information adding under this module is common to the other modules of Red Cherries Accounting.', 'message', '0', ''),
+('Allows to manage services information of an organization. Donation management service is available and more services related requirements can be implemented as sub modules.', 'message', '0', ''),
+('Allows to create chart of account structure and create prime entry books. Journal entries can be added for a financial year and if required based on locations. Supplier purchasing and customer sales information and their respective return information can be added. Payments can be added as cash, cheques and credit cards. Cheques can be handled in the system very easily. Trial balance, balance sheet and profit and loss accounts can be generated as reports with different search options.', 'message', '0', ''),
+('Admin and a normal user role available with default user role permissions. New users can be created for type of admin or normal user. When required additional user roles can be created with custom permissions and can be assigned to users. Complete language pack is available so that language translations can be added easily.', 'message', '0', ''),
+('Tell about Red Cherries Accounting to a friend', 'message', '0', ''),
+('Add New Credit Card Payment', 'display_string', '7', 'Sales Note Screen'),
+('Company Structure Sucessfully Saved', 'message', '1', 'Company Structure Screen'),
+('Company Sucessfully Deleted', 'message', '1', 'Company Structure Screen'),
+('Company Sucessfully Moved', 'message', '1', 'Company Structure Screen');
 
 /*Data for the table `system_language_translations` */
 INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
@@ -6460,7 +6489,36 @@ INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`
 ('3185', 'English', 'Save Opening Balances'),
 ('3186', 'English', 'Payee or Payer'),
 ('3187', 'English', 'Opening Balance Date'),
-('3188', 'English', 'Select opening balance equity chart of account');
+('3188', 'English', 'Select opening balance equity chart of account'),
+('3189', 'English', 'Dr Amount'),
+('3190', 'English', 'Cr Amount'),
+('3191', 'English', 'Debit amount total and Credit amount total not equal!'),
+('3192', 'English', 'Opening balance equity account is not specified in opening balance configurations!'),
+('3193', 'English', 'Journal entry for sales note sales entry for Sales Note number : '),
+('3194', 'English', 'Journal entry for sales note cost entry for Sales Note  number : '),
+('3195', 'English', 'Journal entry for sales note discount for Sales Note number : '),
+('3196', 'English', 'Journal entry for sales note free issue for Sales Note number : '),
+('3197', 'English', 'Journal entry for receiving sales items for Purchase Note number : '),
+('3198', 'English', 'Journal entry for receiving free items for Purchase Note number : '),
+('3199', 'English', 'Journal entry for saleable return sales entry for Customer Return Note number : '),
+('3200', 'English', 'Journal entry for saleable return cost entry for Customer Return Note number : '),
+('3201', 'English', 'Journal entry for market return sales entry for Customer Return Note number : '),
+('3202', 'English', 'Journal entry for market return cost entry for Customer Return Note number : '),
+('3203', 'English', 'Journal entry for saleable return for Supplier Return Note number : '),
+('3204', 'English', 'Journal entry for market return for Supplier Return Note number : '),
+('3205', 'English', 'Select cheque in hand chart of account'),
+('3206', 'English', 'About Red Cherries Accounting'),
+('3207', 'English', 'Red Cherries Accounting Overview'),
+('3208', 'English', 'Best online accounts management solution from Artifectx Solutions.'),
+('3209', 'English', 'Allows to manage company locations, people, company basic information and company structure. The information adding under this module is common to the other modules of Red Cherries Accounting.'),
+('3210', 'English', 'Allows to manage services information of an organization. Donation management service is available and more services related requirements can be implemented as sub modules.'),
+('3211', 'English', 'Allows to create chart of account structure and create prime entry books. Journal entries can be added for a financial year and if required based on locations. Supplier purchasing and customer sales information and their respective return information can be added. Payments can be added as cash, cheques and credit cards. Cheques can be handled in the system very easily. Trial balance, balance sheet and profit and loss accounts can be generated as reports with different search options.'),
+('3212', 'English', 'Admin and a normal user role available with default user role permissions. New users can be created for type of admin or normal user. When required additional user roles can be created with custom permissions and can be assigned to users. Complete language pack is available so that language translations can be added easily.'),
+('3213', 'English', 'Tell about Red Cherries Accounting to a friend'),
+('3214', 'English', 'Add New Credit Card Payment'),
+('3215', 'English', 'Company Structure Sucessfully Saved'),
+('3216', 'English', 'Company Sucessfully Deleted'),
+('3217', 'English', 'Company Sucessfully Moved');
 
 /*Data for the table `system_common_configurations` */
 INSERT  INTO `system_common_configurations`(`config_filed_name`,`config_filed_value`) VALUES
@@ -6776,231 +6834,3 @@ VALUES
 ('YE', 'YEMEN', 'Yemen', 'YEM', 887),
 ('ZM', 'ZAMBIA', 'Zambia', 'ZMB', 894),
 ('ZW', 'ZIMBABWE', 'Zimbabwe', 'ZWE', 716);
-
-INSERT INTO `system_module_section_features` VALUES (151,8,'Opening Balances','Yes');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Dr Amount', 'message', '7', 'Opening Balances Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Dr Amount');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Cr Amount', 'message', '7', 'Opening Balances Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Cr Amount');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Debit amount total and Credit amount total not equal!', 'message', '7', 'Opening Balances Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Debit amount total and Credit amount total not equal!');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Opening balance equity account is not specified in opening balance configurations!', 'message', '7', 'Opening Balances Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Opening balance equity account is not specified in opening balance configurations!');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Journal entry for sales note sales entry for Sales Note number : ', 'message', '7', 'Sales Note Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Journal entry for sales note sales entry for Sales Note number : ');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Journal entry for sales note cost entry for Sales Note  number : ', 'message', '7', 'Sales Note Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Journal entry for sales note cost entry for Sales Note  number : ');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Journal entry for sales note discount for Sales Note number : ', 'message', '7', 'Sales Note Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Journal entry for sales note discount for Sales Note number : ');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Journal entry for sales note free issue for Sales Note number : ', 'message', '7', 'Sales Note Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Journal entry for sales note free issue for Sales Note number : ');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Journal entry for receiving sales items for Purchase Note number : ', 'message', '7', 'Purchase Note Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Journal entry for receiving sales items for Purchase Note number : ');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Journal entry for receiving free items for Purchase Note number : ', 'message', '7', 'Purchase Note Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Journal entry for receiving free items for Purchase Note number : ');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Journal entry for saleable return sales entry for Customer Return Note number : ', 'message', '7', 'Customer Return Note Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Journal entry for saleable return sales entry for Customer Return Note number : ');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Journal entry for saleable return cost entry for Customer Return Note number : ', 'message', '7', 'Customer Return Note Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Journal entry for saleable return cost entry for Customer Return Note number : ');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Journal entry for market return sales entry for Customer Return Note number : ', 'message', '7', 'Customer Return Note Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Journal entry for market return sales entry for Customer Return Note number : ');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Journal entry for market return cost entry for Customer Return Note number : ', 'message', '7', 'Customer Return Note Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Journal entry for market return cost entry for Customer Return Note number : ');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Journal entry for saleable return for Supplier Return Note number : ', 'message', '7', 'Supplier Return Note Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Journal entry for saleable return for Supplier Return Note number : ');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Journal entry for market return for Supplier Return Note number : ', 'message', '7', 'Supplier Return Note Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Journal entry for market return for Supplier Return Note number : ');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Select cheque in hand chart of account', 'message', '7', 'System Configurations Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Select cheque in hand chart of account');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('About Red Cherries Accounting', 'message', '0', '');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','About Red Cherries Accounting');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Red Cherries Accounting Overview', 'message', '0', '');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Red Cherries Accounting Overview');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Best online accounts management solution from Artifectx Solutions.', 'message', '0', '');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Best online accounts management solution from Artifectx Solutions.');
-
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Allows to manage company locations, people, company basic information and company structure. The information adding under this module is common to the other modules of Red Cherries Accounting.', 'message', '0', '');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Allows to manage company locations, people, company basic information and company structure. The information adding under this module is common to the other modules of Red Cherries Accounting.');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Allows to manage services information of an organization. Donation management service is available and more services related requirements can be implemented as sub modules.', 'message', '0', '');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Allows to manage services information of an organization. Donation management service is available and more services related requirements can be implemented as sub modules.');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Allows to create chart of account structure and create prime entry books. Journal entries can be added for a financial year and if required based on locations. Supplier purchasing and customer sales information and their respective return information can be added. Payments can be added as cash, cheques and credit cards. Cheques can be handled in the system very easily. Trial balance, balance sheet and profit and loss accounts can be generated as reports with different search options.', 'message', '0', '');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Allows to create chart of account structure and create prime entry books. Journal entries can be added for a financial year and if required based on locations. Supplier purchasing and customer sales information and their respective return information can be added. Payments can be added as cash, cheques and credit cards. Cheques can be handled in the system very easily. Trial balance, balance sheet and profit and loss accounts can be generated as reports with different search options.');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Admin and a normal user role available with default user role permissions. New users can be created for type of admin or normal user. When required additional user roles can be created with custom permissions and can be assigned to users. Complete language pack is available so that language translations can be added easily.', 'message', '0', '');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Admin and a normal user role available with default user role permissions. New users can be created for type of admin or normal user. When required additional user roles can be created with custom permissions and can be assigned to users. Complete language pack is available so that language translations can be added easily.');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Tell about Red Cherries Accounting to a friend', 'message', '0', '');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Tell about Red Cherries Accounting to a friend');

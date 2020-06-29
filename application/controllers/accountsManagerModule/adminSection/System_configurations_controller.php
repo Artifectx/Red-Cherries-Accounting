@@ -2869,7 +2869,41 @@ class System_configurations_controller extends CI_Controller {
 				$accountsPrimeEntryBook = $this->prime_entry_book_model->getPrimeEntryBookById($accountsPrimeEntryBookId);
 				$accountsPrimeEntryBookName = $accountsPrimeEntryBook[0]->prime_entry_book_name;
 
-				$paymentAccountList .=          "<option value='" . $accountsPrimeEntryBookId  . "' >" . $accountsPrimeEntryBookName . "</option>";
+                $paymentAccountList .=          "<option value='" . $accountsPrimeEntryBookId  . "' >" . $accountsPrimeEntryBookName . "</option>";
+            }
+        }
+		
+		$paymentAccountList .="   </select>";
+
+		echo json_encode(array('paymentAccountList' => $paymentAccountList));
+	}
+    
+    public function getCardPaymentAccountDataWithSavedOption() {
+        $selectedIndex = $this->db->escape_str($this->input->post('payment_account_id'));
+        $disableForEdit = $this->db->escape_str($this->input->post('disable_for_edit'));
+        
+		$accountsPrimeEntryBooks = $this->system_configurations_model->getReceivePaymentCreditCardAccountsPrimeEntryBooks();
+
+        if ($disableForEdit == "Yes") {
+            $paymentAccountList  = "   <select class='select2 form-control' id='payment_account_id' disabled>";
+        } else {
+            $paymentAccountList  = "   <select class='select2 form-control' id='payment_account_id'>";
+        }
+        
+		$paymentAccountList .= "        <option value='0' >{$this->lang->line('-- Select --')}</option>";
+										
+		if ($accountsPrimeEntryBooks && sizeof($accountsPrimeEntryBooks) > 0) {
+			foreach ($accountsPrimeEntryBooks as $accountsPrimeEntryBook) {
+				$accountsPrimeEntryBookId = $accountsPrimeEntryBook->config_filed_value;
+
+				$accountsPrimeEntryBook = $this->prime_entry_book_model->getPrimeEntryBookById($accountsPrimeEntryBookId);
+				$accountsPrimeEntryBookName = $accountsPrimeEntryBook[0]->prime_entry_book_name;
+
+                if ($selectedIndex != '') {
+                    $paymentAccountList .=          "<option value='" . $accountsPrimeEntryBookId  . "' selected>" . $accountsPrimeEntryBookName . "</option>";
+                } else {
+                    $paymentAccountList .=          "<option value='" . $accountsPrimeEntryBookId  . "' >" . $accountsPrimeEntryBookName . "</option>";
+                }
 			}
 		}
 		

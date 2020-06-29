@@ -879,14 +879,14 @@
 
 				$(".loader").hide();
 
-				setTimeout(function(){
-					var html = "<object data='<?php echo base_url(); ?>temporaryFiles/Debtors.pdf' type='application/pdf' width='100%' height='100%'>" +
-									"<p>Your web browser doesnt have a PDF plugin. " +
-									"Instead you can <a href='<?php echo base_url(); ?>temporaryFiles/Debtors.pdf'>click here to " +
-									"download the PDF file.</a></p>" +
-								"</object>";
-					$("#report_result").append(html);
-				}, 8500);
+//				setTimeout(function(){
+//					var html = "<object data='<?php echo base_url(); ?>temporaryFiles/Debtors.pdf' type='application/pdf' width='100%' height='100%'>" +
+//									"<p>Your web browser doesnt have a PDF plugin. " +
+//									"Instead you can <a href='<?php echo base_url(); ?>temporaryFiles/Debtors.pdf'>click here to " +
+//									"download the PDF file.</a></p>" +
+//								"</object>";
+//					$("#report_result").append(html);
+//				}, 8500);
 			}
 		} else if(bookkeepingReportType == 'Creditors'){
 
@@ -1310,8 +1310,16 @@
 					},
 					dataType: 'html',
 					success:function (response) {
+                        
 					}
-				})
+				}).done(function() {
+                    var html = "<object data='<?php echo base_url(); ?>temporaryFiles/Debtors.pdf' type='application/pdf' width='100%' height='100%'>" +
+									"<p>Your web browser doesnt have a PDF plugin. " +
+									"Instead you can <a href='<?php echo base_url(); ?>temporaryFiles/Debtors.pdf'>click here to " +
+									"download the PDF file.</a></p>" +
+								"</object>";
+					$("#report_result").append(html);
+                });
 			}
 		},
 		

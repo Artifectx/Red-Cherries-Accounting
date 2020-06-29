@@ -239,6 +239,20 @@ class Payments_model extends CI_Model {
 		return  true;
 	}
     
+    public function addCreditCardPayment($data) {
+		$this->db->insert('acm_bookkeeping_credit_card_payment', $data);
+		$this->db->limit(1);
+		$insert_id = $this->db->insert_id();
+		return  $insert_id;
+	}
+    
+    public function addCreditCardPaymentToHistory($data) {
+		$this->db->insert('acm_bookkeeping_credit_card_payment_history', $data);
+		$this->db->limit(1);
+		$this->db->insert_id();
+		return  true;
+	}
+    
     public function editCreditCardPayment($id, $data) {
 		$this->db->where('credit_card_payment_id', $id);
 		$this->db->update('acm_bookkeeping_credit_card_payment', $data);
@@ -413,21 +427,7 @@ class Payments_model extends CI_Model {
 			return false;
 		}
 	}
-	
-	public function addCreditCardPayment($data) {
-		$this->db->insert('acm_bookkeeping_credit_card_payment', $data);
-		$this->db->limit(1);
-		$insert_id = $this->db->insert_id();
-		return  $insert_id;
-	}
     
-    public function addCreditCardPaymentToHistory($data) {
-		$this->db->insert('acm_bookkeeping_credit_card_payment_history', $data);
-		$this->db->limit(1);
-		$this->db->insert_id();
-		return  true;
-	}
-	
 	public function getCreditCardPaymentListBySalesInvoiceId($salesInvoiceId) {
 		$this->db->where('sales_invoice_id', $salesInvoiceId);
 		$this->db->where('last_action_status !=','deleted');
