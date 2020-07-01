@@ -6834,3 +6834,21 @@ VALUES
 ('YE', 'YEMEN', 'Yemen', 'YEM', 887),
 ('ZM', 'ZAMBIA', 'Zambia', 'ZMB', 894),
 ('ZW', 'ZIMBABWE', 'Zimbabwe', 'ZWE', 716);
+
+/*Data for the table `system_language_strings` */
+INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Claimed Customer Returns', 'display_string', '7', 'Reports Screen');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Claimed Customer Returns');
+
+/*Data for the table `system_language_strings` */
+INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Total Customer Returns Claimed', 'display_string', '7', 'Reports Screen');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Total Customer Returns Claimed');

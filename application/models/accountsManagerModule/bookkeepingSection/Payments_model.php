@@ -79,6 +79,18 @@ class Payments_model extends CI_Model {
 		}
 	}
     
+    public function getDeletedIncomeChequeById($id) {
+		$this->db->where('cheque_id', $id);
+		$this->db->where('last_action_status','deleted');
+		$this->db->limit(1);
+		$query = $this->db->get('acm_bookkeeping_income_cheque');
+		if ($query->num_rows() == 1) {
+			return $query->result();
+		} else {
+			return false;
+		}
+	}
+    
     public function getIncomeChequeByChequeNumber($chequeNumber) {
 		$this->db->where('cheque_number', $chequeNumber);
 		$this->db->where('last_action_status !=','deleted');

@@ -692,19 +692,8 @@
 
 		//Draw Income Vs Expense Graphs
 		setTimeout(function(){
-			Dashboard.getTopTenExpenseAccountsComparisonDetails(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate, 'SemiDonutGraph');
-			Dashboard.getDebtorList(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate);
-			Dashboard.getCreditorList(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate);
-			Dashboard.getLiabilitiesComparisonDetails('SemiDonutGraph');
-		}, 2000);
-		
-		setTimeout(function(){
-			Dashboard.getAssetsComparisonDetails('SemiDonutGraph');
-		}, 12000);
-		
-		setTimeout(function(){
-			Dashboard.getIncomeAndExpenseComparisonDetails(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate, '', '', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '');
-		}, 16000);
+            Dashboard.getIncomeAndExpenseComparisonDetails(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate, '', '', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', '', "Yes");
+		}, 600);
 	});
 	
 	function handleIncomeVsExpenseAnalyticalPeriodSelect(id) {
@@ -722,36 +711,36 @@
 
 		if (option == "1") {
 			//This financial year
-			Dashboard.getIncomeAndExpenseComparisonDetails(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate, '', '', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', locationId);
+			Dashboard.getIncomeAndExpenseComparisonDetails(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate, '', '', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', locationId, "No");
 		} else if (option == "2") {
 			//Last financial year
-			Dashboard.getIncomeAndExpenseComparisonDetails(LastFinancialYearStartDate, LastFinancialYearEndDate, '', '', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', locationId);
+			Dashboard.getIncomeAndExpenseComparisonDetails(LastFinancialYearStartDate, LastFinancialYearEndDate, '', '', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', locationId, "No");
 		} else if (option == "3") {
 			//Compare with last financial year
-			Dashboard.getIncomeAndExpenseComparisonDetails(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate, '', '', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', 'Yes', LastFinancialYearStartDate, LastFinancialYearEndDate, locationId);
+			Dashboard.getIncomeAndExpenseComparisonDetails(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate, '', '', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', 'Yes', LastFinancialYearStartDate, LastFinancialYearEndDate, locationId, "No");
 		} else if (option == "4") {
 			//Current month weekly status
 			fromDate = year + '-' + month + '-01';
 			toDate = year + '-' + month + '-' + days;
-			Dashboard.getIncomeAndExpenseComparisonDetails(fromDate, toDate, month, 'WeeklyGraph', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', locationId);
+			Dashboard.getIncomeAndExpenseComparisonDetails(fromDate, toDate, month, 'WeeklyGraph', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', locationId, "No");
 		} else if (option == "5") {
 			//Last month weekly status
 			month = month - 1;
 			fromDate = year + '-' + month + '-01';
 			toDate = year + '-' + month + '-' + days;
-			Dashboard.getIncomeAndExpenseComparisonDetails(fromDate, toDate, month, 'WeeklyGraph', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', locationId);
+			Dashboard.getIncomeAndExpenseComparisonDetails(fromDate, toDate, month, 'WeeklyGraph', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', locationId, "No");
 		} else if (option == "6") {
 			//First quarter of the financial year
-			Dashboard.getIncomeAndExpenseComparisonDetails(FirstQuarterStartDate, FirstQuarterEndDate, '', '', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', locationId);
+			Dashboard.getIncomeAndExpenseComparisonDetails(FirstQuarterStartDate, FirstQuarterEndDate, '', '', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', locationId, "No");
 		} else if (option == "7") {
 			//Second quarter of the financial year
-			Dashboard.getIncomeAndExpenseComparisonDetails(SecondQuarterStartDate, SecondQuarterEndDate, '', '', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', locationId);
+			Dashboard.getIncomeAndExpenseComparisonDetails(SecondQuarterStartDate, SecondQuarterEndDate, '', '', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', locationId, "No");
 		} else if (option == "8") {
 			//Third quarter of the financial year
-			Dashboard.getIncomeAndExpenseComparisonDetails(ThirdQuarterStartDate, ThirdQuarterEndDate, '', '', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', locationId);
+			Dashboard.getIncomeAndExpenseComparisonDetails(ThirdQuarterStartDate, ThirdQuarterEndDate, '', '', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', locationId, "No");
 		} else if (option == "9") {
 			//Fourth quarter of the financial year
-			Dashboard.getIncomeAndExpenseComparisonDetails(FourthQuarterStartDate, FourthQuarterEndDate, '', '', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', locationId);
+			Dashboard.getIncomeAndExpenseComparisonDetails(FourthQuarterStartDate, FourthQuarterEndDate, '', '', 'BarGraph', 'Income Vs Expense', 'Income & Expense', 'Amount', '470', '300', '', '', '', locationId, "No");
 		}
 	}
 	
@@ -767,7 +756,7 @@
 			chartType = "Bar3DGraph";
 		}
 		
-		Dashboard.getAssetsComparisonDetails(chartType, locationId);
+		Dashboard.getAssetsComparisonDetails(chartType, locationId, "No");
 	}
 	
 	function handleLiabilitiesGraphTypeSelect(id) {
@@ -782,7 +771,7 @@
 			chartType = "Bar3DGraph";
 		}
 		
-		Dashboard.getLiabilitiesComparisonDetails(chartType, locationId);
+		Dashboard.getLiabilitiesComparisonDetails(chartType, locationId, "No");
 	}
 	
 	function handleTopExpenseGraphTypeSelect(id) {
@@ -797,7 +786,7 @@
 			chartType = "Bar3DGraph";
 		}
 		
-		Dashboard.getTopTenExpenseAccountsComparisonDetails(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate, chartType, locationId);
+		Dashboard.getTopTenExpenseAccountsComparisonDetails(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate, chartType, locationId, "No");
 	}
 	
 	function handleLocationSelect (id) {
@@ -810,7 +799,7 @@
 		} else if (id == "location_id_in_expense_accounts") {
 			handleTopExpenseGraphTypeSelect("top_expense_graph_type", '');
 		} else if (id == "location_id_in_debtor_list") {
-			Dashboard.getDebtorList(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate);
+			Dashboard.getDebtorList(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate, "No");
 		} else if (id == "location_id_in_creditor_list") {
 			Dashboard.getCreditorList(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate);
 		}
@@ -823,7 +812,9 @@
 	var Dashboard = {
 		
 		//Get income and expense comparision details
-		getIncomeAndExpenseComparisonDetails: function (fromDate, toDate, month, weeklyGraph, chartType, displayGraphTitle, xAxisTitle, yAxisTitle, graphHeight, graphWidth, compareWithLastFinancialYear, lastFinancialYearStartDate, lastFinancialYearEndDate, locationId){
+		getIncomeAndExpenseComparisonDetails: function (fromDate, toDate, month, weeklyGraph, chartType, displayGraphTitle, xAxisTitle, 
+                                                        yAxisTitle, graphHeight, graphWidth, compareWithLastFinancialYear, 
+                                                        lastFinancialYearStartDate, lastFinancialYearEndDate, locationId, initialCall){
 			
 			$("#income_vs_expense_graph_result").empty();
 			$("#income_vs_expense_graph_result").append("<div class='loader_income_vs_expense' align='center'><img src='<?php echo base_url();?>assets/images/ajax-loaders/4.gif'/> Loading the graph...</div>");
@@ -858,11 +849,15 @@
 						$("#income_vs_expense_graph_result").html(response);
 					}
 				}
-			});
+			}).done(function() {
+                if (initialCall == "Yes") {
+                    Dashboard.getAssetsComparisonDetails('SemiDonutGraph', '', initialCall);
+                }
+            });
 		},
 		
 		//Get assets comparision details
-		getAssetsComparisonDetails: function (chartType, locationId){
+		getAssetsComparisonDetails: function (chartType, locationId, initialCall){
 			
 			$("#assets_graph_result").empty();
 			$("#assets_graph_result").append("<div class='loader_assets' align='center'><img src='<?php echo base_url();?>assets/images/ajax-loaders/4.gif'/> Loading the graph...</div>");
@@ -885,11 +880,15 @@
 						$("#assets_graph_result").html(response);
 					}
 				}
-			});
+			}).done(function() {
+                if (initialCall == "Yes") {
+                    Dashboard.getLiabilitiesComparisonDetails('SemiDonutGraph', '', initialCall);
+                }
+            });
 		},
 		
 		//Get liabilities comparision details
-		getLiabilitiesComparisonDetails: function (chartType, locationId){
+		getLiabilitiesComparisonDetails: function (chartType, locationId, initialCall){
 			
 			$("#liabilities_graph_result").empty();
 			$("#liabilities_graph_result").append("<div class='loader_liabilities' align='center'><img src='<?php echo base_url();?>assets/images/ajax-loaders/4.gif'/> Loading the graph...</div>");
@@ -912,11 +911,15 @@
 						$("#liabilities_graph_result").html(response);
 					}
 				}
-			});
+			}).done(function() {
+                if (initialCall == "Yes") {
+                    Dashboard.getTopTenExpenseAccountsComparisonDetails(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate, 'SemiDonutGraph', '', initialCall);
+                }
+            });
 		},
 		
 		//Get top ten expense accounts comparision details
-		getTopTenExpenseAccountsComparisonDetails: function (fromDate, toDate, chartType, locationId){
+		getTopTenExpenseAccountsComparisonDetails: function (fromDate, toDate, chartType, locationId, initialCall){
 			
 			$("#top_expense_graph_result").empty();
 			$("#top_expense_graph_result").append("<div class='loader_top_expense' align='center'><img src='<?php echo base_url();?>assets/images/ajax-loaders/4.gif'/> Loading the graph...</div>");
@@ -941,11 +944,15 @@
 						$("#top_expense_graph_result").html(response);
 					}
 				}
-			});
+			}).done(function() {
+                if (initialCall == "Yes") {
+                    Dashboard.getDebtorList(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate, initialCall);
+                }
+            });
 		},
 		
 		//Get debtor list
-		getDebtorList: function (fromDate, toDate){
+		getDebtorList: function (fromDate, toDate, initialCall){
         
             var locationId = $("#location_id_in_debtor_list").val();
 			
@@ -966,7 +973,11 @@
 					$("#debtorDataTable").html(response.html);
 					$('.debtorList').dataTable();
 				}
-			});
+			}).done(function() {
+                if (initialCall == "Yes") {
+                    Dashboard.getCreditorList(CurrentFinancialYearStartDate, CurrentFinancialYearEndDate);
+                }
+            });
 		},
 		
 		//Get creditor list

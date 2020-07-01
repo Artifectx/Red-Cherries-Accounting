@@ -261,6 +261,18 @@ class Receive_payment_model extends CI_Model {
 		}
 	}
     
+    public function getReceivePaymentMethodRecordForChequePayment($chequeId) {
+		$this->db->where('cheque_id', $chequeId);
+		$this->db->where('last_action_status !=','deleted');
+		$this->db->limit(1);
+		$query = $this->db->get('acm_bookkeeping_receive_payment_method_records');
+		if ($query->num_rows() == 1) {
+			return $query->result();
+		} else {
+			return false;
+		}
+	}
+    
     public function getReceivePaymentMethodRecordForCashPayment($cashPaymentId) {
 		$this->db->where('cash_payment_id', $cashPaymentId);
 		$this->db->where('last_action_status !=','deleted');
@@ -377,6 +389,18 @@ class Receive_payment_model extends CI_Model {
 		$this->db->where('last_action_status !=','deleted');
 		$this->db->limit(1);
 		$query = $this->db->get('acm_bookkeeping_receive_payment');
+		if ($query->num_rows() == 1) {
+			return $query->result();
+		} else {
+			return false;
+		}
+	}
+    
+    public function getReceivePaymentMethodById($receivePaymentMethodId) {
+		$this->db->where('receive_payment_method_id', $receivePaymentMethodId);
+		$this->db->where('last_action_status !=','deleted');
+		$this->db->limit(100);
+		$query = $this->db->get('acm_bookkeeping_receive_payment_method_records');
 		if ($query->num_rows() == 1) {
 			return $query->result();
 		} else {

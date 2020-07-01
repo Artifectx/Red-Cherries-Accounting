@@ -863,6 +863,7 @@
 		$("#prime_entry_book_name").val('');
 		$("#description").val('');
 		$("#applicable_module").val('0');
+        $("#has_reference_transaction_journal_entry").attr("checked", false);
 		$("#debit_chart_of_account_1").val('0');
 		$("#credit_chart_of_account_1").val('0');
 

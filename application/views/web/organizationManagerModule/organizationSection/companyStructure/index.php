@@ -56,7 +56,7 @@
 										<input type="hidden" name="hdnLevelId" id="hdnLevelId">
 										<label class="col-md-3 control-label" for="inputText1"><?php echo $this->lang->line('Company Name') ?></label>
 										<div class="col-md-8">
-											<input id="company_name" name="company_name" class="form-control" type="text" placeholder="">
+											<input id="company_name" name="company_name" class="form-control" type="text" placeholder="<?php echo $this->lang->line('Company Name') ?>">
 										</div>
 									</div>
 								</form>

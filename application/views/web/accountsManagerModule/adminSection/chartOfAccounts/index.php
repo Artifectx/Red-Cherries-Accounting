@@ -70,13 +70,13 @@
 									<div class="form-group">
 										<label class="col-md-4 control-label" for="inputText1"><?php echo $this->lang->line('Chart of Account Code') ?></label>
 										<div class="col-md-8">
-											<input id="chart_of_account_code" name="chart_of_account_code" class="form-control" type="text" placeholder="">
+											<input id="chart_of_account_code" name="chart_of_account_code" class="form-control" type="text" placeholder="<?php echo $this->lang->line('Chart of Account Code') ?>">
 										</div>
 									</div>
 									<div class="form-group">
 										<label class="col-md-4 control-label" for="inputText1"><?php echo $this->lang->line('Chart of Account Name') ?></label>
 										<div class="col-md-8">
-											<input id="chart_of_account_name" name="chart_of_account_name" class="form-control" type="text" placeholder="">
+											<input id="chart_of_account_name" name="chart_of_account_name" class="form-control" type="text" placeholder="<?php echo $this->lang->line('Chart of Account Name') ?>">
 										</div>
 									</div>
 								</form>

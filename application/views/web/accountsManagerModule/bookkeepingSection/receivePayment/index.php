@@ -1992,7 +1992,6 @@
 				success: function (response) {
 					ReferenceTransactionRowCount++;
 					TransactionAmountTotal = parseFloat(response.transactionAmountTotalNonFormatted);
-					//var paymentMethodTotal = parseFloat(response.transactionAmountTotalNonFormatted) - parseFloat(TransactionMethodAmountTotal);
                     var paymentMethodTotal = parseFloat(response.transactionAmountTotalNonFormatted);
 					var html = "";
 					

@@ -659,44 +659,6 @@ class Receive_payment_controller extends CI_Controller {
                                                                 }
                                                             }
                                                             
-                                                            if ($paymentMethod == 'Cash Payment') {
-                                                                //Add sales note cash payment entry
-                                                                $salesNoteCashPaymentEntry = array(
-                                                                    'sales_note_id' => $salesNoteId,
-                                                                    'receive_cash_payment_id' => $receivePaymentId,
-                                                                    'added_from' => "Receive Payment",
-                                                                    'actioned_user_id' => $this->user_id,
-                                                                    'action_date' => $this->date,
-                                                                    'last_action_status' => 'added'
-                                                                );
-
-                                                                $this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteCashPaymentEntry);
-                                                            } else if ($paymentMethod == 'Cheque Payment') {
-                                                                //Add sales note cash payment entry
-                                                                $salesNoteCashPaymentEntry = array(
-                                                                    'sales_note_id' => $salesNoteId,
-                                                                    'receive_cheque_payment_id' => $receivePaymentId,
-                                                                    'added_from' => "Receive Payment",
-                                                                    'actioned_user_id' => $this->user_id,
-                                                                    'action_date' => $this->date,
-                                                                    'last_action_status' => 'added'
-                                                                );
-
-                                                                $this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteCashPaymentEntry);
-                                                            } else if ($paymentMethod == 'Card Payment') {
-                                                                //Add sales note cash payment entry
-                                                                $salesNoteCashPaymentEntry = array(
-                                                                    'sales_note_id' => $salesNoteId,
-                                                                    'receive_credit_card_payment_id' => $receivePaymentId,
-                                                                    'added_from' => "Receive Payment",
-                                                                    'actioned_user_id' => $this->user_id,
-                                                                    'action_date' => $this->date,
-                                                                    'last_action_status' => 'added'
-                                                                );
-
-                                                                $this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteCashPaymentEntry);
-                                                            }
-
                                                             $claimAmount = 0;
 
                                                             if ($receivePaymentClaimAmountTotal >= $amountToClaimFromSalesNoteAmount) {
@@ -793,6 +755,44 @@ class Receive_payment_controller extends CI_Controller {
 
                                                                 $receivePaymentMethodId = $this->receive_payment_model->addReceivePaymentMethodRecord($receivePaymentMethodRecordData);
 
+                                                                if ($paymentMethod == 'Cash Payment') {
+                                                                    //Add sales note cash payment entry
+                                                                    $salesNoteCashPaymentEntry = array(
+                                                                        'sales_note_id' => $salesNoteId,
+                                                                        'receive_cash_payment_method_id' => $receivePaymentMethodId,
+                                                                        'added_from' => "Receive Payment",
+                                                                        'actioned_user_id' => $this->user_id,
+                                                                        'action_date' => $this->date,
+                                                                        'last_action_status' => 'added'
+                                                                    );
+
+                                                                    $this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteCashPaymentEntry);
+                                                                } else if ($paymentMethod == 'Cheque Payment') {
+                                                                    //Add sales note cash payment entry
+                                                                    $salesNoteCashPaymentEntry = array(
+                                                                        'sales_note_id' => $salesNoteId,
+                                                                        'receive_cheque_payment_method_id' => $receivePaymentMethodId,
+                                                                        'added_from' => "Receive Payment",
+                                                                        'actioned_user_id' => $this->user_id,
+                                                                        'action_date' => $this->date,
+                                                                        'last_action_status' => 'added'
+                                                                    );
+
+                                                                    $this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteCashPaymentEntry);
+                                                                } else if ($paymentMethod == 'Card Payment') {
+                                                                    //Add sales note cash payment entry
+                                                                    $salesNoteCashPaymentEntry = array(
+                                                                        'sales_note_id' => $salesNoteId,
+                                                                        'receive_credit_card_payment_method_id' => $receivePaymentMethodId,
+                                                                        'added_from' => "Receive Payment",
+                                                                        'actioned_user_id' => $this->user_id,
+                                                                        'action_date' => $this->date,
+                                                                        'last_action_status' => 'added'
+                                                                    );
+
+                                                                    $this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteCashPaymentEntry);
+                                                                }
+                                                            
                                                                 $correctChartOfAccountsFoundInPrimeEntryBooks = true;
 
                                                                 $primeEntryBookIds = '';
@@ -2408,44 +2408,6 @@ class Receive_payment_controller extends CI_Controller {
                                                                 }
                                                             }
                                                             
-                                                            if ($paymentMethod == 'Cash Payment') {
-                                                                //Add sales note cash payment entry
-                                                                $salesNoteCashPaymentEntry = array(
-                                                                    'sales_note_id' => $salesNoteId,
-                                                                    'receive_cash_payment_id' => $receivePaymentId,
-                                                                    'added_from' => "Receive Payment",
-                                                                    'actioned_user_id' => $this->user_id,
-                                                                    'action_date' => $this->date,
-                                                                    'last_action_status' => 'added'
-                                                                );
-
-                                                                $this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteCashPaymentEntry);
-                                                            } else if ($paymentMethod == 'Cheque Payment') {
-                                                                //Add sales note cash payment entry
-                                                                $salesNoteCashPaymentEntry = array(
-                                                                    'sales_note_id' => $salesNoteId,
-                                                                    'receive_cheque_payment_id' => $receivePaymentId,
-                                                                    'added_from' => "Receive Payment",
-                                                                    'actioned_user_id' => $this->user_id,
-                                                                    'action_date' => $this->date,
-                                                                    'last_action_status' => 'added'
-                                                                );
-
-                                                                $this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteCashPaymentEntry);
-                                                            } else if ($paymentMethod == 'Card Payment') {
-                                                                //Add sales note cash payment entry
-                                                                $salesNoteCashPaymentEntry = array(
-                                                                    'sales_note_id' => $salesNoteId,
-                                                                    'receive_credit_card_payment_id' => $receivePaymentId,
-                                                                    'added_from' => "Receive Payment",
-                                                                    'actioned_user_id' => $this->user_id,
-                                                                    'action_date' => $this->date,
-                                                                    'last_action_status' => 'added'
-                                                                );
-
-                                                                $this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteCashPaymentEntry);
-                                                            }
-
                                                             $claimAmount = 0;
 
                                                             if ($receivePaymentClaimAmountTotal >= $amountToClaimFromSalesNoteAmount) {
@@ -2542,6 +2504,44 @@ class Receive_payment_controller extends CI_Controller {
 
                                                                 $receivePaymentMethodId = $this->receive_payment_model->addReceivePaymentMethodRecord($receivePaymentMethodRecordData);
 
+                                                                if ($paymentMethod == 'Cash Payment') {
+                                                                    //Add sales note cash payment entry
+                                                                    $salesNoteCashPaymentEntry = array(
+                                                                        'sales_note_id' => $salesNoteId,
+                                                                        'receive_cash_payment_method_id' => $receivePaymentId,
+                                                                        'added_from' => "Receive Payment",
+                                                                        'actioned_user_id' => $this->user_id,
+                                                                        'action_date' => $this->date,
+                                                                        'last_action_status' => 'added'
+                                                                    );
+
+                                                                    $this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteCashPaymentEntry);
+                                                                } else if ($paymentMethod == 'Cheque Payment') {
+                                                                    //Add sales note cash payment entry
+                                                                    $salesNoteCashPaymentEntry = array(
+                                                                        'sales_note_id' => $salesNoteId,
+                                                                        'receive_cheque_payment_method_id' => $receivePaymentId,
+                                                                        'added_from' => "Receive Payment",
+                                                                        'actioned_user_id' => $this->user_id,
+                                                                        'action_date' => $this->date,
+                                                                        'last_action_status' => 'added'
+                                                                    );
+
+                                                                    $this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteCashPaymentEntry);
+                                                                } else if ($paymentMethod == 'Card Payment') {
+                                                                    //Add sales note cash payment entry
+                                                                    $salesNoteCashPaymentEntry = array(
+                                                                        'sales_note_id' => $salesNoteId,
+                                                                        'receive_credit_card_payment_method_id' => $receivePaymentId,
+                                                                        'added_from' => "Receive Payment",
+                                                                        'actioned_user_id' => $this->user_id,
+                                                                        'action_date' => $this->date,
+                                                                        'last_action_status' => 'added'
+                                                                    );
+
+                                                                    $this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteCashPaymentEntry);
+                                                                }
+                                                            
                                                                 $correctChartOfAccountsFoundInPrimeEntryBooks = true;
 
                                                                 $primeEntryBookIds = '';

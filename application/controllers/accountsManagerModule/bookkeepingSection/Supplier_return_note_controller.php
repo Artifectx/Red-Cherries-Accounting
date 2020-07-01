@@ -550,6 +550,7 @@ class Supplier_return_note_controller extends CI_Controller {
 										<th>{$this->lang->line('Reference No')}</th>
 										<th>{$this->lang->line('Date')}</th>
 										<th>{$this->lang->line('Supplier')}</th>
+                                        <th>{$this->lang->line('Location')}</th>
 										<th>{$this->lang->line('Amount')}</th>
                                         <th>{$this->lang->line('Balance Amount')}</th>
                                         <th>{$this->lang->line('Status')}</th>
@@ -570,6 +571,13 @@ class Supplier_return_note_controller extends CI_Controller {
 						$supplierName = $supplier[0]->people_name;
 					}
                     
+                    $locationName = "";
+					$locationId = $row->location_id;
+					$location = $this->locations_model->getById($locationId);
+					if ($location && sizeof($location) > 0) {
+						$locationName = $location[0]->location_name;
+					}
+                    
                     $status = "Open";
                     $backgroundColorClass = "default_color";
                     if ($row->status == "Claimed") {
@@ -581,6 +589,7 @@ class Supplier_return_note_controller extends CI_Controller {
 					$html .= "<td class='" . $backgroundColorClass . "'>" . $row->reference_no . "</td>";
 					$html .= "<td class='" . $backgroundColorClass . "'>" . $row->date . "</td>";
 					$html .= "<td class='" . $backgroundColorClass . "'>" . $supplierName . "</td>";
+                    $html .= "<td class='" . $backgroundColorClass . "'>" . $locationName . "</td>";
 					$html .= "<td class='" . $backgroundColorClass . "'>" . number_format($row->amount, 2) . "</td>";
                     $html .= "<td class='" . $backgroundColorClass . "'>" . number_format($row->balance_payment, 2) . "</td>";
                     $html .= "<td class='" . $backgroundColorClass . "'>" . $status . "</td>";

@@ -1872,7 +1872,7 @@
 				success: function (response) {
 					ReferenceTransactionRowCount++;
 					TransactionAmountTotal = parseFloat(response.transactionAmountTotalNonFormatted);
-					var paymentMethodTotal = parseFloat(response.transactionAmountTotalNonFormatted) - parseFloat(TransactionMethodAmountTotal);
+					var paymentMethodTotal = parseFloat(response.transactionAmountTotalNonFormatted);
 					var html = "";
 					
 					if (referenceTransactionType == '1' || referenceTransactionType == '4') {
@@ -2520,15 +2520,15 @@
 			}
 		}
 		
-		var paymentMethodElement = $("#make_payment_method_records").find("#make_payment_method_1");
+        var rowCount = 1;
+		var paymentMethodElement = $("#make_payment_method_records").find("#payment_method_row_" + rowCount);
 
-		var paymentMethodCount = 1;
 		var moreElement = true;
 		while (moreElement) {
 			if (paymentMethodElement.length == 1) {
-				$("#make_payment_method_" + paymentMethodCount).remove();
-				paymentMethodCount++;
-				paymentMethodElement = $("#make_payment_method_records").find("#make_payment_method_" + paymentMethodCount);
+				$("#payment_method_row_" + rowCount).remove();
+				rowCount++;
+				paymentMethodElement = $("#make_payment_method_records").find("#payment_method_row_" + rowCount);
 			} else {
 				moreElement = false;
 			}

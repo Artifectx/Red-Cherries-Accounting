@@ -457,6 +457,7 @@
 												<div class='box-content'>
 													<div class='form-group'>
 														<div class='col-sm-12 controls'>
+                                                            <input class='form-control' id='receive_payment_id_in_cheque_payment' name='receive_payment_id_in_cheque_payment' type='hidden'>
 															<input class='form-control' id='cheque_id' name='cheque_id' type='hidden'>
 															<input class='form-control' id='sales_note_id_in_cheque_payment' name='sales_note_id_in_cheque_payment' type='hidden'>
 															<input class='form-control' id='sales_journal_entry_id_in_cheque_payment' name='sales_journal_entry_id_in_cheque_payment' type='hidden'>
@@ -1787,6 +1788,7 @@
 
 		salesNoteId = $("#sales_note_id_in_cheque_payment").val();
 		
+        var receiveChequePaymentId = $("#receive_payment_id_in_cheque_payment").val();
 		var chequeId = $("#cheque_id").val();
 		var salesNoteJournalEntryId = $("#sales_journal_entry_id_in_cheque_payment").val();
 		var customerId = $("#customer_id_in_cheque_payment").val();
@@ -1823,7 +1825,7 @@
 		}
 
 		if (validateForm_saveSalesInvoiceIncomeChequeData()) {
-			SalesNote.saveReceiveChequePaymentData(salesNoteId, chequeId, salesNoteJournalEntryId, customerId, locationId, date, 
+			SalesNote.saveReceiveChequePaymentData(salesNoteId, receiveChequePaymentId, chequeId, salesNoteJournalEntryId, customerId, locationId, date, 
             chequeNumber, bank, chequeDate, thirdPartyCheque, amount, crossedCheque, chequeDepositPrimeEntryBookId);
 		}
 	}
@@ -1934,7 +1936,7 @@
 		SalesNote.getCreditCardPaymentData(salesNoteId, creditCardPaymentId);
 	}
 
-	function deleteReceiveChequePayment(receiveChequePaymentId) {
+	function deleteReceiveChequePayment(receiveChequePaymentMethodId) {
 		var salesNoteId = '';
 
 		if (SalesNoteScreenOperationStatus == "Add") {
@@ -1944,7 +1946,7 @@
 		}
 
 		SalesNote.hideMessageDisplay();
-		SalesNote.deleteReceiveChequePayment(salesNoteId, receiveChequePaymentId);
+		SalesNote.deleteReceiveChequePayment(salesNoteId, receiveChequePaymentMethodId);
 	}
 
 	function deleteCashPayment(receiveCashPaymentId) {
@@ -1958,6 +1960,19 @@
 
 		SalesNote.hideMessageDisplay();
 		SalesNote.deleteCashPayment(salesNoteId, receiveCashPaymentId);
+	}
+    
+    function deleteCreditCardPayment(receiveCreditCardPaymentId) {
+		var salesNoteId = '';
+
+		if (SalesNoteScreenOperationStatus == "Add") {
+			salesNoteId = $("#sales_note_id").val();
+		} else {
+			salesNoteId = $("#sales_note_id_edit").val();
+		}
+
+		SalesNote.hideMessageDisplay();
+		SalesNote.deleteCreditCardPayment(salesNoteId, receiveCreditCardPaymentId);
 	}
 	
 	function handleCustomerSelection() {
@@ -2438,7 +2453,7 @@
 			})
 		},
 		
-		saveReceiveChequePaymentData: function (salesNoteId, chequeId, salesNoteJournalEntryId, customerId, locationId, date, 
+		saveReceiveChequePaymentData: function (salesNoteId, receiveChequePaymentId, chequeId, salesNoteJournalEntryId, customerId, locationId, date, 
             chequeNumber, bank, chequeDate, thirdPartyCheque, amount, crossedCheque, chequeDepositPrimeEntryBookId) {
 
 			var msg = '<div class="alert alert-success alert-dismissable">' +
@@ -2525,6 +2540,7 @@
 					type: "POST",
 					url: "<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/sales_note_controller/editReceiveChequePaymentData",
 					data: {
+                        'receive_payment_id' : receiveChequePaymentId,
 						'sales_note_id' : salesNoteId,
 						'cheque_id' : chequeId,
 						'customer_id' : customerId,
@@ -2879,7 +2895,7 @@
 			}
 		},
 
-		deleteReceiveChequePayment: function (salesNoteId, receiveChequePaymentId) {
+		deleteReceiveChequePayment: function (salesNoteId, receiveChequePaymentMethodId) {
 
 			var msg = ' <div class="alert alert-success alert-dismissable">' +
 							'<a class="close" href="#" data-dismiss="alert">x </a>' +
@@ -2895,7 +2911,7 @@
 					url: "<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/sales_note_controller/deleteReceiveChequePayment",
 					data: {
 						'sales_note_id' : salesNoteId,
-						'cheque_id': receiveChequePaymentId,
+						'receive_cheque_payment_method_id': receiveChequePaymentMethodId,
 						'<?php echo $this->security->get_csrf_token_name(); ?>':
 						'<?php echo $this->security->get_csrf_hash(); ?>'
 					},
@@ -2905,13 +2921,18 @@
 						if (SalesNoteScreenOperationStatus == "Add") {
 							$("#cash_payment").val(response.cashPaymentAmount);
 							$("#cheque_payment").val(response.chequePaymentAmount);
-							$("#credit_payment").val(response.creditPaymentAmount);
+                            $("#credit_card_payment").val(response.creditCardPaymentAmount);
+                            $("#sales_balance_amount").val(response.creditPaymentAmount);
+							$("#sales_balance_amount_on_payment").val(response.creditPaymentAmount);
 							$("#cash_credit_balance").val(response.creditPaymentAmount);
 							$("#cheque_credit_balance").val(response.creditPaymentAmount);
                             $("#credit_card_credit_balance").val(response.creditPaymentAmount);
 						} else if (SalesNoteScreenOperationStatus == "View") {
 							$("#cash_payment_edit").val(response.cashPaymentAmount);
 							$("#cheque_payment_edit").val(response.chequePaymentAmount);
+                            $("#credit_card_payment_edit").val(response.creditCardPaymentAmount);
+                            $("#sales_balance_amount_edit").val(response.creditPaymentAmount);
+							$("#sales_balance_amount_on_payment_edit").val(response.creditPaymentAmount);
 							$("#credit_payment_edit").val(response.creditPaymentAmount);
 							$("#cash_credit_balance").val(response.creditPaymentAmount);
 							$("#cheque_credit_balance").val(response.creditPaymentAmount);
@@ -2952,6 +2973,7 @@
 						if (SalesNoteScreenOperationStatus == "Add" && SalesNoteCashPaymentScreenOperationStatus == "Add") {
 							$("#cash_payment").val(response.cashPaymentAmount);
 							$("#cheque_payment").val(response.chequePaymentAmount);
+                            $("#credit_card_payment").val(response.creditCardPaymentAmount);
 							$("#sales_balance_amount").val(response.balancePaymentAmount);
                             $("#sales_balance_amount_on_payment").val(response.balancePaymentAmount);
 							$("#cash_credit_balance").val(response.balancePaymentAmount);
@@ -2960,6 +2982,7 @@
 						} else if (SalesNoteScreenOperationStatus == "View") {
 							$("#cash_payment_edit").val(response.cashPaymentAmount);
 							$("#cheque_payment_edit").val(response.chequePaymentAmount);
+                            $("#credit_card_payment_edit").val(response.creditCardPaymentAmount);
 							$("#sales_balance_amount_edit").val(response.balancePaymentAmount);
                             $("#sales_balance_amount_on_payment_edit").val(response.balancePaymentAmount);
 							$("#cash_credit_balance").val(response.balancePaymentAmount);
@@ -2970,6 +2993,57 @@
 						$(".modal_msg_data").show();
 						$(".modal_msg_data").html(msg);
 						SalesNote.getReceiveCashPaymentList(salesNoteId);
+					}
+				})
+			}
+		},
+        
+        deleteCreditCardPayment: function (salesNoteId, receiveCreditCardPaymentId) {
+
+			var msg = ' <div class="alert alert-success alert-dismissable">' +
+							'<a class="close" href="#" data-dismiss="alert">x </a>' +
+							'<h4><i class="icon-ok-sign"></i>' + 
+							'<?php echo $this->lang->line('success') ?></h4>' +
+							'<?php echo $this->lang->line('success_deleted') ?>' +
+						'</div>';
+
+			var bConfirm = confirm("<?php echo $this->lang->line('Are you sure you want to delete this').$this->lang->line('Card Payment') ?>?");
+			if (bConfirm) {
+				$.ajax({
+					type: "POST",
+					url: "<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/sales_note_controller/deleteCreditCardPayment",
+					data: {
+						'sales_note_id' : salesNoteId,
+						'credit_card_payment_id': receiveCreditCardPaymentId,
+						'<?php echo $this->security->get_csrf_token_name(); ?>':
+						'<?php echo $this->security->get_csrf_hash(); ?>'
+					},
+					dataType: 'json',
+					success:
+					function (response) {
+						if (SalesNoteScreenOperationStatus == "Add" && SalesNoteCashPaymentScreenOperationStatus == "Add") {
+							$("#cash_payment").val(response.cashPaymentAmount);
+							$("#cheque_payment").val(response.chequePaymentAmount);
+                            $("#credit_card_payment").val(response.creditCardPaymentAmount);
+							$("#sales_balance_amount").val(response.balancePaymentAmount);
+                            $("#sales_balance_amount_on_payment").val(response.balancePaymentAmount);
+							$("#cash_credit_balance").val(response.balancePaymentAmount);
+							$("#cheque_credit_balance").val(response.balancePaymentAmount);
+                            $("#credit_card_credit_balance").val(response.balancePaymentAmount);
+						} else if (SalesNoteScreenOperationStatus == "View") {
+							$("#cash_payment_edit").val(response.cashPaymentAmount);
+							$("#cheque_payment_edit").val(response.chequePaymentAmount);
+                            $("#credit_card_payment_edit").val(response.creditCardPaymentAmount);
+							$("#sales_balance_amount_edit").val(response.balancePaymentAmount);
+                            $("#sales_balance_amount_on_payment_edit").val(response.balancePaymentAmount);
+							$("#cash_credit_balance").val(response.balancePaymentAmount);
+							$("#cheque_credit_balance").val(response.balancePaymentAmount);
+                            $("#credit_card_credit_balance").val(response.balancePaymentAmount);
+						}
+
+						$(".modal_msg_data").show();
+						$(".modal_msg_data").html(msg);
+						SalesNote.getReceiveCreditCardPaymentList(salesNoteId);
 					}
 				})
 			}
@@ -3097,6 +3171,7 @@
 				function (response) {
 					if (response.result == "ok") {
 						$("#add_edit_cheque").show();
+                        $("#receive_payment_id_in_cheque_payment").val(response.receivePaymentId);
 						$("#cheque_id").val(chequeId);
 						$("#cheque_payment_date").val(response.date);
 						$("#cheque_number").val(response.chequeNumber);
@@ -3148,7 +3223,7 @@
 				function (response) {
 					if (response.result == "ok") {
 						$("#add_edit_cash_payment").show();
-                        $("#receive_payment_id_in_cash_payment").val(response.receiveCashPaymentId);
+                        $("#receive_payment_id_in_cash_payment").val(response.receivePaymentId);
 						$("#cash_payment_id").val(cashPaymentId);
 						$("#cash_payment_date").val(response.date);
 						$("#cash_amount").val(response.amount);
@@ -3179,7 +3254,7 @@
 				function (response) {
 					if (response.result == "ok") {
 						$("#add_edit_credit_card_payment").show();
-                        $("#receive_payment_id_in_credit_card_payment").val(response.creditCardPaymentId);
+                        $("#receive_payment_id_in_credit_card_payment").val(response.receivePaymentId);
 						$("#credit_card_payment_id").val(creditCardPaymentId);
 						$("#credit_card_payment_date").val(response.date);
                         $("#credit_card_type_init").val(response.cardType);

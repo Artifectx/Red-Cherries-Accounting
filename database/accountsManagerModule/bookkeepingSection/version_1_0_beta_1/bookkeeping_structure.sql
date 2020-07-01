@@ -603,9 +603,9 @@ DROP TABLE IF EXISTS `acm_bookkeeping_sales_note_receive_payment`;
 CREATE TABLE `acm_bookkeeping_sales_note_receive_payment` (
   `sales_note_receive_payment_id` int(11) NOT NULL AUTO_INCREMENT,
   `sales_note_id` int(11) NOT NULL,
-  `receive_cash_payment_id` int(11) DEFAULT '0',
-  `receive_cheque_payment_id` int(11) DEFAULT '0',
-  `receive_credit_card_payment_id` int(11) DEFAULT '0',
+  `receive_cash_payment_method_id` int(11) DEFAULT '0',
+  `receive_cheque_payment_method_id` int(11) DEFAULT '0',
+  `receive_credit_card_payment_method_id` int(11) DEFAULT '0',
   `added_from` varchar(100) DEFAULT '',
   `actioned_user_id` int(11) DEFAULT NULL,
   `action_date` datetime DEFAULT NULL,

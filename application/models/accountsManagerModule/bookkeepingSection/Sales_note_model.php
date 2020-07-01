@@ -66,8 +66,17 @@ class Sales_note_model extends CI_Model {
 		$this->db->update('acm_bookkeeping_sales_note');
 		return true;
 	}
+    
+    public function deleteSalesNoteReceivePaymentEntry($salesNoteReceivePaymentId, $status, $user_id) {
+        $this->db->where('sales_note_receive_payment_id', $salesNoteReceivePaymentId);
+		$this->db->set('last_action_status', $status);
+		$this->db->set('actioned_user_id', $user_id);
+		$this->db->limit(1);
+		$this->db->update('acm_bookkeeping_sales_note_receive_payment');
+		return true;
+    }
 
-	public function salesNoteInUse() {
+    public function salesNoteInUse() {
 		$query = $this->db->get('acm_bookkeeping_sales_note');
 		if ($query->num_rows() > 0) {
 			return true;
@@ -205,8 +214,47 @@ class Sales_note_model extends CI_Model {
 			return false;
 		}
 	}
-	
-	public function getSalesNoteReceivePaymentEntries($salesNoteId) {
+    
+    public function getSalesNoteReceivePaymentBySalesNoteIdAndReceiveCashPaymentMethodId($salesNoteId, $receiveCashPaymentMethodId) {
+        $this->db->where('sales_note_id', $salesNoteId);
+        $this->db->where('receive_cash_payment_method_id', $receiveCashPaymentMethodId);
+		$this->db->where('last_action_status !=','deleted');
+		$this->db->limit(100);
+		$query = $this->db->get('acm_bookkeeping_sales_note_receive_payment');
+		if ($query->num_rows() > 0) {
+			return $query->result();
+		} else {
+			return false;
+		}
+    }
+    
+    public function getSalesNoteReceivePaymentBySalesNoteIdAndReceiveChequePaymentMethodId($salesNoteId, $receiveChequePaymentMethodId) {
+        $this->db->where('sales_note_id', $salesNoteId);
+        $this->db->where('receive_cheque_payment_method_id', $receiveChequePaymentMethodId);
+		$this->db->where('last_action_status !=','deleted');
+		$this->db->limit(100);
+		$query = $this->db->get('acm_bookkeeping_sales_note_receive_payment');
+		if ($query->num_rows() > 0) {
+			return $query->result();
+		} else {
+			return false;
+		}
+    }
+    
+    public function getSalesNoteReceivePaymentBySalesNoteIdAndReceiveCardPaymentMethodId($salesNoteId, $receiveCardPaymentMethodId) {
+        $this->db->where('sales_note_id', $salesNoteId);
+        $this->db->where('receive_credit_card_payment_method_id', $receiveCardPaymentMethodId);
+		$this->db->where('last_action_status !=','deleted');
+		$this->db->limit(100);
+		$query = $this->db->get('acm_bookkeeping_sales_note_receive_payment');
+		if ($query->num_rows() > 0) {
+			return $query->result();
+		} else {
+			return false;
+		}
+    }
+
+    public function getSalesNoteReceivePaymentEntries($salesNoteId) {
 		$this->db->where('sales_note_id', $salesNoteId);
 		$this->db->where('last_action_status !=','deleted');
 		$this->db->limit(100);
@@ -265,37 +313,20 @@ class Sales_note_model extends CI_Model {
 		}
 	}
 	
-	public function getAllSalesPaymentDetailForDateRange($fromDate, $toDate, $locationId, $territoryId, $showCancelledSalesNotes, $detailReport) {
+	public function getAllSalesPaymentDetailForDateRange($fromDate, $toDate, $locationId, $territoryId, $showCancelledSalesNotes) {
 		
-		$condition = "";
-		
-		if ($detailReport == "Yes") {
-			$condition = "SELECT SalesNote.sales_note_id, SalesNote.reference_no, SalesNote.date, SalesNote.sales_amount, SalesNote.discount, "
-						."SalesNote.free_issue_amount, SalesNote.amount_payable, CashPayment.date AS cash_payment_date, "
-						."ChequePayment.date AS cheque_payment_date , SalesNote.customer_saleable_return_id, "
-						."SalesNote.customer_market_return_id "
-						."FROM `acm_bookkeeping_sales_note` AS SalesNote "
-						."LEFT JOIN acm_bookkeeping_sales_note_receive_payment AS SalesNotePayment ON SalesNote.sales_note_id = SalesNotePayment.sales_note_id "
-						."LEFT JOIN acm_bookkeeping_receive_payment AS CashPayment ON SalesNotePayment.receive_cash_payment_id = CashPayment.receive_payment_id "
-						."LEFT JOIN acm_bookkeeping_receive_payment AS ChequePayment ON SalesNotePayment.receive_cheque_payment_id = ChequePayment.receive_payment_id ";
-		} else {
-			$condition = "SELECT SalesNote.sales_note_id, SalesNote.reference_no, SalesNote.date, SalesNote.sales_amount AS sales_amount, "
+		$condition = "SELECT SalesNote.sales_note_id, SalesNote.reference_no, SalesNote.date, SalesNote.sales_amount AS sales_amount, "
 						."SalesNote.discount AS discount, SalesNote.free_issue_amount AS free_issue_amount, "
-						."SalesNote.amount_payable AS amount_payable, "
-						."CashPayment.date AS cash_payment_date, "
-						."ChequePayment.date AS cheque_payment_date , SalesNote.customer_saleable_return_id, SalesNote.customer_market_return_id "
-						."FROM `acm_bookkeeping_sales_note` AS SalesNote "
-						."LEFT JOIN acm_bookkeeping_sales_note_receive_payment AS SalesNotePayment ON SalesNote.sales_note_id = SalesNotePayment.sales_note_id "
-						."LEFT JOIN acm_bookkeeping_receive_payment AS CashPayment ON SalesNotePayment.receive_cash_payment_id = CashPayment.receive_payment_id "
-						."LEFT JOIN acm_bookkeeping_receive_payment AS ChequePayment ON SalesNotePayment.receive_cheque_payment_id = ChequePayment.receive_payment_id ";
-		}
+						."SalesNote.amount_payable AS amount_payable, SalesNote.cash_payment_amount AS cash_amount, "
+						."SalesNote.cheque_payment_amount AS cheque_amount, SalesNote.credit_card_payment_amount AS credit_card_amount, "
+                        ."SalesNote.customer_return_note_claimed AS claimed_customer_returns, "
+						."SalesNote.customer_saleable_return_id, SalesNote.customer_market_return_id, SalesNote.last_action_status AS sales_note_status "
+						."FROM `acm_bookkeeping_sales_note` AS SalesNote ";
 		
 		if ($showCancelledSalesNotes == "Yes") {
 			$condition .=" WHERE SalesNote.last_action_status = 'cancelled'";
 		} else {
-			$condition .= "WHERE ((CashPayment.last_action_status != 'deleted' OR CashPayment.last_action_status IS NULL) AND (ChequePayment.last_action_status != 'deleted' OR ChequePayment.last_action_status IS NULL)) ";
-			
-			$condition .=" AND SalesNote.last_action_status != 'deleted' AND SalesNote.last_action_status != 'cancelled'";
+			$condition .=" WHERE SalesNote.last_action_status != 'deleted' AND SalesNote.last_action_status != 'cancelled'";
 		}
 		
 		if ($fromDate != '' && $toDate != '') {
@@ -319,10 +350,6 @@ class Sales_note_model extends CI_Model {
 			}
 		} else if ($territoryId != '0') {
 			$condition .=" AND SalesNote.territory_id = '" . $territoryId ."'";
-		}
-		
-		if ($detailReport == "No") {
-			$condition .=" GROUP BY SalesNote.sales_note_id";
 		}
 		
 		//echo $condition;die;

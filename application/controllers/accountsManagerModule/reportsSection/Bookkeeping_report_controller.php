@@ -64,6 +64,8 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$this->load->model('accountsManagerModule/bookkeepingSection/journal_entries_model', '', TRUE);
 		$this->load->model('accountsManagerModule/bookkeepingSection/sales_note_model', '', TRUE);
 		$this->load->model('accountsManagerModule/bookkeepingSection/customer_return_note_model', '', TRUE);
+        $this->load->model('accountsManagerModule/bookkeepingSection/receive_payment_model', '', TRUE);
+        $this->load->model('accountsManagerModule/bookkeepingSection/payments_model', '', TRUE);
 		$this->load->model('organizationManagerModule/adminSection/peoples_model', '', TRUE);
 		$this->load->model('organizationManagerModule/adminSection/locations_model', '', TRUE);
 		$this->load->model('organizationManagerModule/adminSection/territories_model', '', TRUE);
@@ -498,6 +500,8 @@ class Bookkeeping_report_controller extends CI_Controller {
 					
 					$html.="<th>{$this->lang->line('Cash Payment')}</th>";
 					$html.="<th>{$this->lang->line('Cheque Payment')}</th>";
+                    $html.="<th>{$this->lang->line('Credit Card Payment')}</th>";
+                    $html.="<th>{$this->lang->line('Claimed Customer Returns')}</th>";
 					$html.="<th>{$this->lang->line('Credit Payment')}</th>";
 
 				$html.="</tr>
@@ -519,8 +523,9 @@ class Bookkeeping_report_controller extends CI_Controller {
 		echo json_encode(array('html' => $html, 'salesNoteGrandTotal' => $salesPaymentDetails['1'],
 			 'salesNoteDiscountGrandTotal' => $salesPaymentDetails['2'], 'salesNoteFreeIssueGrandTotal' => $salesPaymentDetails['3'],
 			 'salesNoteCashPaymentGrandTotal' => $salesPaymentDetails['4'], 'salesNoteChequePaymentGrandTotal' => $salesPaymentDetails['5'],
-			 'salesNoteCreditPaymentGrandTotal' => $salesPaymentDetails['6'], 'salesNoteCustomerSaleableReturnGrandTotal' => $salesPaymentDetails['7'],
-			 'salesNoteCustomerMarketReturnGrandTotal' => $salesPaymentDetails['8'], 'salesNotePayableGrandTotal' => $salesPaymentDetails['9']));
+             'salesNoteCreditCardPaymentGrandTotal' => $salesPaymentDetails['6'], 'salesNoteClaimedCustomerReturnsGrandTotal' => $salesPaymentDetails['7'],
+			 'salesNoteCreditPaymentGrandTotal' => $salesPaymentDetails['8'], 'salesNoteCustomerSaleableReturnGrandTotal' => $salesPaymentDetails['9'],
+			 'salesNoteCustomerMarketReturnGrandTotal' => $salesPaymentDetails['10'], 'salesNotePayableGrandTotal' => $salesPaymentDetails['11']));
 	}
 
 	public function printSalesPaymentDetailsReport($fromDate, $toDate, $year, $month, $week, $generateAs, $locationId, $territoryId, $showCancelledSalesNotes, $detailReport) {
@@ -645,6 +650,10 @@ class Bookkeeping_report_controller extends CI_Controller {
 			$html.='<th style="text-align:center;"><span style="font-weight:bold; font-size:9px">'
 					.$this->lang->line("Cheque Payment").'</span></th>';
 			$html.='<th style="vertical-align:bottom; text-align:center;"><span style="font-weight:bold; font-size:9px">'
+					.$this->lang->line("Credit Card Payment").'</span></th>';
+            $html.='<th style="vertical-align:bottom; text-align:center;"><span style="font-weight:bold; font-size:9px">'
+					.$this->lang->line("Claimed Customer Returns").'</span></th>';
+            $html.='<th style="vertical-align:bottom; text-align:center;"><span style="font-weight:bold; font-size:9px">'
 					.$this->lang->line("Credit Payment").'</span></th>';
 			
 		$html.="	</tr>
@@ -665,7 +674,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 	public function getSalesPaymentDataFromDB($fromDate, $toDate, $locationId, $territoryId, $showCancelledSalesNotes, $detailReport, $print=null){
 		$html='';
 
-		$salesPayments = $this->sales_note_model->getAllSalesPaymentDetailForDateRange($fromDate, $toDate, $locationId, $territoryId, $showCancelledSalesNotes, $detailReport);
+		$salesPayments = $this->sales_note_model->getAllSalesPaymentDetailForDateRange($fromDate, $toDate, $locationId, $territoryId, $showCancelledSalesNotes);
 
 		$salesNoteGrandTotal = "0.00";
 		$salesNoteDiscountGrandTotal = "0.00";
@@ -674,8 +683,10 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$salesNoteCustomerMarketReturnGrandTotal = "0.00";
 		$salesNotePayableGrandTotal = "0.00";
 		$salesNoteCashPaymentGrandTotal = "0.00";
-		$salesNoteCreditPaymentGrandTotal = "0.00";
 		$salesNoteChequePaymentGrandTotal = "0.00";
+        $salesNoteCreditCardPaymentGrandTotal = "0.00";
+        $salesNoteClaimedCustomerReturnsGrandTotal = "0.00";
+        $salesNoteCreditPaymentGrandTotal = "0.00";
 		
 		$fieldList[] = "Reference No";
 		$fieldList[] = "Date";
@@ -692,6 +703,8 @@ class Bookkeeping_report_controller extends CI_Controller {
 		
 		$fieldList[] = "Sales Note Cash Payment Amount";
 		$fieldList[] = "Sales Note Cheque Payment Amount";
+        $fieldList[] = "Credit Card Payment";
+        $fieldList[] = "Claimed Customer Returns";
 		$fieldList[] = "Sales Note Credit Payment Amount";
 		
 		if ($salesPayments != null) {
@@ -700,40 +713,41 @@ class Bookkeeping_report_controller extends CI_Controller {
 			$colspan = 0;
 			$dataForExcelExport = array();
 			
-			$newSalesNote = true;
-			$currentSalesNoteId = "";
-			$previousSalesNoteId = "";
 			$salesNoteCreditPaymentAmount = 0;
-			$salesNoteCreditPaymentAmountOfPreviousRecord = 0;
+			
 			foreach ($salesPayments as $row) {
 				
 				$paymentDate = "";
-				$currentSalesNoteId = $row['sales_note_id'];
+				$salesNoteCreditPaymentAmount = $row['amount_payable'];
 				
-				if ($currentSalesNoteId == $previousSalesNoteId) {
-					$newSalesNote = false;
-				} else {
-					$newSalesNote = true;
-					$salesNoteCreditPaymentAmount = $row['amount_payable'];
-				}
-
-				$salesNoteTotal = number_format($row['sales_amount'], 2);
-				$salesNoteDiscount = number_format($row['discount'], 2);
-				$salesNoteFreeIssueTotal = number_format($row['free_issue_amount'], 2);
+				$salesNoteTotal = $row['sales_amount'];
+				$salesNoteDiscount = $row['discount'];
+				$salesNoteFreeIssueTotal = $row['free_issue_amount'];
 				$salesNoteTotalPayable = $row['amount_payable'];
+                $salesNoteStatus = $row['sales_note_status'];
 				
 				if ($row['cash_amount'] != "") {
-					$salesNoteCashPayment = number_format($row['cash_amount'], 2);
-					$paymentDate = $row['cash_payment_date'];
+					$salesNoteCashPayment = $row['cash_amount'];
 				} else {
 					$salesNoteCashPayment = "";
 				}
 				
 				if ($row['cheque_amount'] != "") {
-					$salesNoteChequePayment = number_format($row['cheque_amount'], 2);
-					$paymentDate = $row['cheque_payment_date'];
+					$salesNoteChequePayment = $row['cheque_amount'];
 				} else {
 					$salesNoteChequePayment = "";
+				}
+                
+                if ($row['credit_card_amount'] != "") {
+					$salesNoteCreditCardPayment = $row['credit_card_amount'];
+				} else {
+					$salesNoteCreditCardPayment = "";
+				}
+                
+                if ($row['credit_card_amount'] != "") {
+					$salesNoteClaimedCustomerReturns = $row['claimed_customer_returns'];
+				} else {
+					$salesNoteClaimedCustomerReturns = "";
 				}
 				
 				if ($row['cash_amount'] != "") {
@@ -743,6 +757,14 @@ class Bookkeeping_report_controller extends CI_Controller {
 				if ($row['cheque_amount'] != "") {
 					$salesNoteCreditPaymentAmount = $salesNoteCreditPaymentAmount - $row['cheque_amount'];
 				}
+                
+                if ($row['credit_card_amount'] != "") {
+					$salesNoteCreditPaymentAmount = $salesNoteCreditPaymentAmount - $row['credit_card_amount'];
+				}
+                
+                if ($row['claimed_customer_returns'] != "") {
+					$salesNoteCreditPaymentAmount = $salesNoteCreditPaymentAmount - $row['claimed_customer_returns'];
+				}
 				
 				$salesNoteCustomerSaleableReturnId = $row['customer_saleable_return_id'];
 				$salesNoteCustomerMarketReturnId = $row['customer_market_return_id'];
@@ -750,32 +772,26 @@ class Bookkeeping_report_controller extends CI_Controller {
 				$salesNoteCustomerSaleableReturn = $this->customer_return_note_model->getCustomerReturnNoteById($salesNoteCustomerSaleableReturnId);
 				
 				$salesNoteCustomerSaleableReturnAmount = 0;
-				if ($newSalesNote) {
-					if ($salesNoteCustomerSaleableReturn && sizeof($salesNoteCustomerSaleableReturn) > 0) {
-						$salesNoteCustomerSaleableReturnAmount = number_format($salesNoteCustomerSaleableReturn[0]->amount, 2);
+                if ($salesNoteCustomerSaleableReturn && sizeof($salesNoteCustomerSaleableReturn) > 0) {
+                    $salesNoteCustomerSaleableReturnAmount = number_format($salesNoteCustomerSaleableReturn[0]->amount, 2);
 
-						if ($salesNoteCustomerSaleableReturn[0]->amount != "") {
-							$salesNoteCreditPaymentAmount = $salesNoteCreditPaymentAmount - $salesNoteCustomerSaleableReturn[0]->amount;
-							$salesNoteTotalPayable = $salesNoteTotalPayable - $salesNoteCustomerSaleableReturn[0]->amount;
-						}
-					}
-				}
+                    if ($salesNoteCustomerSaleableReturn[0]->amount != "") {
+                        $salesNoteCreditPaymentAmount = $salesNoteCreditPaymentAmount - $salesNoteCustomerSaleableReturn[0]->amount;
+                        $salesNoteTotalPayable = $salesNoteTotalPayable - $salesNoteCustomerSaleableReturn[0]->amount;
+                    }
+                }
 				
 				$salesNoteCustomerMarketReturn = $this->customer_return_note_model->getCustomerReturnNoteById($salesNoteCustomerMarketReturnId);
 				
 				$salesNoteCustomerMarketReturnAmount = 0;
-				if ($newSalesNote) {
-					if ($salesNoteCustomerMarketReturn && sizeof($salesNoteCustomerMarketReturn) > 0) {
-						$salesNoteCustomerMarketReturnAmount = number_format($salesNoteCustomerMarketReturn[0]->amount, 2);
+                if ($salesNoteCustomerMarketReturn && sizeof($salesNoteCustomerMarketReturn) > 0) {
+                    $salesNoteCustomerMarketReturnAmount = number_format($salesNoteCustomerMarketReturn[0]->amount, 2);
 
-						if ($salesNoteCustomerMarketReturn[0]->amount != "") {
-							$salesNoteCreditPaymentAmount = $salesNoteCreditPaymentAmount - $salesNoteCustomerMarketReturn[0]->amount;
-							$salesNoteTotalPayable = $salesNoteTotalPayable - $salesNoteCustomerMarketReturn[0]->amount;
-						}
-					}
-				}
-				
-				$salesNoteTotalPayable = number_format($salesNoteTotalPayable, 2);
+                    if ($salesNoteCustomerMarketReturn[0]->amount != "") {
+                        $salesNoteCreditPaymentAmount = $salesNoteCreditPaymentAmount - $salesNoteCustomerMarketReturn[0]->amount;
+                        $salesNoteTotalPayable = $salesNoteTotalPayable - $salesNoteCustomerMarketReturn[0]->amount;
+                    }
+                }
 				
 				$dataSet = array();
 
@@ -786,11 +802,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 				}
 
 				if ($print) {
-					if ($newSalesNote) {
-						$html .= '<td style="text-align:center;"><span style="font-size:8px">' . $row['reference_no'] . '</span></td>';
-					} else {
-						$html .= '<td></td>';
-					}
+					$html .= '<td style="text-align:center;"><span style="font-size:8px">' . $row['reference_no'] . '</span></td>';
 					$dataSet['reference_no'] = $row['reference_no'];
 				} else {
 					$html .= '<td><a href="../bookkeepingSection/sales_note_controller/?searchId=' . $row['reference_no'] . '" target="_blank">' . $row['reference_no'] . '</a></td>';
@@ -802,114 +814,58 @@ class Bookkeeping_report_controller extends CI_Controller {
 				}
 
 				if ($print) {
-					if ($newSalesNote) {
-						$html .= '<td style="text-align:center;"><span style="font-size:8px">'. $row['date']  .'</span></td>';
-					} else {
-						$html .= '<td></td>';
-					}
+					$html .= '<td style="text-align:center;"><span style="font-size:8px">'. $row['date']  .'</span></td>';
 					$dataSet['date'] = $row['date'];
 				} else {
-					if ($newSalesNote) {
-						$html .= '<td>'. $row['date']  .'</td>';
-					} else {
-						$html .= '<td></td>';
-					}
+					$html .= '<td>'. $row['date']  .'</td>';
 					$dataSet['date'] = $row['date'];
 				}
 
 				if ($print) {
-					if ($newSalesNote) {
-						$html .= '<td style="text-align:right;"><span style="font-size:8px">' . $salesNoteTotal . '</span></td>';
-					} else {
-						$html .= '<td></td>';
-					}
+					$html .= '<td style="text-align:right;"><span style="font-size:8px">' . number_format($salesNoteTotal, 2) . '</span></td>';
 					$dataSet['sales_note_total'] = $salesNoteTotal;
 				} else {
-					if ($newSalesNote) {
-						$html .= '<td style="text-align:right;">' . $salesNoteTotal . '</td>';
-					} else {
-						$html .= '<td></td>';
-					}
+					$html .= '<td style="text-align:right;">' . number_format($salesNoteTotal, 2) . '</td>';
 					$dataSet['sales_note_total'] = $salesNoteTotal;
 				}
 
 				if ($print) {
-					if ($newSalesNote) {
-						$html .= '<td style="text-align:right;"><span style="font-size:8px">' . $salesNoteDiscount . '</span></td>';
-					} else {
-						$html .= '<td></td>';
-					}
+					$html .= '<td style="text-align:right;"><span style="font-size:8px">' . number_format($salesNoteDiscount, 2) . '</span></td>';
 					$dataSet['sales_note_discount_amount'] = $salesNoteDiscount;
 				} else {
-					if ($newSalesNote) {
-						$html .= '<td style="text-align:right;">' . $salesNoteDiscount . '</td>';
-					} else {
-						$html .= '<td></td>';
-					}
+					$html .= '<td style="text-align:right;">' . number_format($salesNoteDiscount, 2) . '</td>';
 					$dataSet['sales_note_discount_amount'] = $salesNoteDiscount;
 				}
 
 				if ($print) {
-					if ($newSalesNote) {
-						$html .= '<td style="text-align:right;"><span style="font-size:8px">' . $salesNoteFreeIssueTotal . '</span></td>';
-					} else {
-						$html .= '<td></td>';
-					}
+					$html .= '<td style="text-align:right;"><span style="font-size:8px">' . number_format($salesNoteFreeIssueTotal, 2) . '</span></td>';
 					$dataSet['sales_note_free_issue_amount'] = $salesNoteFreeIssueTotal;
 				} else {
-					if ($newSalesNote) {
-						$html .= '<td style="text-align:right;">' . $salesNoteFreeIssueTotal . '</td>';
-					} else {
-						$html .= '<td></td>';
-					}
+					$html .= '<td style="text-align:right;">' . number_format($salesNoteFreeIssueTotal, 2) . '</td>';
 					$dataSet['sales_note_free_issue_amount'] = $salesNoteFreeIssueTotal;
 				}
 				
 				if ($print) {
-					if ($newSalesNote) {
-						$html .= '<td style="text-align:right;"><span style="font-size:8px">' . $salesNoteCustomerSaleableReturnAmount . '</span></td>';
-					} else {
-						$html .= '<td></td>';
-					}
+					$html .= '<td style="text-align:right;"><span style="font-size:8px">' . $salesNoteCustomerSaleableReturnAmount . '</span></td>';
 					$dataSet['sales_note_customer_saleable_return_amount'] = $salesNoteCustomerSaleableReturnAmount;
 				} else {
-					if ($newSalesNote) {
-						$html .= '<td style="text-align:right;">' . $salesNoteCustomerSaleableReturnAmount . '</td>';
-					} else {
-						$html .= '<td></td>';
-					}
+					$html .= '<td style="text-align:right;">' . $salesNoteCustomerSaleableReturnAmount . '</td>';
 					$dataSet['sales_note_customer_saleable_return_amount'] = $salesNoteCustomerSaleableReturnAmount;
 				}
 				
 				if ($print) {
-					if ($newSalesNote) {
-						$html .= '<td style="text-align:right;"><span style="font-size:8px">' . $salesNoteCustomerMarketReturnAmount . '</span></td>';
-					} else {
-						$html .= '<td></td>';
-					}
+					$html .= '<td style="text-align:right;"><span style="font-size:8px">' . $salesNoteCustomerMarketReturnAmount . '</span></td>';
 					$dataSet['sales_note_customer_market_return_amount'] = $salesNoteCustomerMarketReturnAmount;
 				} else {
-					if ($newSalesNote) {
-						$html .= '<td style="text-align:right;">' . $salesNoteCustomerMarketReturnAmount . '</td>';
-					} else {
-						$html .= '<td></td>';
-					}
+					$html .= '<td style="text-align:right;">' . $salesNoteCustomerMarketReturnAmount . '</td>';
 					$dataSet['sales_note_customer_market_return_amount'] = $salesNoteCustomerMarketReturnAmount;
 				}
 
 				if ($print) {
-					if ($newSalesNote) {
-						$html .= '<td style="text-align:right;"><span style="font-size:8px">' . $salesNoteTotalPayable . '</span></td>';
-					} else {
-						$html .= '<td></td>';
-					}
+					$html .= '<td style="text-align:right;"><span style="font-size:8px">' . number_format($salesNoteTotalPayable, 2) . '</span></td>';
 					$dataSet['sales_note_total_payable'] = $salesNoteTotalPayable;
 				} else {
-					if ($newSalesNote) {
-						$html .= '<td style="text-align:right;">' . $salesNoteTotalPayable . '</td>';
-					} else {
-						$html .= '<td></td>';
-					}
+					$html .= '<td style="text-align:right;">' . number_format($salesNoteTotalPayable, 2) . '</td>';
 					$dataSet['sales_note_total_payable'] = $salesNoteTotalPayable;
 				}
 
@@ -924,49 +880,490 @@ class Bookkeeping_report_controller extends CI_Controller {
 				}
 				
 				if ($print) {
-					$html .= '<td style="text-align:right;"><span style="font-size:8px">' . $salesNoteCashPayment . '</span></td>';
+					$html .= '<td style="text-align:right;"><span style="font-size:8px">' . number_format($salesNoteCashPayment, 2) . '</span></td>';
 					$dataSet['sales_note_cash_payment_amount'] = $salesNoteCashPayment;
 				} else {
-					$html .= '<td style="text-align:right;">' . $salesNoteCashPayment . '</td>';
+					$html .= '<td style="text-align:right;">' . number_format($salesNoteCashPayment, 2) . '</td>';
 					$dataSet['sales_note_cash_payment_amount'] = $salesNoteCashPayment;
 				}
 
 				if ($print) {
-					$html .= '<td style="text-align:right;"><span style="font-size:8px">' . $salesNoteChequePayment . '</span></td>';
+					$html .= '<td style="text-align:right;"><span style="font-size:8px">' . number_format($salesNoteChequePayment, 2) . '</span></td>';
 					$dataSet['sales_note_cheque_payment_amount'] = $salesNoteChequePayment;
 				} else {
-					$html .= '<td style="text-align:right;">' . $salesNoteChequePayment . '</td>';
+					$html .= '<td style="text-align:right;">' . number_format($salesNoteChequePayment, 2) . '</td>';
 					$dataSet['sales_note_cheque_payment_amount'] = $salesNoteChequePayment;
+				}
+                
+                if ($print) {
+					$html .= '<td style="text-align:right;"><span style="font-size:8px">' . number_format($salesNoteCreditCardPayment, 2) . '</span></td>';
+					$dataSet['sales_note_credit_card_payment_amount'] = $salesNoteCreditCardPayment;
+				} else {
+					$html .= '<td style="text-align:right;">' . number_format($salesNoteCreditCardPayment, 2) . '</td>';
+					$dataSet['sales_note_credit_card_payment_amount'] = $salesNoteCreditCardPayment;
+				}
+                
+                if ($print) {
+					$html .= '<td style="text-align:right;"><span style="font-size:8px">' . number_format($salesNoteClaimedCustomerReturns, 2) . '</span></td>';
+					$dataSet['sales_note_claimed_customer_returns'] = $salesNoteClaimedCustomerReturns;
+				} else {
+					$html .= '<td style="text-align:right;">' . number_format($salesNoteClaimedCustomerReturns, 2) . '</td>';
+					$dataSet['sales_note_claimed_customer_returns'] = $salesNoteClaimedCustomerReturns;
 				}
 
 				if ($print) {
 					$html .= '<td style="text-align:right;"><span style="font-size:8px">' . number_format($salesNoteCreditPaymentAmount, 2) . '</span></td>';
-					$dataSet['sales_note_credit_payment_amount'] = number_format($salesNoteCreditPaymentAmount, 2);
+					$dataSet['sales_note_credit_payment_amount'] = $salesNoteCreditPaymentAmount;
 				} else {
 					$html .= '<td style="text-align:right;">' . number_format($salesNoteCreditPaymentAmount, 2) . '</td>';
-					$dataSet['sales_note_credit_payment_amount'] = number_format($salesNoteCreditPaymentAmount, 2);
+					$dataSet['sales_note_credit_payment_amount'] = $salesNoteCreditPaymentAmount;
 				}
 
 				$html .= "</tr>";
 
 				$dataForExcelExport[] = $dataSet;
+                
+                if ($detailReport == "Yes") {
+                    $salesNoteId = $row['sales_note_id'];
+                    $salesNoteReceivePayments = $this->sales_note_model->getSalesNoteReceivePaymentEntries($salesNoteId);
+                    
+                    if ($salesNoteReceivePayments && sizeof($salesNoteReceivePayments) > 0) {
+                        foreach($salesNoteReceivePayments as $salesNoteReceivePayment) {
+                            if ($salesNoteReceivePayment->receive_cash_payment_method_id != '0') {
+                                $receiveCashPaymentId = $salesNoteReceivePayment->receive_cash_payment_method_id;
+                                $receivePaymentMethods = $this->receive_payment_model->getReceivePaymentMethodById($receiveCashPaymentId);
+                                
+                                if ($receivePaymentMethods && sizeof($receivePaymentMethods) > 0) {
+                                    foreach($receivePaymentMethods as $receivePaymentMethod) {
+                                        $cashPaymentId = $receivePaymentMethod->cash_payment_id;
+                                        
+                                        $cashPayment = $this->payments_model->getCashPaymentById($cashPaymentId);
+                                        $paymentDate = $cashPayment[0]->date;
+                                        $cashPaymentAmount = $cashPayment[0]->amount;
+                                        
+                                        $dataSet = array();
+
+                                        $html .= '<tr style="line-height:15px;">';
+
+                                        if ($print) {
+                                            $html .= '<td style="text-align:center;"><span style="font-size:8px">' . $row['reference_no'] . '</span></td>';
+                                            $dataSet['reference_no'] = $row['reference_no'];
+                                        } else {
+                                            $html .= '<td><a href="../bookkeepingSection/sales_note_controller/?searchId=' . $row['reference_no'] . '" target="_blank" style="color: blue;">' . $row['reference_no'] . '</a></td>';
+                                            $dataSet['reference_no'] = $row['reference_no'];
+                                        }
+
+                                        if ($rowCount == 1) {
+                                            $colspan++;
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['date'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['date'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_total'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_total'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_discount_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_discount_amount'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_free_issue_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_free_issue_amount'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_customer_saleable_return_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_customer_saleable_return_amount'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_customer_market_return_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_customer_market_return_amount'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_total_payable'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_total_payable'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td style="text-align:right;"><span style="font-size:8px">' . $paymentDate . '</span></td>';
+                                            $dataSet['sales_note_payment_date'] = $paymentDate;
+                                        } else {
+                                            $html .= '<td style="text-align:right; color: blue;">' . $paymentDate . '</td>';
+                                            $dataSet['sales_note_payment_date'] = $paymentDate;
+                                        }
+
+                                        if ($print) {
+                                            $html .= '<td style="text-align:right;"><span style="font-size:8px">' . number_format($cashPaymentAmount, 2) . '</span></td>';
+                                            $dataSet['sales_note_cash_payment_amount'] = $cashPaymentAmount;
+                                        } else {
+                                            $html .= '<td style="text-align:right; color: blue;">' . number_format($cashPaymentAmount, 2) . '</td>';
+                                            $dataSet['sales_note_cash_payment_amount'] = $cashPaymentAmount;
+                                        }
+
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_cheque_payment_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_cheque_payment_amount'] = "";
+                                        }
+
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_credit_card_payment_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_credit_card_payment_amount'] = "";
+                                        }
+
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_claimed_customer_returns'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_claimed_customer_returns'] = "";
+                                        }
+
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_credit_payment_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_credit_payment_amount'] = "";
+                                        }
+
+                                        $html .= "</tr>";
+                                        
+                                        $dataForExcelExport[] = $dataSet;
+                                    }
+                                }
+                            } else if ($salesNoteReceivePayment->receive_cheque_payment_method_id != '0') {
+                                $receiveChequePaymentId = $salesNoteReceivePayment->receive_cheque_payment_method_id;
+                                $receivePaymentMethods = $this->receive_payment_model->getReceivePaymentMethodById($receiveChequePaymentId);
+                                
+                                if ($receivePaymentMethods && sizeof($receivePaymentMethods) > 0) {
+                                    foreach($receivePaymentMethods as $receivePaymentMethod) {
+                                        $chequeId = $receivePaymentMethod->cheque_id;
+                                        
+                                        if ($salesNoteStatus == "cancelled") {
+                                            $incomeCheque = $this->payments_model->getDeletedIncomeChequeById($chequeId);
+                                        } else {
+                                            $incomeCheque = $this->payments_model->getIncomeChequeById($chequeId);
+                                        }
+                                        
+                                        $paymentDate = $incomeCheque[0]->cheque_date;
+                                        $chequePaymentAmount = $incomeCheque[0]->amount;
+                                        
+                                        $dataSet = array();
+
+                                        $html .= '<tr style="line-height:15px;">';
+
+                                        if ($print) {
+                                            $html .= '<td style="text-align:center;"><span style="font-size:8px">' . $row['reference_no'] . '</span></td>';
+                                            $dataSet['reference_no'] = $row['reference_no'];
+                                        } else {
+                                            $html .= '<td><a href="../bookkeepingSection/sales_note_controller/?searchId=' . $row['reference_no'] . '" target="_blank" style="color: blue;">' . $row['reference_no'] . '</a></td>';
+                                            $dataSet['reference_no'] = $row['reference_no'];
+                                        }
+
+                                        if ($rowCount == 1) {
+                                            $colspan++;
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['date'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['date'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_total'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_total'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_discount_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_discount_amount'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_free_issue_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_free_issue_amount'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_customer_saleable_return_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_customer_saleable_return_amount'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_customer_market_return_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_customer_market_return_amount'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_total_payable'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_total_payable'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td style="text-align:right;"><span style="font-size:8px">' . $paymentDate . '</span></td>';
+                                            $dataSet['sales_note_payment_date'] = $paymentDate;
+                                        } else {
+                                            $html .= '<td style="text-align:right; color: blue;">' . $paymentDate . '</td>';
+                                            $dataSet['sales_note_payment_date'] = $paymentDate;
+                                        }
+
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_cash_payment_amount'] = $chequePaymentAmount;
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_cash_payment_amount'] = "";
+                                        }
+
+                                        if ($print) {
+                                            $html .= '<td style="text-align:right;"><span style="font-size:8px">' . number_format($chequePaymentAmount, 2) . '</span></td>';
+                                            $dataSet['sales_note_cheque_payment_amount'] = $chequePaymentAmount;
+                                        } else {
+                                            $html .= '<td style="text-align:right; color: blue;">' . number_format($chequePaymentAmount, 2) . '</td>';
+                                            $dataSet['sales_note_cheque_payment_amount'] = $chequePaymentAmount;
+                                        }
+
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_credit_card_payment_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_credit_card_payment_amount'] = "";
+                                        }
+
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_claimed_customer_returns'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_claimed_customer_returns'] = "";
+                                        }
+
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_credit_payment_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_credit_payment_amount'] = "";
+                                        }
+
+                                        $html .= "</tr>";
+                                        
+                                        $dataForExcelExport[] = $dataSet;
+                                    }
+                                }
+                            } else if ($salesNoteReceivePayment->receive_credit_card_payment_method_id != '0') {
+                                $receiveCardPaymentId = $salesNoteReceivePayment->receive_credit_card_payment_method_id;
+                                $receivePaymentMethods = $this->receive_payment_model->getReceivePaymentMethodById($receiveCardPaymentId);
+                                
+                                if ($receivePaymentMethods && sizeof($receivePaymentMethods) > 0) {
+                                    foreach($receivePaymentMethods as $receivePaymentMethod) {
+                                        $cardPaymentId = $receivePaymentMethod->credit_card_payment_id;
+                                        
+                                        $cardPayment = $this->payments_model->getCardPaymentById($cardPaymentId);
+                                        $paymentDate = $cardPayment[0]->date;
+                                        $cardPaymentAmount = $cardPayment[0]->amount;
+                                        
+                                        $dataSet = array();
+
+                                        $html .= '<tr style="line-height:15px;">';
+
+                                        if ($print) {
+                                            $html .= '<td style="text-align:center;"><span style="font-size:8px">' . $row['reference_no'] . '</span></td>';
+                                            $dataSet['reference_no'] = $row['reference_no'];
+                                        } else {
+                                            $html .= '<td><a href="../bookkeepingSection/sales_note_controller/?searchId=' . $row['reference_no'] . '" target="_blank" style="color: blue;">' . $row['reference_no'] . '</a></td>';
+                                            $dataSet['reference_no'] = $row['reference_no'];
+                                        }
+
+                                        if ($rowCount == 1) {
+                                            $colspan++;
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['date'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['date'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_total'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_total'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_discount_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_discount_amount'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_free_issue_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_free_issue_amount'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_customer_saleable_return_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_customer_saleable_return_amount'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_customer_market_return_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_customer_market_return_amount'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_total_payable'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_total_payable'] = "";
+                                        }
+                                        
+                                        if ($print) {
+                                            $html .= '<td style="text-align:right;"><span style="font-size:8px">' . $paymentDate . '</span></td>';
+                                            $dataSet['sales_note_payment_date'] = $paymentDate;
+                                        } else {
+                                            $html .= '<td style="text-align:right; color: blue;">' . $paymentDate . '</td>';
+                                            $dataSet['sales_note_payment_date'] = $paymentDate;
+                                        }
+
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_cash_payment_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_cash_payment_amount'] = "";
+                                        }
+
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_cheque_payment_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_cheque_payment_amount'] = "";
+                                        }
+
+                                        if ($print) {
+                                            $html .= '<td style="text-align:right;"><span style="font-size:8px">' . number_format($cardPaymentAmount, 2) . '</span></td>';
+                                            $dataSet['sales_note_credit_card_payment_amount'] = $cardPaymentAmount;
+                                        } else {
+                                            $html .= '<td style="text-align:right; color: blue;">' . number_format($cardPaymentAmount, 2) . '</td>';
+                                            $dataSet['sales_note_credit_card_payment_amount'] = $cardPaymentAmount;
+                                        }
+
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_claimed_customer_returns'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_claimed_customer_returns'] = "";
+                                        }
+
+                                        if ($print) {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_credit_payment_amount'] = "";
+                                        } else {
+                                            $html .= '<td></td>';
+                                            $dataSet['sales_note_credit_payment_amount'] = "";
+                                        }
+
+                                        $html .= "</tr>";
+                                        
+                                        $dataForExcelExport[] = $dataSet;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
 				$rowCount++;
 				
-				if ($newSalesNote) {
-					$salesNoteGrandTotal = $salesNoteGrandTotal + $row['sales_amount'];
-					$salesNoteDiscountGrandTotal = $salesNoteDiscountGrandTotal + $row['discount'];
-					$salesNoteFreeIssueGrandTotal = $salesNoteFreeIssueGrandTotal + $row['free_issue_amount'];
-					$salesNotePayableGrandTotal = $salesNotePayableGrandTotal + $row['amount_payable'];
-					
-					if ($salesNoteCustomerSaleableReturn && sizeof($salesNoteCustomerSaleableReturn) > 0) {
-						$salesNotePayableGrandTotal = $salesNotePayableGrandTotal  - $salesNoteCustomerSaleableReturn[0]->amount;
-					}
-					
-					if ($salesNoteCustomerMarketReturn && sizeof($salesNoteCustomerMarketReturn) > 0) {
-						$salesNotePayableGrandTotal = $salesNotePayableGrandTotal  - $salesNoteCustomerMarketReturn[0]->amount;
-					}
-				}
+                $salesNoteGrandTotal = $salesNoteGrandTotal + $row['sales_amount'];
+                $salesNoteDiscountGrandTotal = $salesNoteDiscountGrandTotal + $row['discount'];
+                $salesNoteFreeIssueGrandTotal = $salesNoteFreeIssueGrandTotal + $row['free_issue_amount'];
+                $salesNotePayableGrandTotal = $salesNotePayableGrandTotal + $row['amount_payable'];
+
+                if ($salesNoteCustomerSaleableReturn && sizeof($salesNoteCustomerSaleableReturn) > 0) {
+                    $salesNotePayableGrandTotal = $salesNotePayableGrandTotal  - $salesNoteCustomerSaleableReturn[0]->amount;
+                }
+
+                if ($salesNoteCustomerMarketReturn && sizeof($salesNoteCustomerMarketReturn) > 0) {
+                    $salesNotePayableGrandTotal = $salesNotePayableGrandTotal  - $salesNoteCustomerMarketReturn[0]->amount;
+                }
 				
 				if ($row['cash_amount'] != "") {
 					$salesNoteCashPaymentGrandTotal = $salesNoteCashPaymentGrandTotal + $row['cash_amount'];
@@ -976,28 +1373,24 @@ class Bookkeeping_report_controller extends CI_Controller {
 				if ($row['cheque_amount'] != "") {
 					$salesNoteChequePaymentGrandTotal = $salesNoteChequePaymentGrandTotal + $row['cheque_amount'];
 				}
+                
+                if ($row['credit_card_amount'] != "") {
+                    $salesNoteCreditCardPaymentGrandTotal = $salesNoteCreditCardPaymentGrandTotal + $row['credit_card_amount'];
+                }
+                
+                if ($row['claimed_customer_returns'] != "") {
+                    $salesNoteClaimedCustomerReturnsGrandTotal = $salesNoteClaimedCustomerReturnsGrandTotal + $row['claimed_customer_returns'];
+                }
 				
-				if (!$newSalesNote && $salesNoteCreditPaymentAmountOfPreviousRecord != 0) {
-					$salesNoteCreditPaymentGrandTotal = ($salesNoteCreditPaymentGrandTotal - $salesNoteCreditPaymentAmountOfPreviousRecord) + $salesNoteCreditPaymentAmount;
-				} else if ($newSalesNote) {
-					$salesNoteCreditPaymentGrandTotal = $salesNoteCreditPaymentGrandTotal + $salesNoteCreditPaymentAmount;
-				}
-			
-				$salesNoteCreditPaymentAmountOfPreviousRecord = $salesNoteCreditPaymentAmount;
+				$salesNoteCreditPaymentGrandTotal = $salesNoteCreditPaymentGrandTotal + $salesNoteCreditPaymentAmount;
 				
-				if ($newSalesNote) {
-					if ($salesNoteCustomerSaleableReturn && sizeof($salesNoteCustomerSaleableReturn) > 0) {
-						$salesNoteCustomerSaleableReturnGrandTotal = $salesNoteCustomerSaleableReturnGrandTotal + $salesNoteCustomerSaleableReturn[0]->amount;
-					}
-				}
-				
-				if ($newSalesNote) {
-					if ($salesNoteCustomerMarketReturn && sizeof($salesNoteCustomerMarketReturn) > 0) {
-						$salesNoteCustomerMarketReturnGrandTotal = $salesNoteCustomerMarketReturnGrandTotal + $salesNoteCustomerMarketReturn[0]->amount;
-					}
-				}
-				
-				$previousSalesNoteId = $currentSalesNoteId;
+                if ($salesNoteCustomerSaleableReturn && sizeof($salesNoteCustomerSaleableReturn) > 0) {
+                    $salesNoteCustomerSaleableReturnGrandTotal = $salesNoteCustomerSaleableReturnGrandTotal + $salesNoteCustomerSaleableReturn[0]->amount;
+                }
+
+                if ($salesNoteCustomerMarketReturn && sizeof($salesNoteCustomerMarketReturn) > 0) {
+                    $salesNoteCustomerMarketReturnGrandTotal = $salesNoteCustomerMarketReturnGrandTotal + $salesNoteCustomerMarketReturn[0]->amount;
+                }
 			}
 
 			$salesNoteGrandTotal = number_format($salesNoteGrandTotal, 2);
@@ -1008,6 +1401,8 @@ class Bookkeeping_report_controller extends CI_Controller {
 			$salesNotePayableGrandTotal = number_format($salesNotePayableGrandTotal, 2);
 			$salesNoteCashPaymentGrandTotal = number_format($salesNoteCashPaymentGrandTotal, 2);
 			$salesNoteChequePaymentGrandTotal = number_format($salesNoteChequePaymentGrandTotal, 2);
+            $salesNoteCreditCardPaymentGrandTotal = number_format($salesNoteCreditCardPaymentGrandTotal, 2);
+            $salesNoteClaimedCustomerReturnsGrandTotal = number_format($salesNoteClaimedCustomerReturnsGrandTotal, 2);
 			$salesNoteCreditPaymentGrandTotal = number_format($salesNoteCreditPaymentGrandTotal, 2);
 			
 			//echo $colspan;die;
@@ -1027,6 +1422,8 @@ class Bookkeeping_report_controller extends CI_Controller {
 				
 				$html .= '    <td style="text-align:right;"><span style="font-size:8px">' . $salesNoteCashPaymentGrandTotal . '</span></td>';
 				$html .= '    <td style="text-align:right;"><span style="font-size:8px">' . $salesNoteChequePaymentGrandTotal . '</span></td>';
+                $html .= '    <td style="text-align:right;"><span style="font-size:8px">' . $salesNoteCreditCardPaymentGrandTotal . '</span></td>';
+                $html .= '    <td style="text-align:right;"><span style="font-size:8px">' . $salesNoteClaimedCustomerReturnsGrandTotal . '</span></td>';
 				$html .= '    <td style="text-align:right;"><span style="font-size:8px">' . $salesNoteCreditPaymentGrandTotal . '</span></td>';
 				$html .= "</tr>";
 			}
@@ -1048,9 +1445,10 @@ class Bookkeeping_report_controller extends CI_Controller {
 			}
 		}
 
-		return array($html, $salesNoteGrandTotal, $salesNoteDiscountGrandTotal, $salesNoteFreeIssueGrandTotal, $salesNoteCashPaymentGrandTotal,
-					 $salesNoteChequePaymentGrandTotal, $salesNoteCreditPaymentGrandTotal, $salesNoteCustomerSaleableReturnGrandTotal,
-					 $salesNoteCustomerMarketReturnGrandTotal, $salesNotePayableGrandTotal);
+		return array($html, $salesNoteGrandTotal, $salesNoteDiscountGrandTotal, $salesNoteFreeIssueGrandTotal, 
+                     $salesNoteCashPaymentGrandTotal, $salesNoteChequePaymentGrandTotal, $salesNoteCreditCardPaymentGrandTotal,
+                     $salesNoteClaimedCustomerReturnsGrandTotal, $salesNoteCreditPaymentGrandTotal, 
+                     $salesNoteCustomerSaleableReturnGrandTotal, $salesNoteCustomerMarketReturnGrandTotal, $salesNotePayableGrandTotal);
 	}
 	//  End of Sales Payment Details Report  ////////////////////////////////////////////////////////////////////////////
 	

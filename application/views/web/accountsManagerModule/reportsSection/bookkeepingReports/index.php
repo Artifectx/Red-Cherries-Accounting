@@ -437,6 +437,8 @@
 										<label id="total_cash_payment_label" style="text-align : left" class='control-label col-sm-2' ><?php echo $this->lang->line('Total Payable') ?></label>
 										<label id="total_cash_payment_label" style="text-align : left" class='control-label col-sm-2' ><?php echo $this->lang->line('Total Cash Payment') ?></label>
 										<label id="total_cheque_payment_label" style="text-align : left" class='control-label col-sm-2' ><?php echo $this->lang->line('Total Cheque Payment') ?></label>
+                                        <label id="total_cheque_payment_label" style="text-align : left" class='control-label col-sm-2' ><?php echo $this->lang->line('Total Credit Card Payment') ?></label>
+                                        <label id="total_cheque_payment_label" style="text-align : left" class='control-label col-sm-2' ><?php echo $this->lang->line('Total Customer Returns Claimed') ?></label>
 										<label id="total_credit_payment_label" style="text-align : left" class='control-label col-sm-2' ><?php echo $this->lang->line('Total Credit Payment') ?></label>
 									</div>
 								</div>
@@ -450,6 +452,12 @@
 										</div>
 										<div id="total_cheque_payment_value_div" class='col-sm-2 controls'>
 											<input class='form-control' id='sn_total_cheque_payment' name='sn_total_cheque_payment' type='text' readonly>
+										</div>
+                                        <div id="total_credit_card_payment_value_div" class='col-sm-2 controls'>
+											<input class='form-control' id='sn_total_credit_card_payment' name='sn_total_credit_card_payment' type='text' readonly>
+										</div>
+                                        <div id="total_claimed_customer_returns_value_div" class='col-sm-2 controls'>
+											<input class='form-control' id='sn_total_claimed_customer_returns' name='sn_total_claimed_customer_returns' type='text' readonly>
 										</div>
 										<div id="total_credit_payment_value_div" class='col-sm-2 controls'>
 											<input class='form-control' id='sn_total_credit_payment' name='sn_total_credit_payment' type='text' readonly>
@@ -1221,6 +1229,8 @@
 						$("#sn_total_payable").val(response.salesNotePayableGrandTotal);
 						$("#sn_total_cash_payment").val(response.salesNoteCashPaymentGrandTotal);
 						$("#sn_total_cheque_payment").val(response.salesNoteChequePaymentGrandTotal);
+                        $("#sn_total_credit_card_payment").val(response.salesNoteCreditCardPaymentGrandTotal);
+                        $("#sn_total_claimed_customer_returns").val(response.salesNoteClaimedCustomerReturnsGrandTotal);
 						$("#sn_total_credit_payment").val(response.salesNoteCreditPaymentGrandTotal);
 						$(".loader").hide();
 
