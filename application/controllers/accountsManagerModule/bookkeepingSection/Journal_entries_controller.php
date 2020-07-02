@@ -1201,12 +1201,16 @@ class Journal_entries_controller extends CI_Controller {
 		}
 	}
 	
-	public function getReferenceJournalEntryListForSelectedTransaction($transactionTypeId=null, $transactionReferenceId=null, $selectedIndex=null) {
+	public function getReferenceJournalEntryListForSelectedTransaction($transactionTypeId=null, $transactionReferenceId=null, 
+                                                                       $selectedIndex=null, $status=null, $peopleId=null, $locationId=null) {
 		
 		$transactionReferenceNo = '';
 		if ($transactionTypeId == '') {
 			$transactionTypeId = $this->db->escape_str($this->input->post('transaction_type_id'));
 			$transactionReferenceNo = $this->db->escape_str($this->input->post('transaction_reference_no'));
+            $status = $this->db->escape_str($this->input->post('status'));
+            $peopleId = $this->db->escape_str($this->input->post('people_id'));
+            $locationId = $this->db->escape_str($this->input->post('location_id'));
 		}
 		
 		$journalEntries = '';
@@ -1349,7 +1353,7 @@ class Journal_entries_controller extends CI_Controller {
 			//Other
 			case '5':
 				
-				$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType('');
+				$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType('', '', $status, $peopleId, $locationId);
 				
 				$journalEntryList = "   <select class='select2 form-control' id='reference_journal_entry_id' onchange='handleReferenceJournalEntrySelect(this.id);'>
 										<option value='0' >{$this->lang->line('-- Select --')}</option>";
@@ -1407,6 +1411,8 @@ class Journal_entries_controller extends CI_Controller {
 		$referenceTransactionId = $this->db->escape_str($this->input->post('reference_transaction_id'));
 		$referenceJournalEntryId = $this->db->escape_str($this->input->post('reference_journal_entry_id'));
 		$transactionAmountTotal = $this->db->escape_str($this->input->post('transaction_amount_total'));
+        
+        $referenceJournalEntry = $this->journal_entries_model->getJournalEntryById($referenceJournalEntryId);
 		$generalLedgerCreditRecord = $this->journal_entries_model->getGeneralLedgerTransactionCreditRecordByJournalEntryId($referenceJournalEntryId);
 		
         $transactionAmount = 0;
@@ -1446,8 +1452,14 @@ class Journal_entries_controller extends CI_Controller {
             
             $transactionAmountTotal = $transactionAmountTotal + $transactionAmount;
         } else if ($referenceTransactionType == '5') {
-			$transactionAmount = $generalLedgerCreditRecord[0]->credit_value;
-            $transactionAmountTotal = $transactionAmountTotal + $transactionAmount;
+            
+            if ($referenceJournalEntry[0]->balance_amount != '0.00') {
+                $transactionAmount = $referenceJournalEntry[0]->balance_amount;
+                $transactionAmountTotal = $transactionAmountTotal + $transactionAmount;
+            } else {
+                $transactionAmount = $generalLedgerCreditRecord[0]->credit_value;
+                $transactionAmountTotal = $transactionAmountTotal + $transactionAmount;
+            }
 		}
 		
 		echo json_encode(array('transactionAmount' => number_format($transactionAmount, 2), 'transactionAmountTotal' => number_format($transactionAmountTotal, 2), 'transactionAmountTotalNonFormatted' => $transactionAmountTotal));

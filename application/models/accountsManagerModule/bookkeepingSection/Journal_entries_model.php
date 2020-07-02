@@ -224,7 +224,8 @@ class Journal_entries_model extends CI_Model {
 		}
 	}
 	
-	public function getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo=null, $descriptionContains=null) {
+	public function getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo=null, $descriptionContains=null, 
+                                                                       $status=null, $peopleId=null, $locationId=null) {
 		if ($transactionReferenceNo != '') {
 			$this->db->where('acm_bookkeeping_journal_entries.reference_no =', $transactionReferenceNo);
 		}
@@ -232,6 +233,18 @@ class Journal_entries_model extends CI_Model {
 		if ($descriptionContains != '') {
 			$this->db->like('acm_bookkeeping_journal_entries.description', $descriptionContains);
 		}
+        
+        if ($status != '') {
+            $this->db->like('acm_bookkeeping_journal_entries.status', $status);
+        }
+        
+        if ($peopleId != '') {
+            $this->db->like('acm_bookkeeping_journal_entries.payee_payer_id', $peopleId);
+        }
+        
+        if ($locationId != '') {
+            $this->db->like('acm_bookkeeping_journal_entries.location_id', $locationId);
+        }
 		
 		$this->db->where('acm_bookkeeping_journal_entries.should_have_a_payment_journal_entry =', 'Yes');
 		$this->db->where('acm_bookkeeping_journal_entries.last_action_status !=','deleted');

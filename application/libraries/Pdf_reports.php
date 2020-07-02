@@ -50,7 +50,7 @@ class Pdf_reports extends TCPDF {
 		if($company != null){
 			if($company[0]->company_logo !=''){
 				$image_file = base_url().$company[0]->company_logo;
-				$this->Image($image_file,'','',35,20);
+				$this->Image($image_file,'','',30,20);
 			}
 
 			$companyName = '';

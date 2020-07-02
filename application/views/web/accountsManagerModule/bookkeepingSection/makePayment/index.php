@@ -1782,20 +1782,23 @@
 						} else if (MakePaymentScreenOperationStatus == "View") {
 							$("#reference_transaction_div_edit").hide();
 						}
-						MakePayment.getReferenceJournalEntryListForSelectedTransaction(transactionTypeId, '')
+						MakePayment.getReferenceJournalEntryListForSelectedTransaction(transactionTypeId, '', peopleId, locationId);
 					}
 				}
 			})
 		},
 		
 		//get reference journal entry list drop down
-		getReferenceJournalEntryListForSelectedTransaction: function (transactionTypeId, transactionReferenceNo) {
+		getReferenceJournalEntryListForSelectedTransaction: function (transactionTypeId, transactionReferenceNo, peopleId, locationId) {
 			$.ajax({
 				type: "POST",
 				url: "<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/journal_entries_controller/getReferenceJournalEntryListForSelectedTransaction",
 				data: {
 					'transaction_type_id' : transactionTypeId,
 					'transaction_reference_no' : transactionReferenceNo,
+                    'status' : "Open",
+                    'people_id' : peopleId,
+                    'location_id' : locationId,
 					'<?php echo $this->security->get_csrf_token_name(); ?>':
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},

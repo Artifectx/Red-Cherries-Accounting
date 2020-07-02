@@ -148,7 +148,7 @@ if($dataGoogleAnalytics != null) {
 <header>
 	<nav class='navbar navbar-default'>
 		<a class='navbar-brand' href='<?php echo base_url(); ?>'>
-			<img width="110px" height="55px" class="logo1" alt="Red Cherries Accounting" style="margin-top: 1%; margin-left:-20%;"
+			<img width="90px" height="55px" class="logo1" alt="Red Cherries Accounting" style="margin-top: 1%; margin-left:-10%;"
 				 src="<?php echo base_url(); ?>assets/images/logo.png"/>
 		</a>
 

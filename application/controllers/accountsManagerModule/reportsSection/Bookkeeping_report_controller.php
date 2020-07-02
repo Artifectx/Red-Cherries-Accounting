@@ -3623,12 +3623,20 @@ class Bookkeeping_report_controller extends CI_Controller {
                                     $count++;
                                 }
 
-                                $debtorBalances[$payeePayerId] = $debtorBalances[$payeePayerId] + $balanceAmount;
+                                if (array_key_exists($payeePayerId, $debtorBalances)) {
+                                    $debtorBalances[$payeePayerId] = $debtorBalances[$payeePayerId] + $balanceAmount;
+                                } else {
+                                    $debtorBalances[$payeePayerId] = $balanceAmount;
+                                }
 
                                 $totalBalanceAmount = $totalBalanceAmount + $balanceAmount;
                             } else {
 
-                                $debtorBalances[$payeePayerId] = $debtorBalances[$payeePayerId] + $debitAmount;
+                                if (array_key_exists($payeePayerId, $debtorBalances)) {
+                                    $debtorBalances[$payeePayerId] = $debtorBalances[$payeePayerId] + $debitAmount;
+                                } else {
+                                    $debtorBalances[$payeePayerId] = $debitAmount;
+                                }
 
                                 $totalBalanceAmount = $totalBalanceAmount + $debitAmount;
                             }
@@ -4195,12 +4203,20 @@ class Bookkeeping_report_controller extends CI_Controller {
                                 $count++;
                             }
                             
-                            $creditorBalances[$payeePayerId] = $creditorBalances[$payeePayerId] + $balanceAmount;
+                            if (array_key_exists($payeePayerId, $creditorBalances)) {
+                                $creditorBalances[$payeePayerId] = $creditorBalances[$payeePayerId] + $balanceAmount;
+                            } else {
+                                $creditorBalances[$payeePayerId] = $balanceAmount;
+                            }
 
                             $totalBalanceAmount = $totalBalanceAmount + $balanceAmount;
                         } else {
                             
-                            $creditorBalances[$payeePayerId] = $creditorBalances[$payeePayerId] + $creditAmount;
+                            if (array_key_exists($payeePayerId, $creditorBalances)) {
+                                $creditorBalances[$payeePayerId] = $creditorBalances[$payeePayerId] + $creditAmount;
+                            } else {
+                                $creditorBalances[$payeePayerId] = $creditAmount;
+                            }
                             
                             $totalBalanceAmount = $totalBalanceAmount + $creditAmount;
                         }
@@ -4208,7 +4224,11 @@ class Bookkeeping_report_controller extends CI_Controller {
 
                     if ($debitAmount > 0) {
                         
-                        $creditorBalances[$payeePayerId] = $creditorBalances[$payeePayerId] - $debitAmount;
+                        if (array_key_exists($payeePayerId, $creditorBalances)) {
+                            $creditorBalances[$payeePayerId] = $creditorBalances[$payeePayerId] - $debitAmount;
+                        } else {
+                            $creditorBalances[$payeePayerId] = $debitAmount;
+                        }
                         
                         $debitTotal = $debitTotal + $debitAmount;
                     }

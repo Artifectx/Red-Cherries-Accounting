@@ -518,7 +518,7 @@
 	function clearForm(){
 		$("#location_code").val('');
 		$("#location_name").val('');
-		$("#company").val('');
+		$("#company").val('0');
 		$("#address").val('');
 		$("#city").val('');
 		$("#state").val('');
