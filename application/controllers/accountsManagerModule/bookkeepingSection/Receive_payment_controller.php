@@ -165,7 +165,7 @@ class Receive_payment_controller extends CI_Controller {
 					'</div>');
 			} else {
                 
-				$makePaymentReferenceNo = $this->db->escape_str($this->input->post('reference_no'));
+				$receivePaymentReferenceNo = $this->db->escape_str($this->input->post('reference_no'));
 				$receivePaymentDate = $this->db->escape_str($this->input->post('receive_payment_date'));
 				$payerType = $this->db->escape_str($this->input->post('payer_type'));
 				$payerId = $this->db->escape_str($this->input->post('payer_id'));
@@ -177,7 +177,7 @@ class Receive_payment_controller extends CI_Controller {
 				$paymentMethodCount = $this->db->escape_str($this->input->post('payment_method_count'));
                 
                 $data = array(
-					'reference_no' => $makePaymentReferenceNo,
+					'reference_no' => $receivePaymentReferenceNo,
 					'date' => $receivePaymentDate,
 					'payer_type' => $payerType,
 					'payer_id' => $payerId,
@@ -845,7 +845,7 @@ class Receive_payment_controller extends CI_Controller {
                                                                             $data = array(
                                                                                 'prime_entry_book_id' => $primeEntryBookId,
                                                                                 'transaction_date' => $receivePaymentDate,
-                                                                                'reference_no' => $makePaymentReferenceNo,
+                                                                                'reference_no' => $receivePaymentReferenceNo,
                                                                                 'should_have_a_payment_journal_entry' => "No",
                                                                                 'location_id' => $locationId,
                                                                                 'payee_payer_type' => $payerType,
@@ -853,7 +853,7 @@ class Receive_payment_controller extends CI_Controller {
                                                                                 'reference_transaction_type_id' => $referenceTransactionTypeId,
                                                                                 'reference_transaction_id' => $referenceTransactionId,
                                                                                 'reference_journal_entry_id' => $referenceJournalEntryId,
-                                                                                'description' => $this->lang->line('Journal entry for Receive Payment number : ') . $makePaymentReferenceNo,
+                                                                                'description' => $this->lang->line('Journal entry for Receive Payment number : ') . $receivePaymentReferenceNo,
                                                                                 'post_type' => "Indirect",
                                                                                 'actioned_user_id' => $this->user_id,
                                                                                 'action_date' => $this->date,
@@ -1421,7 +1421,7 @@ class Receive_payment_controller extends CI_Controller {
                                                                             $data = array(
                                                                                 'prime_entry_book_id' => $primeEntryBookId,
                                                                                 'transaction_date' => $receivePaymentDate,
-                                                                                'reference_no' => $makePaymentReferenceNo,
+                                                                                'reference_no' => $receivePaymentReferenceNo,
                                                                                 'should_have_a_payment_journal_entry' => "No",
                                                                                 'location_id' => $locationId,
                                                                                 'payee_payer_type' => $payerType,
@@ -1429,7 +1429,7 @@ class Receive_payment_controller extends CI_Controller {
                                                                                 'reference_transaction_type_id' => $referenceTransactionTypeId,
                                                                                 'reference_transaction_id' => $referenceTransactionId,
                                                                                 'reference_journal_entry_id' => $referenceJournalEntryId,
-                                                                                'description' => $this->lang->line('Journal entry for Receive Payment number : ') . $makePaymentReferenceNo,
+                                                                                'description' => $this->lang->line('Journal entry for Receive Payment number : ') . $receivePaymentReferenceNo,
                                                                                 'post_type' => "Indirect",
                                                                                 'actioned_user_id' => $this->user_id,
                                                                                 'action_date' => $this->date,
@@ -1516,6 +1516,265 @@ class Receive_payment_controller extends CI_Controller {
                                                                 break;
                                                             }
                                                         }
+                                                    }
+                                                } else {
+                                                    $journalEntryId = $referenceTransactionData[$p][2][$q];
+                                                    
+                                                    $referenceJournalEntryId = $journalEntryId;
+                                                    
+                                                    $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+                                                    
+                                                    $balanceAmount = $journalEntry[0]->balance_amount;
+                                                    
+                                                    if ($balanceAmount == 0) {
+                                                        $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
+
+                                                        $transactionAmount = 0;
+                                                        if ($glTransactions && sizeof($glTransactions) > 0) {
+                                                            if ($glTransactions[0]->debit_value > 0) {
+                                                                $balanceAmount = $glTransactions[0]->debit_value;
+                                                            } else if ($glTransactions[0]->credit_value > 0) {
+                                                                $balanceAmount = $glTransactions[0]->credit_value;
+                                                            }
+                                                        }
+                                                    }
+                                                    
+                                                    $journalEntryStatus = "Open";
+                                                    $paymentMethodFullyConsumed = false;
+                                                    
+                                                    if ($balanceAmount > $remainingPaymentAmount) {
+                                                        $paidAmount = $remainingPaymentAmount;
+                                                        $balanceAmount = $balanceAmount - $paidAmount;
+                                                        $remainingPaymentAmount = 0;
+                                                        $paymentMethodFullyConsumed = true;
+                                                    } else {
+                                                        $paidAmount = $balanceAmount;
+                                                        $balanceAmount = 0;
+                                                        $remainingPaymentAmount = $remainingPaymentAmount - $balanceAmount;
+                                                        
+                                                        $journalEntryStatus = "Closed";
+                                                    }
+                                                    
+                                                    $journalEntryData = array(
+                                                        'balance_amount' => $balanceAmount,
+                                                        'status' => $journalEntryStatus,
+                                                        'actioned_user_id' => $this->user_id,
+                                                        'action_date' => $this->date,
+                                                        'last_action_status' => 'edited'
+                                                    );
+
+                                                    $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                                    
+                                                    if ($paymentMethod == 'Cash Payment') {
+                                                        
+                                                        $cashPaymentData = array(
+                                                            'date' => $receivePaymentDate,
+                                                            'amount' => $amount,
+                                                            'actioned_user_id' => $this->user_id,
+                                                            'action_date' => $this->date,
+                                                            'last_action_status' => 'edited'
+                                                        );
+
+                                                        $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
+                                                    } else if ($paymentMethod == 'Cheque Payment') {
+                                                        
+                                                        $incomeChequeData = array(
+                                                            'date' => $receivePaymentDate,
+                                                            'payer_id' => $payerId,
+                                                            'location_id' => $locationId,
+                                                            'cheque_number' => $chequeNumber,
+                                                            'bank' => $bankId,
+                                                            'cheque_date' => $chequeDate,
+                                                            'third_party_cheque' => $thirdPartyCheque,
+                                                            'amount' => $amount,
+                                                            'crossed_cheque' => $crossedCheque,
+                                                            'cheque_deposit_prime_entry_book_id' => $chequeDepositPrimeEntryBookId,
+                                                            'status' => "In_Hand",
+                                                            'actioned_user_id' => $this->user_id,
+                                                            'action_date' => $this->date,
+                                                            'last_action_status' => 'added'
+                                                        );
+
+                                                        $chequeId = $this->payments_model->addIncomeCheque($incomeChequeData);
+                                                    } else if ($paymentMethod == 'Card Payment') {
+                                                        
+                                                        $creditCardPaymentData = array(
+                                                            'date' => $receivePaymentDate,
+                                                            'card_type' => $cardType,
+                                                            'amount' => $amount,
+                                                            'actioned_user_id' => $this->user_id,
+                                                            'action_date' => $this->date,
+                                                            'last_action_status' => 'edited'
+                                                        );
+
+                                                        $paymentId = $this->payments_model->addCreditCardPayment($creditCardPaymentData);
+                                                    }
+                                                    
+                                                    $cashPaymentId = 0;
+                                                    $creditCardPaymentId = 0;
+
+                                                    if ($paymentMethod == 'Cash Payment') {
+                                                        $cashPaymentId = $paymentId;
+                                                    } else if ($paymentMethod == 'Card Payment') {
+                                                        $creditCardPaymentId = $paymentId;
+                                                    }
+
+                                                    $receivePaymentMethodRecordData = array(
+                                                        'receive_payment_id' => $receivePaymentId,
+                                                        'payment_method' => $paymentMethod,
+                                                        'card_type' => $cardType,
+                                                        'cash_payment_id' => $cashPaymentId,
+                                                        'cheque_id' => $chequeId,
+                                                        'credit_card_payment_id' => $creditCardPaymentId,
+                                                        'actioned_user_id' => $this->user_id,
+                                                        'action_date' => $this->date,
+                                                        'last_action_status' => 'added'
+                                                    );
+
+                                                    $receivePaymentMethodId = $this->receive_payment_model->addReceivePaymentMethodRecord($receivePaymentMethodRecordData);
+
+                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+                                                    $primeEntryBookIds = '';
+                                                    if ($paymentMethod == "Cash Payment") {
+                                                        $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForReceivePaymentCashTransaction();
+
+                                                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                } else {
+                                                                    $primeEntryBookIds[] = $primeEntryBookId;
+                                                                }
+                                                            }
+                                                        }
+                                                    } else if ($paymentMethod == "Cheque Payment") {
+                                                        $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForReceivePaymentChequeTransaction();
+
+
+                                                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                } else {
+                                                                    $primeEntryBookIds[] = $primeEntryBookId;
+                                                                }
+                                                            }
+                                                        }
+                                                    } else if ($paymentMethod == "Card Payment") {
+                                                        $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($paymentAccountId);
+
+                                                        if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                        } else {
+                                                            $primeEntryBookIds[] = $paymentAccountId;
+                                                        }
+                                                    }
+
+                                                    if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                                                        if ($primeEntryBookIds && sizeof($primeEntryBookIds) > 0) {
+
+                                                            foreach ($primeEntryBookIds as $primeEntryBookId) {
+
+                                                                $data = array(
+                                                                    'prime_entry_book_id' => $primeEntryBookId,
+                                                                    'transaction_date' => $receivePaymentDate,
+                                                                    'reference_no' => $receivePaymentReferenceNo,
+                                                                    'should_have_a_payment_journal_entry' => "No",
+                                                                    'location_id' => $locationId,
+                                                                    'payee_payer_type' => $payerType,
+                                                                    'payee_payer_id' => $payerId,
+                                                                    'reference_journal_entry_id' => $referenceJournalEntryId,
+                                                                    'description' => $this->lang->line('Journal entry for Receive Payment number : ') . $receivePaymentReferenceNo,
+                                                                    'post_type' => "Indirect",
+                                                                    'actioned_user_id' => $this->user_id,
+                                                                    'action_date' => $this->date,
+                                                                    'last_action_status' => 'added'
+                                                                );
+
+                                                                $journalEntryId = $this->journal_entries_model->addJournalEntry($data);
+
+                                                                $data = array(
+                                                                    'receive_payment_id' => $receivePaymentId,
+                                                                    'receive_payment_method_id' => $receivePaymentMethodId,
+                                                                    'prime_entry_book_id' => $primeEntryBookId,
+                                                                    'journal_entry_id' => $journalEntryId,
+                                                                    'actioned_user_id' => $this->user_id,
+                                                                    'action_date' => $this->date,
+                                                                    'last_action_status' => 'added'
+                                                                );
+
+                                                                $this->receive_payment_model->addReceivePaymentJournalEntry($data);
+
+                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+
+                                                                    if ($paymentMethod == "Cheque Payment") {
+                                                                        $transactionStatus = "No";
+                                                                    } else {
+                                                                        $transactionStatus = "Yes";
+                                                                    }
+
+                                                                    if ($chartOfAccount->debit_or_credit == "debit") {
+                                                                        $data = array(
+                                                                            'journal_entry_id' => $journalEntryId,
+                                                                            'prime_entry_book_id' => $primeEntryBookId,
+                                                                            'transaction_date' => $receivePaymentDate,
+                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                            'debit_value' => $paidAmount,
+                                                                            'transaction_complete' => $transactionStatus,
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'added'
+                                                                        );
+                                                                    } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                                                        $data = array(
+                                                                            'journal_entry_id' => $journalEntryId,
+                                                                            'prime_entry_book_id' => $primeEntryBookId,
+                                                                            'transaction_date' => $receivePaymentDate,
+                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                            'credit_value' => $paidAmount,
+                                                                            'transaction_complete' => $transactionStatus,
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'added'
+                                                                        );
+                                                                    }
+
+                                                                    $this->journal_entries_model->addGeneralLedgerTransaction($data);
+
+                                                                    //Same time add the data to previous years record table.
+                                                                    $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
+                                                                }
+
+                                                                if ($chequeId != '' && $chequeId != '0') {
+                                                                    $incomeChequeData = array(
+                                                                        'cheque_reference_journal_entry_id' => $journalEntryId,
+                                                                        'actioned_user_id' => $this->user_id,
+                                                                        'action_date' => $this->date,
+                                                                        'last_action_status' => 'added'
+                                                                    );
+
+                                                                    $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
+                                                                }
+                                                            }
+                                                        } 
+
+                                                        $result = 'ok';
+                                                    } else {
+                                                        $result = 'incorrect_prime_entry_book_selected_for_receive_payment_transaction';
+                                                        break;
+                                                    }
+                                                    
+                                                    if ($paymentMethodFullyConsumed == true) {
+                                                        break;
                                                     }
                                                 }
                                             }
@@ -1878,6 +2137,115 @@ class Receive_payment_controller extends CI_Controller {
                                                     $this->journal_entries_model->deleteGeneralLedgerTransactions($claimReferenceJournalEntryId, 'deleted', $this->user_id);
                                                 }
                                             }
+                                        }
+                                    }
+                                } else if ($referenceTransactionTypeId == '5') {
+                                    $journalEntryId = $paymentReference->reference_journal_entry_id;
+                                    $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+                                    
+                                    $balanceAmount = $journalEntry[0]->balance_amount;
+                                    
+                                    $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+
+                                    $transactionAmount = 0;
+                                    if ($glTransactions && sizeof($glTransactions) > 0) {
+                                        if ($glTransactions[0]->debit_value > 0) {
+                                            $transactionAmount = $glTransactions[0]->debit_value;
+                                        } else if ($glTransactions[0]->credit_value > 0) {
+                                            $transactionAmount = $glTransactions[0]->credit_value;
+                                        }
+                                    }
+                                    
+                                    if ($cashAmount > 0) {
+                                        if (($transactionAmount - $balanceAmount) >= $cashAmount) {
+                                            
+                                            $balanceAmount = $balanceAmount + $cashAmount;
+                                            $cashAmount = 0;
+                                            
+                                            $journalEntryData = array(
+                                                'balance_amount' => $balanceAmount,
+                                                'status' => "Open",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'edited'
+                                            );
+
+                                            $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                        } else if (($transactionAmount - $balanceAmount) < $cashAmount) {
+                                            $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
+                                            $cashAmount = $cashAmount - ($transactionAmount - $balanceAmount);
+                                            
+                                            $journalEntryData = array(
+                                                'balance_amount' => $balanceAmount,
+                                                'status' => "Open",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'edited'
+                                            );
+
+                                            $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                        }
+                                    }
+                                    
+                                    if ($chequeAmount > 0) {
+                                        if (($transactionAmount - $balanceAmount) >= $chequeAmount) {
+                                            
+                                            $balanceAmount = $balanceAmount + $chequeAmount;
+                                            $chequeAmount = 0;
+                                            
+                                            $journalEntryData = array(
+                                                'balance_amount' => $balanceAmount,
+                                                'status' => "Open",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'edited'
+                                            );
+
+                                            $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                        } else if (($transactionAmount - $balanceAmount) < $chequeAmount) {
+                                            $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
+                                            $chequeAmount = $chequeAmount - ($transactionAmount - $balanceAmount);
+                                            
+                                            $journalEntryData = array(
+                                                'balance_amount' => $balanceAmount,
+                                                'status' => "Open",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'edited'
+                                            );
+
+                                            $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                        }
+                                    }
+                                    
+                                    if ($creditCardAmount > 0) {
+                                        if (($transactionAmount - $balanceAmount) >= $creditCardAmount) {
+                                            
+                                            $balanceAmount = $balanceAmount + $creditCardAmount;
+                                            $creditCardAmount = 0;
+                                            
+                                            $journalEntryData = array(
+                                                'balance_amount' => $balanceAmount,
+                                                'status' => "Open",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'edited'
+                                            );
+
+                                            $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                        } else if (($transactionAmount - $balanceAmount) < $creditCardAmount) {
+                                            $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
+                                            $creditCardAmount = $creditCardAmount - ($transactionAmount - $balanceAmount);
+                                            
+                                            $journalEntryData = array(
+                                                'balance_amount' => $balanceAmount,
+                                                'status' => "Open",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'edited'
+                                            );
+
+                                            $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
                                         }
                                     }
                                 }
@@ -3274,6 +3642,265 @@ class Receive_payment_controller extends CI_Controller {
                                                             }
                                                         }
                                                     }
+                                                } else {
+                                                    $journalEntryId = $referenceTransactionData[$p][2][$q];
+                                                    
+                                                    $referenceJournalEntryId = $journalEntryId;
+                                                    
+                                                    $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+                                                    
+                                                    $balanceAmount = $journalEntry[0]->balance_amount;
+                                                    
+                                                    if ($balanceAmount == 0) {
+                                                        $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
+
+                                                        $transactionAmount = 0;
+                                                        if ($glTransactions && sizeof($glTransactions) > 0) {
+                                                            if ($glTransactions[0]->debit_value > 0) {
+                                                                $balanceAmount = $glTransactions[0]->debit_value;
+                                                            } else if ($glTransactions[0]->credit_value > 0) {
+                                                                $balanceAmount = $glTransactions[0]->credit_value;
+                                                            }
+                                                        }
+                                                    }
+                                                    
+                                                    $journalEntryStatus = "Open";
+                                                    $paymentMethodFullyConsumed = false;
+                                                    
+                                                    if ($balanceAmount > $remainingPaymentAmount) {
+                                                        $paidAmount = $remainingPaymentAmount;
+                                                        $balanceAmount = $balanceAmount - $paidAmount;
+                                                        $remainingPaymentAmount = 0;
+                                                        $paymentMethodFullyConsumed = true;
+                                                    } else {
+                                                        $paidAmount = $balanceAmount;
+                                                        $balanceAmount = 0;
+                                                        $remainingPaymentAmount = $remainingPaymentAmount - $balanceAmount;
+                                                        
+                                                        $journalEntryStatus = "Closed";
+                                                    }
+                                                    
+                                                    $journalEntryData = array(
+                                                        'balance_amount' => $balanceAmount,
+                                                        'status' => $journalEntryStatus,
+                                                        'actioned_user_id' => $this->user_id,
+                                                        'action_date' => $this->date,
+                                                        'last_action_status' => 'edited'
+                                                    );
+
+                                                    $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                                    
+                                                    if ($paymentMethod == 'Cash Payment') {
+                                                        
+                                                        $cashPaymentData = array(
+                                                            'date' => $receivePaymentDate,
+                                                            'amount' => $amount,
+                                                            'actioned_user_id' => $this->user_id,
+                                                            'action_date' => $this->date,
+                                                            'last_action_status' => 'edited'
+                                                        );
+
+                                                        $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
+                                                    } else if ($paymentMethod == 'Cheque Payment') {
+                                                        
+                                                        $incomeChequeData = array(
+                                                            'date' => $receivePaymentDate,
+                                                            'payer_id' => $payerId,
+                                                            'location_id' => $locationId,
+                                                            'cheque_number' => $chequeNumber,
+                                                            'bank' => $bankId,
+                                                            'cheque_date' => $chequeDate,
+                                                            'third_party_cheque' => $thirdPartyCheque,
+                                                            'amount' => $amount,
+                                                            'crossed_cheque' => $crossedCheque,
+                                                            'cheque_deposit_prime_entry_book_id' => $chequeDepositPrimeEntryBookId,
+                                                            'status' => "In_Hand",
+                                                            'actioned_user_id' => $this->user_id,
+                                                            'action_date' => $this->date,
+                                                            'last_action_status' => 'added'
+                                                        );
+
+                                                        $chequeId = $this->payments_model->addIncomeCheque($incomeChequeData);
+                                                    } else if ($paymentMethod == 'Card Payment') {
+                                                        
+                                                        $creditCardPaymentData = array(
+                                                            'date' => $receivePaymentDate,
+                                                            'card_type' => $cardType,
+                                                            'amount' => $amount,
+                                                            'actioned_user_id' => $this->user_id,
+                                                            'action_date' => $this->date,
+                                                            'last_action_status' => 'edited'
+                                                        );
+
+                                                        $paymentId = $this->payments_model->addCreditCardPayment($creditCardPaymentData);
+                                                    }
+                                                    
+                                                    $cashPaymentId = 0;
+                                                    $creditCardPaymentId = 0;
+
+                                                    if ($paymentMethod == 'Cash Payment') {
+                                                        $cashPaymentId = $paymentId;
+                                                    } else if ($paymentMethod == 'Card Payment') {
+                                                        $creditCardPaymentId = $paymentId;
+                                                    }
+
+                                                    $receivePaymentMethodRecordData = array(
+                                                        'receive_payment_id' => $receivePaymentId,
+                                                        'payment_method' => $paymentMethod,
+                                                        'card_type' => $cardType,
+                                                        'cash_payment_id' => $cashPaymentId,
+                                                        'cheque_id' => $chequeId,
+                                                        'credit_card_payment_id' => $creditCardPaymentId,
+                                                        'actioned_user_id' => $this->user_id,
+                                                        'action_date' => $this->date,
+                                                        'last_action_status' => 'added'
+                                                    );
+
+                                                    $receivePaymentMethodId = $this->receive_payment_model->addReceivePaymentMethodRecord($receivePaymentMethodRecordData);
+
+                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+                                                    $primeEntryBookIds = '';
+                                                    if ($paymentMethod == "Cash Payment") {
+                                                        $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForReceivePaymentCashTransaction();
+
+                                                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                } else {
+                                                                    $primeEntryBookIds[] = $primeEntryBookId;
+                                                                }
+                                                            }
+                                                        }
+                                                    } else if ($paymentMethod == "Cheque Payment") {
+                                                        $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForReceivePaymentChequeTransaction();
+
+
+                                                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                } else {
+                                                                    $primeEntryBookIds[] = $primeEntryBookId;
+                                                                }
+                                                            }
+                                                        }
+                                                    } else if ($paymentMethod == "Card Payment") {
+                                                        $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($paymentAccountId);
+
+                                                        if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                        } else {
+                                                            $primeEntryBookIds[] = $paymentAccountId;
+                                                        }
+                                                    }
+
+                                                    if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                                                        if ($primeEntryBookIds && sizeof($primeEntryBookIds) > 0) {
+
+                                                            foreach ($primeEntryBookIds as $primeEntryBookId) {
+
+                                                                $data = array(
+                                                                    'prime_entry_book_id' => $primeEntryBookId,
+                                                                    'transaction_date' => $receivePaymentDate,
+                                                                    'reference_no' => $receivePaymentReferenceNo,
+                                                                    'should_have_a_payment_journal_entry' => "No",
+                                                                    'location_id' => $locationId,
+                                                                    'payee_payer_type' => $payerType,
+                                                                    'payee_payer_id' => $payerId,
+                                                                    'reference_journal_entry_id' => $referenceJournalEntryId,
+                                                                    'description' => $this->lang->line('Journal entry for Receive Payment number : ') . $receivePaymentReferenceNo,
+                                                                    'post_type' => "Indirect",
+                                                                    'actioned_user_id' => $this->user_id,
+                                                                    'action_date' => $this->date,
+                                                                    'last_action_status' => 'added'
+                                                                );
+
+                                                                $journalEntryId = $this->journal_entries_model->addJournalEntry($data);
+
+                                                                $data = array(
+                                                                    'receive_payment_id' => $receivePaymentId,
+                                                                    'receive_payment_method_id' => $receivePaymentMethodId,
+                                                                    'prime_entry_book_id' => $primeEntryBookId,
+                                                                    'journal_entry_id' => $journalEntryId,
+                                                                    'actioned_user_id' => $this->user_id,
+                                                                    'action_date' => $this->date,
+                                                                    'last_action_status' => 'added'
+                                                                );
+
+                                                                $this->receive_payment_model->addReceivePaymentJournalEntry($data);
+
+                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+
+                                                                    if ($paymentMethod == "Cheque Payment") {
+                                                                        $transactionStatus = "No";
+                                                                    } else {
+                                                                        $transactionStatus = "Yes";
+                                                                    }
+
+                                                                    if ($chartOfAccount->debit_or_credit == "debit") {
+                                                                        $data = array(
+                                                                            'journal_entry_id' => $journalEntryId,
+                                                                            'prime_entry_book_id' => $primeEntryBookId,
+                                                                            'transaction_date' => $receivePaymentDate,
+                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                            'debit_value' => $paidAmount,
+                                                                            'transaction_complete' => $transactionStatus,
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'added'
+                                                                        );
+                                                                    } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                                                        $data = array(
+                                                                            'journal_entry_id' => $journalEntryId,
+                                                                            'prime_entry_book_id' => $primeEntryBookId,
+                                                                            'transaction_date' => $receivePaymentDate,
+                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                            'credit_value' => $paidAmount,
+                                                                            'transaction_complete' => $transactionStatus,
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'added'
+                                                                        );
+                                                                    }
+
+                                                                    $this->journal_entries_model->addGeneralLedgerTransaction($data);
+
+                                                                    //Same time add the data to previous years record table.
+                                                                    $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
+                                                                }
+
+                                                                if ($chequeId != '' && $chequeId != '0') {
+                                                                    $incomeChequeData = array(
+                                                                        'cheque_reference_journal_entry_id' => $journalEntryId,
+                                                                        'actioned_user_id' => $this->user_id,
+                                                                        'action_date' => $this->date,
+                                                                        'last_action_status' => 'added'
+                                                                    );
+
+                                                                    $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
+                                                                }
+                                                            }
+                                                        } 
+
+                                                        $result = 'ok';
+                                                    } else {
+                                                        $result = 'incorrect_prime_entry_book_selected_for_receive_payment_transaction';
+                                                        break;
+                                                    }
+                                                    
+                                                    if ($paymentMethodFullyConsumed == true) {
+                                                        break;
+                                                    }
                                                 }
                                             }
                                         }
@@ -3576,6 +4203,115 @@ class Receive_payment_controller extends CI_Controller {
                                         }
                                     }
                                 }
+                            } else if ($referenceTransactionTypeId == '5') {
+                                $journalEntryId = $paymentReference->reference_journal_entry_id;
+                                $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+
+                                $balanceAmount = $journalEntry[0]->balance_amount;
+
+                                $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+
+                                $transactionAmount = 0;
+                                if ($glTransactions && sizeof($glTransactions) > 0) {
+                                    if ($glTransactions[0]->debit_value > 0) {
+                                        $transactionAmount = $glTransactions[0]->debit_value;
+                                    } else if ($glTransactions[0]->credit_value > 0) {
+                                        $transactionAmount = $glTransactions[0]->credit_value;
+                                    }
+                                }
+
+                                if ($cashAmount > 0) {
+                                    if (($transactionAmount - $balanceAmount) >= $cashAmount) {
+
+                                        $balanceAmount = $balanceAmount + $cashAmount;
+                                        $cashAmount = 0;
+
+                                        $journalEntryData = array(
+                                            'balance_amount' => $balanceAmount,
+                                            'status' => "Open",
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'edited'
+                                        );
+
+                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                    } else if (($transactionAmount - $balanceAmount) < $cashAmount) {
+                                        $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
+                                        $cashAmount = $cashAmount - ($transactionAmount - $balanceAmount);
+
+                                        $journalEntryData = array(
+                                            'balance_amount' => $balanceAmount,
+                                            'status' => "Open",
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'edited'
+                                        );
+
+                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                    }
+                                }
+
+                                if ($chequeAmount > 0) {
+                                    if (($transactionAmount - $balanceAmount) >= $chequeAmount) {
+
+                                        $balanceAmount = $balanceAmount + $chequeAmount;
+                                        $chequeAmount = 0;
+
+                                        $journalEntryData = array(
+                                            'balance_amount' => $balanceAmount,
+                                            'status' => "Open",
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'edited'
+                                        );
+
+                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                    } else if (($transactionAmount - $balanceAmount) < $chequeAmount) {
+                                        $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
+                                        $chequeAmount = $chequeAmount - ($transactionAmount - $balanceAmount);
+
+                                        $journalEntryData = array(
+                                            'balance_amount' => $balanceAmount,
+                                            'status' => "Open",
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'edited'
+                                        );
+
+                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                    }
+                                }
+
+                                if ($creditCardAmount > 0) {
+                                    if (($transactionAmount - $balanceAmount) >= $creditCardAmount) {
+
+                                        $balanceAmount = $balanceAmount + $creditCardAmount;
+                                        $creditCardAmount = 0;
+
+                                        $journalEntryData = array(
+                                            'balance_amount' => $balanceAmount,
+                                            'status' => "Open",
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'edited'
+                                        );
+
+                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                    } else if (($transactionAmount - $balanceAmount) < $creditCardAmount) {
+                                        $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
+                                        $creditCardAmount = $creditCardAmount - ($transactionAmount - $balanceAmount);
+
+                                        $journalEntryData = array(
+                                            'balance_amount' => $balanceAmount,
+                                            'status' => "Open",
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'edited'
+                                        );
+
+                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                    }
+                                }
                             }
                         }
                     }
@@ -3797,9 +4533,9 @@ class Receive_payment_controller extends CI_Controller {
 							$generalLedgerTransaction = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
 							$referenceTransactionTotalAmount = $referenceTransactionTotalAmount + $transactionBalanceAmount;
 						} else if ($referenceTransactionTypeId == '5') {
-							$generalLedgerTransaction = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
-							$transactionBalanceAmount = number_format($generalLedgerTransaction[0]->debit_value, 2);
-							$referenceTransactionTotalAmount = $referenceTransactionTotalAmount + $generalLedgerTransaction[0]->debit_value;
+                            $journalEntry = $this->journal_entries_model->getJournalEntryById($referenceJournalEntryId);
+                            $transactionBalanceAmount = $journalEntry[0]->balance_amount;
+                            $referenceTransactionTotalAmount = $referenceTransactionTotalAmount + $transactionBalanceAmount;
 						}
 						
 						$referenceTransactionList[] = $referenceNo;
@@ -3962,8 +4698,18 @@ class Receive_payment_controller extends CI_Controller {
                                                             </button>
                                                         </div>
                                                     </div>
-												</div>
-												<div id='credit_card_payment_edit' class='tab-pane'>
+												</div>";
+                                                      
+                                $cardPaymentAccounts = $this->getCardPaymentAccountData();
+                                                                
+								$html .="		<div id='credit_card_payment_edit' class='tab-pane'>
+                                                    <div class='form-group'>
+                                                        <label class='control-label col-sm-3'>{$this->lang->line("Payment Account")} *</label>
+                                                        <div class='col-sm-4 controls'>
+                                                            {$cardPaymentAccounts}
+                                                            <div id='payment_account_id_editError' class='red'></div>
+                                                        </div>
+                                                    </div>
                                                     <div class='form-group'>
                                                         <label class='control-label col-sm-3'>{$this->lang->line("Card Type")}</label>
                                                         <div class='col-sm-4 controls'>
@@ -4022,6 +4768,7 @@ class Receive_payment_controller extends CI_Controller {
 							
 							$paymentMethod = $paymentMethodRecord->payment_method;
                             $cashPaymentId = $paymentMethodRecord->cash_payment_id;
+                            $paymentAccountId = $paymentMethodRecord->payment_account_id;
 							$chequeId = $paymentMethodRecord->cheque_id;
                             $creditCardPaymentId = $paymentMethodRecord->credit_card_payment_id;
                             $cardType = $paymentMethodRecord->card_type;
@@ -4074,6 +4821,7 @@ class Receive_payment_controller extends CI_Controller {
 							$receivePaymentTotal = $receivePaymentTotal + $amount;
 							
 		$receivePaymentMethodData .= "<tr id='payment_method_row_edit_" . $receivePaymentMethodRowCount . "'>
+                                <input class='form-control' id='payment_account_id_edit_" . $receivePaymentMethodRowCount . "' name='payment_account_id_edit_" . $receivePaymentMethodRowCount . "' type='hidden' value='" . $paymentAccountId . "'>
 							    <input class='form-control' id='cheque_id_edit_" . $receivePaymentMethodRowCount . "' name='cheque_id_edit_" . $receivePaymentMethodRowCount . "' type='hidden' value='" . $chequeId . "'>
 							    <input class='form-control' id='bank_id_edit_" . $receivePaymentMethodRowCount . "' name='bank_id_edit_" . $receivePaymentMethodRowCount . "' type='hidden' value='" . $bankId . "'>
                                 <input class='form-control' id='third_party_cheque_edit_" . $receivePaymentMethodRowCount . "' name='third_party_cheque_edit_" . $receivePaymentMethodRowCount . "' type='hidden' value='" . $thirdPartyCheque . "'>
@@ -4661,4 +5409,26 @@ class Receive_payment_controller extends CI_Controller {
 
 		return $primeEntryBooks;
     }
+    
+    public function getCardPaymentAccountData() {
+		$accountsPrimeEntryBooks = $this->system_configurations_model->getReceivePaymentCreditCardAccountsPrimeEntryBooks();
+
+		$paymentAccountList = "   <select class='select2 form-control' id='payment_account_id_edit'>
+										<option value='0' >{$this->lang->line('-- Select --')}</option>";
+										
+		if ($accountsPrimeEntryBooks && sizeof($accountsPrimeEntryBooks) > 0) {
+			foreach ($accountsPrimeEntryBooks as $accountsPrimeEntryBook) {
+				$accountsPrimeEntryBookId = $accountsPrimeEntryBook->config_filed_value;
+
+				$accountsPrimeEntryBook = $this->prime_entry_book_model->getPrimeEntryBookById($accountsPrimeEntryBookId);
+				$accountsPrimeEntryBookName = $accountsPrimeEntryBook[0]->prime_entry_book_name;
+
+                $paymentAccountList .=          "<option value='" . $accountsPrimeEntryBookId  . "' >" . $accountsPrimeEntryBookName . "</option>";
+            }
+        }
+		
+		$paymentAccountList .="   </select>";
+
+		return $paymentAccountList;
+	}
 }

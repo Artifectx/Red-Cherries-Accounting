@@ -1665,6 +1665,7 @@
 
 			var paymentMethodDataSet = [];
 			var paymentMethods = {};
+            var paymentAccountIds = {};
 			var bankIds = {};
 			var chequeNumbers = {};
 			var chequeDates = {};
@@ -1679,6 +1680,7 @@
 			while (moreElement) {
 				if (paymentMethodElement.length == 1) {
 					paymentMethods[paymentMethodCount] = $("#receive_payment_method_edit_" + paymentMethodCount).html();
+                    paymentAccountIds[paymentMethodCount] = $("#payment_account_id_edit_" + paymentMethodCount).val();
 					bankIds[paymentMethodCount] = $("#bank_id_edit_" + paymentMethodCount).val();
 					chequeNumbers[paymentMethodCount] = $("#cheque_number_edit_" + paymentMethodCount).html();
 					chequeDates[paymentMethodCount] = $("#cheque_date_edit_" + paymentMethodCount).html();
@@ -1698,6 +1700,7 @@
 			}
 
 			paymentMethodDataSet.push(paymentMethods);
+            paymentMethodDataSet.push(paymentAccountIds);
 			paymentMethodDataSet.push(bankIds);
 			paymentMethodDataSet.push(chequeNumbers);
 			paymentMethodDataSet.push(chequeDates);
@@ -1706,7 +1709,7 @@
             paymentMethodDataSet.push(chequeDepositPrimeEntryBookIds);
             paymentMethodDataSet.push(cardTypes);
 			paymentMethodDataSet.push(amounts);
-
+            
 			paymentMethodData.push(paymentMethodDataSet);
 
 			$.ajax({
@@ -1903,20 +1906,23 @@
 						} else if (ReceivePaymentScreenOperationStatus == "View") {
 							$("#reference_transaction_div_edit").hide();
 						}
-						ReceivePayment.getReferenceJournalEntryListForSelectedTransaction(transactionTypeId, '')
+						ReceivePayment.getReferenceJournalEntryListForSelectedTransaction(transactionTypeId, '', peopleId, locationId);
 					}
 				}
 			})
 		},
 		
 		//get reference journal entry list drop down
-		getReferenceJournalEntryListForSelectedTransaction: function (transactionTypeId, transactionReferenceNo) {
+		getReferenceJournalEntryListForSelectedTransaction: function (transactionTypeId, transactionReferenceNo, peopleId, locationId) {
 			$.ajax({
 				type: "POST",
 				url: "<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/journal_entries_controller/getReferenceJournalEntryListForSelectedTransaction",
 				data: {
 					'transaction_type_id' : transactionTypeId,
 					'transaction_reference_no' : transactionReferenceNo,
+                    'status' : "Open",
+                    'people_id' : peopleId,
+                    'location_id' : locationId,
 					'<?php echo $this->security->get_csrf_token_name(); ?>':
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
