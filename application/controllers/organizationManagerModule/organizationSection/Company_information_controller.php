@@ -175,7 +175,8 @@ class Company_information_controller extends CI_Controller {
 					'fax_country_code' => $faxCountryCode,
 					'fax_number' => $faxNumber,
 					'address' => $this->input->post('address'),
-					'short_address' => $this->input->post('short_address')
+					'short_address' => $this->input->post('short_address'),
+                    'company_logo' => '/assets/images/company_logo.png'
 				);
 
 				$result = $this->company_information_model->getAll();

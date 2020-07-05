@@ -335,7 +335,7 @@ class Receive_payment_controller extends CI_Controller {
                                                     $salesNote = $this->sales_note_model->getSalesNoteByReferenceNo($salesNoteReferenceNo);
 
                                                     if ($salesNote && sizeof($salesNote) > 0) {
-
+                                                        
                                                         $salesNoteId = $salesNote[0]->sales_note_id;
                                                         
                                                         $referenceTransactionTypeId = '2';
@@ -950,7 +950,7 @@ class Receive_payment_controller extends CI_Controller {
                                                     $supplierReturnNote = $this->supplier_return_note_model->getSupplierReturnNoteByReferenceNo($supplierReturnNoteReferenceNo);
 
                                                     if ($supplierReturnNote && sizeof($supplierReturnNote) > 0) {
-
+                                                        
                                                         $supplierReturnNoteId = $supplierReturnNote[0]->supplier_return_note_id;
                                                         
                                                         $referenceTransactionTypeId = '3';
@@ -1517,15 +1517,16 @@ class Receive_payment_controller extends CI_Controller {
                                                             }
                                                         }
                                                     }
-                                                } else {
+                                                } else if ($referenceTransactionData[$p][0][$q] == '5') {
+                                                    
                                                     $journalEntryId = $referenceTransactionData[$p][2][$q];
                                                     
                                                     $referenceJournalEntryId = $journalEntryId;
-                                                    
+
                                                     $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
-                                                    
+
                                                     $balanceAmount = $journalEntry[0]->balance_amount;
-                                                    
+
                                                     if ($balanceAmount == 0) {
                                                         $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
 
@@ -1538,10 +1539,10 @@ class Receive_payment_controller extends CI_Controller {
                                                             }
                                                         }
                                                     }
-                                                    
+
                                                     $journalEntryStatus = "Open";
                                                     $paymentMethodFullyConsumed = false;
-                                                    
+
                                                     if ($balanceAmount > $remainingPaymentAmount) {
                                                         $paidAmount = $remainingPaymentAmount;
                                                         $balanceAmount = $balanceAmount - $paidAmount;
@@ -1551,10 +1552,10 @@ class Receive_payment_controller extends CI_Controller {
                                                         $paidAmount = $balanceAmount;
                                                         $balanceAmount = 0;
                                                         $remainingPaymentAmount = $remainingPaymentAmount - $balanceAmount;
-                                                        
+
                                                         $journalEntryStatus = "Closed";
                                                     }
-                                                    
+
                                                     $journalEntryData = array(
                                                         'balance_amount' => $balanceAmount,
                                                         'status' => $journalEntryStatus,
@@ -1564,12 +1565,12 @@ class Receive_payment_controller extends CI_Controller {
                                                     );
 
                                                     $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
-                                                    
+
                                                     if ($paymentMethod == 'Cash Payment') {
-                                                        
+
                                                         $cashPaymentData = array(
                                                             'date' => $receivePaymentDate,
-                                                            'amount' => $amount,
+                                                            'amount' => $paidAmount,
                                                             'actioned_user_id' => $this->user_id,
                                                             'action_date' => $this->date,
                                                             'last_action_status' => 'edited'
@@ -1577,7 +1578,7 @@ class Receive_payment_controller extends CI_Controller {
 
                                                         $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
                                                     } else if ($paymentMethod == 'Cheque Payment') {
-                                                        
+
                                                         $incomeChequeData = array(
                                                             'date' => $receivePaymentDate,
                                                             'payer_id' => $payerId,
@@ -1586,7 +1587,7 @@ class Receive_payment_controller extends CI_Controller {
                                                             'bank' => $bankId,
                                                             'cheque_date' => $chequeDate,
                                                             'third_party_cheque' => $thirdPartyCheque,
-                                                            'amount' => $amount,
+                                                            'amount' => $paidAmount,
                                                             'crossed_cheque' => $crossedCheque,
                                                             'cheque_deposit_prime_entry_book_id' => $chequeDepositPrimeEntryBookId,
                                                             'status' => "In_Hand",
@@ -1597,11 +1598,11 @@ class Receive_payment_controller extends CI_Controller {
 
                                                         $chequeId = $this->payments_model->addIncomeCheque($incomeChequeData);
                                                     } else if ($paymentMethod == 'Card Payment') {
-                                                        
+
                                                         $creditCardPaymentData = array(
                                                             'date' => $receivePaymentDate,
                                                             'card_type' => $cardType,
-                                                            'amount' => $amount,
+                                                            'amount' => $paidAmount,
                                                             'actioned_user_id' => $this->user_id,
                                                             'action_date' => $this->date,
                                                             'last_action_status' => 'edited'
@@ -1609,7 +1610,7 @@ class Receive_payment_controller extends CI_Controller {
 
                                                         $paymentId = $this->payments_model->addCreditCardPayment($creditCardPaymentData);
                                                     }
-                                                    
+
                                                     $cashPaymentId = 0;
                                                     $creditCardPaymentId = 0;
 
@@ -1772,7 +1773,7 @@ class Receive_payment_controller extends CI_Controller {
                                                         $result = 'incorrect_prime_entry_book_selected_for_receive_payment_transaction';
                                                         break;
                                                     }
-                                                    
+
                                                     if ($paymentMethodFullyConsumed == true) {
                                                         break;
                                                     }
@@ -3642,7 +3643,8 @@ class Receive_payment_controller extends CI_Controller {
                                                             }
                                                         }
                                                     }
-                                                } else {
+                                                } else if ($referenceTransactionData[$p][0][$q] == '5') {
+                                                    
                                                     $journalEntryId = $referenceTransactionData[$p][2][$q];
                                                     
                                                     $referenceJournalEntryId = $journalEntryId;

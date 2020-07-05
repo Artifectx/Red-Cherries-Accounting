@@ -2078,7 +2078,7 @@ class Make_payment_controller extends CI_Controller {
                                                             }
                                                         }
                                                     }
-                                                } else {
+                                                } else if ($referenceTransactionData[$p][0][$q] == '5') {
                                                     
                                                     $journalEntryId = $referenceTransactionData[$p][2][$q];
                                                     
@@ -4859,7 +4859,7 @@ class Make_payment_controller extends CI_Controller {
                                                             }
                                                         }
                                                     }
-                                                } else {
+                                                } else if ($referenceTransactionData[$p][0][$q] == '5') {
                                                     
                                                     $journalEntryId = $referenceTransactionData[$p][2][$q];
                                                     
