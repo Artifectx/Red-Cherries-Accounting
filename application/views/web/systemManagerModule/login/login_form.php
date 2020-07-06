@@ -29,7 +29,7 @@
 						<p>&nbsp;</p>
 						<div class='col-sm-12'>
 							<div class='text-center'>
-								<img width="320" height="200" src="<?php echo base_url(); ?>assets/images/logo_login.png"/>
+								<img width="320" height="230" src="<?php echo base_url(); ?>assets/images/logo_login.png"/>
 							</div>
 						</div>
 					</div>
