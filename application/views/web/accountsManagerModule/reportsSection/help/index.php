@@ -47,7 +47,7 @@
 							</div>
 							<div class='box-content'>
 								<div class='msg_data'></div>
-								<?php echo form_open('stockManagerModule/reportsSection/inventory_report_help_controller/handleHelpActions', array('class' => 'form form-horizontal validate-form','id' => 'helpForm', 'style' => 'margin-bottom: 0;', 'enctype' => 'multipart/form-data')) ?>
+								<?php echo form_open('accountsManagerModule/reportsSection/accounts_report_help_controller/handleHelpActions', array('class' => 'form form-horizontal validate-form','id' => 'helpForm', 'style' => 'margin-bottom: 0;', 'enctype' => 'multipart/form-data')) ?>
 								<!--<form class='form form-horizontal validate-form save_form' action='data_import_controller/handleDataImport'>-->
 
 								<div class='form-group'>
