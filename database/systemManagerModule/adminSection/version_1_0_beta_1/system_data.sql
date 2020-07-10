@@ -3294,7 +3294,9 @@ INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,
 ('Add New Credit Card Payment', 'display_string', '7', 'Sales Note Screen'),
 ('Company Structure Sucessfully Saved', 'message', '1', 'Company Structure Screen'),
 ('Company Sucessfully Deleted', 'message', '1', 'Company Structure Screen'),
-('Company Sucessfully Moved', 'message', '1', 'Company Structure Screen');
+('Company Sucessfully Moved', 'message', '1', 'Company Structure Screen'),
+('Claimed Customer Returns', 'display_string', '7', 'Reports Screen'),
+('Total Customer Returns Claimed', 'display_string', '7', 'Reports Screen');
 
 /*Data for the table `system_language_translations` */
 INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
@@ -6518,7 +6520,9 @@ INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`
 ('3214', 'English', 'Add New Credit Card Payment'),
 ('3215', 'English', 'Company Structure Sucessfully Saved'),
 ('3216', 'English', 'Company Sucessfully Deleted'),
-('3217', 'English', 'Company Sucessfully Moved');
+('3217', 'English', 'Company Sucessfully Moved'),
+('3218', 'English', 'Claimed Customer Returns'),
+('3219', 'English', 'Total Customer Returns Claimed');
 
 /*Data for the table `system_common_configurations` */
 INSERT  INTO `system_common_configurations`(`config_filed_name`,`config_filed_value`) VALUES
@@ -6834,21 +6838,3 @@ VALUES
 ('YE', 'YEMEN', 'Yemen', 'YEM', 887),
 ('ZM', 'ZAMBIA', 'Zambia', 'ZMB', 894),
 ('ZW', 'ZIMBABWE', 'Zimbabwe', 'ZWE', 716);
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Claimed Customer Returns', 'display_string', '7', 'Reports Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Claimed Customer Returns');
-
-/*Data for the table `system_language_strings` */
-INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
-('Total Customer Returns Claimed', 'display_string', '7', 'Reports Screen');
-
-SET @languageStringId = LAST_INSERT_ID();
-
-INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
-(@languageStringId,'English','Total Customer Returns Claimed');

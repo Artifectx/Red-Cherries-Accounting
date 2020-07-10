@@ -825,9 +825,17 @@
 	
 	function handleReferenceTransactionSelect(id) {
 		if (ReceivePaymentScreenOperationStatus == "Add") {
-			ReceivePayment.getReferenceJournalEntryListForSelectedTransaction($("#reference_transaction_type_id").val(), $("#" + id).find('option:selected').text());
+            var transactionTypeId = $("#reference_transaction_type_id").val();
+            var transactionId = $("#" + id).find('option:selected').text();
+            var peopleId = $("#people_id").val();
+            var locationId = $("#location").val();
+			ReceivePayment.getReferenceJournalEntryListForSelectedTransaction(transactionTypeId, transactionId, peopleId, locationId);
 		} else if (ReceivePaymentScreenOperationStatus == "View") {
-			ReceivePayment.getReferenceJournalEntryListForSelectedTransaction($("#reference_transaction_type_id_edit").val(), $("#" + id).find('option:selected').text());
+            var transactionTypeId = $("#reference_transaction_type_id_edit").val();
+            var transactionId = $("#" + id).find('option:selected').text();
+            var peopleId = $("#people_id_edit").val();
+            var locationId = $("#location_edit").val();
+			ReceivePayment.getReferenceJournalEntryListForSelectedTransaction(transactionTypeId, transactionId, peopleId, locationId);
 		}
 	}
 	

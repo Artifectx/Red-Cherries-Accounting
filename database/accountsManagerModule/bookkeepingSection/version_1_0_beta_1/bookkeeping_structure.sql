@@ -952,11 +952,3 @@ CREATE TABLE `acm_bookkeeping_credit_card_payment_history` (
   `last_action_status` varchar(100) NOT NULL,
   PRIMARY KEY (`credit_card_payment_history_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-/*Alter `stm_sales_sales_return` Table
-ALTER TABLE `stm_sales_sales_return`
-  ADD COLUMN `status` varchar(10) DEFAULT 'Open' AFTER `remark`;*/
-
-/*Alter `stm_sales_sales_return_history` Table
-ALTER TABLE `stm_sales_sales_return_history`
-  ADD COLUMN `status` varchar(10) DEFAULT 'Open' AFTER `remark`;*/
