@@ -65,7 +65,7 @@ CREATE TABLE `system_country` (
 DROP TABLE IF EXISTS `system_common_configurations`;
 
 CREATE TABLE `system_common_configurations` (
-  `id` int(2) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `config_filed_name` varchar(255) DEFAULT NULL,
   `config_filed_value` text DEFAULT NULL,
   `actioned_user_id` int(11) DEFAULT NULL,
