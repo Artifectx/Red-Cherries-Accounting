@@ -3296,7 +3296,13 @@ INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,
 ('Company Sucessfully Deleted', 'message', '1', 'Company Structure Screen'),
 ('Company Sucessfully Moved', 'message', '1', 'Company Structure Screen'),
 ('Claimed Customer Returns', 'display_string', '7', 'Reports Screen'),
-('Total Customer Returns Claimed', 'display_string', '7', 'Reports Screen');
+('Total Customer Returns Claimed', 'display_string', '7', 'Reports Screen'),
+('Journal entry for finish good good receive note claim transaction for Finish Good Good Receive Note number : ', 'display_string', '7', 'Make Payment Screen'),
+('Journal entry for raw material good receive note claim transaction for Raw Material Good Receive Note number : ', 'display_string', '7', 'Make Payment Screen'),
+('Journal entry for sales invoice claim transaction for Sales Invoice number : ', 'display_string', '7', 'Make Payment Screen'),
+('Journal entry for finish good supplier return claim transaction for Finish Good Supplier Return number : ', 'display_string', '7', 'Receive Payment Screen'),
+('Journal entry for raw material supplier return note claim transaction for Raw Material Supplier Return number : ', 'display_string', '7', 'Receive Payment Screen'),
+('Journal entry for sales invoice claim transaction for Sales Invoice number : ', 'display_string', '7', 'Receive Payment Screen');
 
 /*Data for the table `system_language_translations` */
 INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
@@ -6522,7 +6528,13 @@ INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`
 ('3216', 'English', 'Company Sucessfully Deleted'),
 ('3217', 'English', 'Company Sucessfully Moved'),
 ('3218', 'English', 'Claimed Customer Returns'),
-('3219', 'English', 'Total Customer Returns Claimed');
+('3219', 'English', 'Total Customer Returns Claimed'),
+('3220', 'English', 'Journal entry for finish good good receive note claim transaction for Finish Good Good Receive Note number : '),
+('3221', 'English', 'Journal entry for raw material good receive note claim transaction for Raw Material Good Receive Note number : '),
+('3222', 'English', 'Journal entry for sales invoice claim transaction for Sales Invoice number : '),
+('3223', 'English', 'Journal entry for finish good supplier return claim transaction for Finish Good Supplier Return number : '),
+('3224', 'English', 'Journal entry for raw material supplier return note claim transaction for Raw Material Supplier Return number : '),
+('3225', 'English', 'Journal entry for sales invoice claim transaction for Sales Invoice number : ');
 
 /*Data for the table `system_common_configurations` */
 INSERT  INTO `system_common_configurations`(`config_filed_name`,`config_filed_value`) VALUES
