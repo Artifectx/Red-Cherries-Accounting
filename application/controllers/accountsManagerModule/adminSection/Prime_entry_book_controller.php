@@ -259,10 +259,6 @@ class Prime_entry_book_controller extends CI_Controller {
 										
 			$applicableModuleList = "<select class='form-control' id='applicable_module' name='applicable_module'>
 									<option value='0'>{$this->lang->line('-- Select --')}</option>
-									<option value='2'>{$this->lang->line('Stock Manager')}</option>
-									<option value='3'>{$this->lang->line('Production Manager')}</option>
-									<option value='4'>{$this->lang->line('HR Manager')}</option>
-									<option value='5'>{$this->lang->line('Payroll Manager')}</option>
 									<option value='6'>{$this->lang->line('Service Manager')}</option>
 									<option value='7'>{$this->lang->line('Accounts Manager')}</option>
 								</select>";

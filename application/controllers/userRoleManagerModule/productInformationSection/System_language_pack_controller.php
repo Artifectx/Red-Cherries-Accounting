@@ -133,8 +133,6 @@ class System_language_pack_controller extends CI_Controller {
 
 			$languageStrings = $this->system_language_pack_model->getLanguageStrings($moduleId, $stringType, $screen, $language);
 
-			//$moduleArray = array('1' => 'Organization', '2' => 'Stock Manager', '3' => 'Production Manager', '4' => 'HR Manager', '5' => 'Payroll Manager', '6' => 'Service Manager', '7' => 'Accounts Manager', '8' => 'User Role Manager');
-            
             $moduleArray = array();
             $allModules = $this->user_model->getAllSystemModules('system_module_id', 'asc');
             

@@ -789,25 +789,44 @@
 	}
 	
 	function handleLocationSelect() {
+		var supplierId = '';
+		var referenceTransactionTypeId = '';
+        var locationId = '';
 		
+		if (MakePaymentScreenOperationStatus == "Add") {
+            supplierId = $("#people_id").val();
+			referenceTransactionTypeId = $("#reference_transaction_type_id").val();
+            locationId = $("#location").val();
+		} else if (MakePaymentScreenOperationStatus == "View") {
+            supplierId = $("#people_id_edit").val();
+			referenceTransactionTypeId = $("#reference_transaction_type_id_edit").val();
+            locationId = $("#location_id").val();
+		}
+		
+		if (referenceTransactionTypeId != '' && referenceTransactionTypeId != '0') {
+			MakePayment.getReferenceTransactionListForSelectedType(referenceTransactionTypeId, supplierId, locationId);
+		}
 	}
 	
-	function handleCustomerSelection() {
-		
+	function handleCustomerSelection(id) {
+		handleSupplierSelect(id);
 	}
 	
 	function handleSupplierSelect(id) {
 		var supplierId = $("#" + id).val();
 		var referenceTransactionTypeId = '';
+        var locationId = '';
 		
 		if (MakePaymentScreenOperationStatus == "Add") {
 			referenceTransactionTypeId = $("#reference_transaction_type_id").val();
+            locationId = $("#location").val();
 		} else if (MakePaymentScreenOperationStatus == "View") {
 			referenceTransactionTypeId = $("#reference_transaction_type_id_edit").val();
+            locationId = $("#location_edit").val();
 		}
 		
 		if (referenceTransactionTypeId != '0') {
-			MakePayment.getReferenceTransactionListForSelectedType(referenceTransactionTypeId, supplierId);
+			MakePayment.getReferenceTransactionListForSelectedType(referenceTransactionTypeId, supplierId, locationId);
 		}
         
         var referenceTransactionType = '<?php echo $default_reference_transaction_type; ?>';
@@ -824,7 +843,7 @@
                 peopleId = $("#people_id_edit").val();
             }
 
-            MakePayment.getReferenceTransactionListForSelectedType(referenceTransactionType, peopleId);
+            MakePayment.getReferenceTransactionListForSelectedType(referenceTransactionType, peopleId, locationId);
         }
 	}
 	

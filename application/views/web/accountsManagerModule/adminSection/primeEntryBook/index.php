@@ -87,10 +87,6 @@
 													<div class='col-sm-5 controls' id="prime_entry_book_applicable_module_div">
 														<select class="form-control" id="applicable_module" name="applicable_module">
 															<option value="0"><?php echo $this->lang->line('-- Select --') ?></option>
-															<option value="2"><?php echo $this->lang->line('Stock Manager') ?></option>
-															<option value="3"><?php echo $this->lang->line('Production Manager') ?></option>
-															<option value="4"><?php echo $this->lang->line('HR Manager') ?></option>
-															<option value="5"><?php echo $this->lang->line('Payroll Manager') ?></option>
 															<option value="6"><?php echo $this->lang->line('Service Manager') ?></option>
 															<option value="7"><?php echo $this->lang->line('Accounts Manager') ?></option>
 														</select>

@@ -11,7 +11,7 @@ CREATE TABLE `urm_user_roles_permissions` (
   PRIMARY KEY (`permission_id`),
   KEY `module_id` (`module_section_feature_id`),
   CONSTRAINT `urm_user_roles_permissions_ibfk_1` FOREIGN KEY (`module_section_feature_id`) REFERENCES `system_module_section_features` (`module_section_feature_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=500 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 /*Table structure for table `urm_user_roles_user_roles` */
 DROP TABLE IF EXISTS `urm_user_roles_user_roles`;
@@ -24,7 +24,7 @@ CREATE TABLE `urm_user_roles_user_roles` (
   `action_date` datetime NOT NULL,
   `last_action_status` varchar(255) NOT NULL,
   PRIMARY KEY (`role_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 /*Table structure for table `urm_user_roles_default_user_role_permissions` */
 DROP TABLE IF EXISTS `urm_user_roles_default_user_role_permissions`;
@@ -51,7 +51,7 @@ CREATE TABLE `urm_user_roles_derive_user_roles` (
   PRIMARY KEY (`derive_user_role_id`),
   KEY `role_id` (`role_id`),
   CONSTRAINT `urm_user_roles_derive_user_roles_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `urm_user_roles_user_roles` (`role_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 /*Table structure for table `urm_user_roles_derive_user_role_permissions` */
 DROP TABLE IF EXISTS `urm_user_roles_derive_user_role_permissions`;
@@ -76,7 +76,7 @@ CREATE TABLE `urm_user_roles_permissions_advanced` (
   `permission_id` int(11) NOT NULL,
   `child_permission_id` int(11) NOT NULL,
   PRIMARY KEY (`advanced_permission_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 /*Table structure for table `urm_user_roles_user` */
 DROP TABLE IF EXISTS `urm_user_roles_user`;
@@ -106,7 +106,7 @@ CREATE TABLE `urm_user_roles_user` (
   KEY `derive_user_role_id` (`derive_user_role_id`),
   KEY `role_id` (`role_id`),
   CONSTRAINT `urm_user_roles_user_ibfk_2` FOREIGN KEY (`role_id`) REFERENCES `urm_user_roles_user_roles` (`role_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 /*Table structure for table `urm_user_roles_user_accessible_locations` */
 DROP TABLE IF EXISTS `urm_user_roles_user_accessible_locations`;
@@ -132,7 +132,7 @@ CREATE TABLE `urm_user_roles_user_accessible_warehouses` (
   `action_date` datetime DEFAULT NULL,
   `last_action_status` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`accessible_warehouse_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 /*Table structure for table `urm_user_roles_user_not_accessible_prime_entry_books` */
 DROP TABLE IF EXISTS `urm_user_roles_user_not_accessible_prime_entry_books`;

@@ -840,10 +840,42 @@
 	}
 	
 	function handleLocationSelect() {
+		var customerId = '';
+		var referenceTransactionTypeId = '';
+        var locationId = '';
 		
+		if (ReceivePaymentScreenOperationStatus == "Add") {
+            customerId = $("#people_id").val();
+			referenceTransactionTypeId = $("#reference_transaction_type_id").val();
+            locationId = $("#location").val();
+		} else if (ReceivePaymentScreenOperationStatus == "View") {
+            customerId = $("#people_id_edit").val();
+			referenceTransactionTypeId = $("#reference_transaction_type_id_edit").val();
+            locationId = $("#location_id").val();
+		}
+		
+        if (referenceTransactionTypeId != '' && referenceTransactionTypeId != '0') {
+			ReceivePayment.getReferenceTransactionListForSelectedType(referenceTransactionTypeId, customerId, locationId);
+		}
 	}
 	
-	function handleCustomerSelection() {
+	function handleCustomerSelection(id) {
+        var customerId = $("#" + id).val();
+		var referenceTransactionTypeId = '';
+        var locationId = '';
+		
+		if (ReceivePaymentScreenOperationStatus == "Add") {
+			referenceTransactionTypeId = $("#reference_transaction_type_id").val();
+            locationId = $("#location").val();
+		} else if (ReceivePaymentScreenOperationStatus == "View") {
+			referenceTransactionTypeId = $("#reference_transaction_type_id_edit").val();
+            locationId = $("#location_id").val();
+		}
+		
+		if (referenceTransactionTypeId != '' && referenceTransactionTypeId != '0') {
+			ReceivePayment.getReferenceTransactionListForSelectedType(referenceTransactionTypeId, customerId, locationId);
+		}
+        
 		var referenceTransactionType = '<?php echo $default_reference_transaction_type; ?>';
         
         if (referenceTransactionType != '' && referenceTransactionType != '0') {
