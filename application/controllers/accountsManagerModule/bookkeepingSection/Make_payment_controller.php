@@ -2544,7 +2544,7 @@ class Make_payment_controller extends CI_Controller {
                                 foreach($makePaymentInSecondOrThirdPartyJournalEntries as $makePaymentInSecondOrThirdPartyJournalEntry) {
                                     $journalEntryId = $makePaymentInSecondOrThirdPartyJournalEntry->journal_entry_id;
 
-                                    $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId, '', "Yes");
+                                    $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
 
                                     if ($glTransactions && sizeof($glTransactions) > 0) {
                                         foreach($glTransactions as $glTransaction) {
@@ -2584,7 +2584,7 @@ class Make_payment_controller extends CI_Controller {
                                 foreach($makePaymentInSecondOrThirdPartyJournalEntries as $makePaymentInSecondOrThirdPartyJournalEntry) {
                                     $journalEntryId = $makePaymentInSecondOrThirdPartyJournalEntry->journal_entry_id;
 
-                                    $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId, '', "Yes");
+                                    $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
 
                                     if ($glTransactions && sizeof($glTransactions) > 0) {
                                         foreach($glTransactions as $glTransaction) {

@@ -1316,7 +1316,7 @@
 					$("#make_payment_method_records_edit").find("#delete_make_payment_method_edit_" + rowCount).prop({ id: "delete_make_payment_method_edit_" +  (rowCount - 1)});
 					
 					rowCount++;
-					makePaymentMethodElement = $("#make_payment_method_records").find("#payment_method_row_" + rowCount);
+					makePaymentMethodElement = $("#make_payment_method_records_edit").find("#payment_method_row_edit_" + rowCount);
 				} else {
                     rowCount--;
 					moreElement = false;

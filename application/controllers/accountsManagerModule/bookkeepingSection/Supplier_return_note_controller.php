@@ -372,7 +372,7 @@ class Supplier_return_note_controller extends CI_Controller {
                         }
                     }
                 } else if ($type == "market_return") {
-                    $supplierMarketReturnNoteSalesJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '3');
+                    $supplierMarketReturnNoteSalesJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '2');
 
                     $status = "deleted";
                     if ($supplierMarketReturnNoteSalesJournalEntries && sizeof($supplierMarketReturnNoteSalesJournalEntries) > 0) {

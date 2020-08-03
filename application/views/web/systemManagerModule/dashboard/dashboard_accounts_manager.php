@@ -582,7 +582,7 @@
 																		</li>
 																		<?php
 																	}
-                                                                    if($ACM_Bookkeeping_View_Opening_Balances_Permissions) {
+                                                                    if(isset($ACM_Bookkeeping_View_Opening_Balances_Permissions)) {
                                                                         ?>
                                                                         <li>
 																			<a class="tip"

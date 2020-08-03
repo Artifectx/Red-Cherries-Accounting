@@ -373,6 +373,7 @@ class Journal_entries_model extends CI_Model {
 		$this->db->limit(10000000);
 		$query = $this->db->get('acm_bookkeeping_gl_transactions');
 		
+        //echo $this->db->last_query();die;
 		if ($query->num_rows() > 0) {
 			$glTransactions = $query->result();
 			

@@ -1389,7 +1389,7 @@
 					$("#receive_payment_method_records_edit").find("#delete_receive_payment_method_edit_" + rowCount).prop({ id: "delete_receive_payment_method_edit_" +  (rowCount - 1)});
 					
 					rowCount++;
-					receivePaymentMethodElement = $("#receive_payment_method_records").find("#payment_method_row_" + rowCount);
+					receivePaymentMethodElement = $("#receive_payment_method_records_edit").find("#payment_method_row_edit_" + rowCount);
 				} else {
                     rowCount--;
 					moreElement = false;

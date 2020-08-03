@@ -215,10 +215,15 @@ class General_ledger_controller extends CI_Controller {
 			
 			if ($primeEntryTransactions != null) {
 				foreach ($primeEntryTransactions as $row) {
+                    
+                    if ($row->gl_transaction_id == "215") {
+                        $x=1;
+                    }
+                    
 					if ($row->debit_value != "0.00" || $row->credit_value != "0.00") {
 						$primeEntryBook = $this->prime_entry_book_model->getPrimeEntryBookById($row->prime_entry_book_id);
 						$journalEntry = $this->journal_entries_model->getJournalEntryById($row->journal_entry_id);
-
+//echo print_r($journalEntry); echo "<br>";
 						if ($primeEntryBook && sizeof($primeEntryBook) > 0) {
 							$primeEntryBookName = $primeEntryBook[0]->prime_entry_book_name;
 						} else {

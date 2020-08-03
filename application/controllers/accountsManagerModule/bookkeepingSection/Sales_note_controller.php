@@ -3878,15 +3878,18 @@ class Sales_note_controller extends CI_Controller {
 				foreach ($cashPaymentMethodIds as $cashPaymentMethodId) {
                     
                     $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($cashPaymentMethodId);
-                    $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
                     
-					$receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
-					
-					if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-						$journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
-						$this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-						$this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
-					}
+                    if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
+                        $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
+
+                        $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
+
+                        if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                            $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
+                            $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                            $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                        }
+                    }
 				}
 			}
 			
@@ -3894,16 +3897,19 @@ class Sales_note_controller extends CI_Controller {
 				foreach ($chequePaymentMethodIds as $chequePaymentMethodId) {
                     
                     $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($chequePaymentMethodId);
-                    $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
-                    $this->payments_model->deleteIncomeCheque($receivePaymentMethod[0]->cheque_id, $status, $this->user_id);
                     
-					$receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
-					
-					if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-						$journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
-						$this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-						$this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
-					}
+                    if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
+                        $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
+                        $this->payments_model->deleteIncomeCheque($receivePaymentMethod[0]->cheque_id, $status, $this->user_id);
+
+                        $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
+
+                        if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                            $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
+                            $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                            $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                        }
+                    }
 				}
 			}
             
@@ -3911,15 +3917,18 @@ class Sales_note_controller extends CI_Controller {
 				foreach ($creditCardPaymentMethodIds as $creditCardPaymentMethodId) {
                     
                     $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($creditCardPaymentMethodId);
-                    $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
                     
-					$receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
-					
-					if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-						$journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
-						$this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-						$this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
-					}
+                    if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
+                        $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
+
+                        $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
+
+                        if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                            $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
+                            $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                            $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                        }
+                    }
 				}
 			}
 			
@@ -3996,9 +4005,12 @@ class Sales_note_controller extends CI_Controller {
 		if ($receiveCashPaymentMethodIdList && sizeof($receiveCashPaymentMethodIdList) > 0) {
 			foreach($receiveCashPaymentMethodIdList as $receiveCashPaymentMethodId) {
                 $receiveCashPaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($receiveCashPaymentMethodId);
-                $cashPaymentId = $receiveCashPaymentMethod[0]->cash_payment_id;
-                $cashPayment = $this->payments_model->getCashPaymentById($cashPaymentId);
-				$cashPaymentAmount = $cashPaymentAmount + $cashPayment[0]->amount;
+                
+                if ($receiveCashPaymentMethod && sizeof($receiveCashPaymentMethod) > 0) {
+                    $cashPaymentId = $receiveCashPaymentMethod[0]->cash_payment_id;
+                    $cashPayment = $this->payments_model->getCashPaymentById($cashPaymentId);
+                    $cashPaymentAmount = $cashPaymentAmount + $cashPayment[0]->amount;
+                }
 			}
 		}
 		
@@ -4006,9 +4018,12 @@ class Sales_note_controller extends CI_Controller {
 		if ($receiveChequePaymentMethodIdList && sizeof($receiveChequePaymentMethodIdList) > 0) {
 			foreach($receiveChequePaymentMethodIdList as $receiveChequePaymentMethodId) {
                 $receiveChequePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($receiveChequePaymentMethodId);
-                $chequeId = $receiveChequePaymentMethod[0]->cheque_id;
-                $incomeCheque = $this->payments_model->getIncomeChequeById($chequeId);
-				$chequePaymentAmount = $chequePaymentAmount + $incomeCheque[0]->amount;
+                
+                if ($receiveChequePaymentMethod && sizeof($receiveChequePaymentMethod) > 0) {
+                    $chequeId = $receiveChequePaymentMethod[0]->cheque_id;
+                    $incomeCheque = $this->payments_model->getIncomeChequeById($chequeId);
+                    $chequePaymentAmount = $chequePaymentAmount + $incomeCheque[0]->amount;
+                }
 			}
 		}
         
@@ -4016,9 +4031,12 @@ class Sales_note_controller extends CI_Controller {
 		if ($receiveCreditCardPaymentMethodIdList && sizeof($receiveCreditCardPaymentMethodIdList) > 0) {
 			foreach($receiveCreditCardPaymentMethodIdList as $receiveCreditCardPaymentMethodId) {
                 $receiveCreditCardPaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($receiveCreditCardPaymentMethodId);
-                $creditCardPaymentId = $receiveCreditCardPaymentMethod[0]->credit_card_payment_id;
-                $creditCardPayment = $this->payments_model->getCardPaymentById($creditCardPaymentId);
-				$creditCardPaymentAmount = $creditCardPaymentAmount + $creditCardPayment[0]->amount;
+                
+                if ($receiveCreditCardPaymentMethod && sizeof($receiveCreditCardPaymentMethod) > 0) {
+                    $creditCardPaymentId = $receiveCreditCardPaymentMethod[0]->credit_card_payment_id;
+                    $creditCardPayment = $this->payments_model->getCardPaymentById($creditCardPaymentId);
+                    $creditCardPaymentAmount = $creditCardPaymentAmount + $creditCardPayment[0]->amount;
+                }
 			}
 		}
 		
