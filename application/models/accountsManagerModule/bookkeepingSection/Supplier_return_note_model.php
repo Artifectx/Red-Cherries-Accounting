@@ -193,7 +193,7 @@ class Supplier_return_note_model extends CI_Model {
 	}
     
     public function getAllOpenSupplierReturnNoteIdsAndAllReferenceNumbers($order_field, $order_type, $peopleId, $locationId=null) {
-		$this->db->select('supplier_return_note_id, reference_no');
+		$this->db->select('supplier_return_note_id, reference_no, balance_payment');
 		$this->db->order_by($order_field, $order_type);
         $this->db->where('acm_bookkeeping_supplier_return_note.supplier_id', $peopleId);
         

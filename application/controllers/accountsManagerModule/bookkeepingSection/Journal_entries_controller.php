@@ -495,6 +495,7 @@ class Journal_entries_controller extends CI_Controller {
 					$peopleType = $this->getPeopleType();
 					$payeePayerType = $journalEntry[0]->payee_payer_type;
 					$payeePayerId = $journalEntry[0]->payee_payer_id;
+                    $locationId = $journalEntry[0]->location_id;
 
 											foreach($peopleType as $row){
 												if ($row['people_type'] == $payeePayerType) {
@@ -523,7 +524,7 @@ class Journal_entries_controller extends CI_Controller {
 				$referenceTransactionId = '';
 				if ($journalEntry[0]->reference_transaction_id != '0') {
 					$referenceTransactionId = $journalEntry[0]->reference_transaction_id;
-					$referenceTransaction = $this->getReferenceTransactionListForSelectedType($referenceTransactionTypeId, $referenceTransactionId);
+					$referenceTransaction = $this->getReferenceTransactionListForSelectedType($referenceTransactionTypeId, $referenceTransactionId, $payeePayerId, $locationId);
 				}
 				
 				$referenceJournalEntryId = $journalEntry[0]->reference_journal_entry_id;
@@ -1095,12 +1096,12 @@ class Journal_entries_controller extends CI_Controller {
 				if ($allPurchaseNotes && sizeof($allPurchaseNotes) > 0) {
 					foreach ($allPurchaseNotes as $purchaseNotes) {
 						if ($selectedIndex == '') {
-							$transactionTypeList .= "<option value='" . $purchaseNotes->purchase_note_id  . "' >" . $purchaseNotes->reference_no . "</option>";
+							$transactionTypeList .= "<option value='" . $purchaseNotes->purchase_note_id  . "' >" . $purchaseNotes->reference_no . " : [" . number_format($purchaseNotes->balance_payment, 2) . "]</option>";
 						} else {
 							if ($selectedIndex == $purchaseNotes->purchase_note_id) {
-								$transactionTypeList .= "<option value='" . $purchaseNotes->purchase_note_id  . "' selected>" . $purchaseNotes->reference_no . "</option>";
+								$transactionTypeList .= "<option value='" . $purchaseNotes->purchase_note_id  . "' selected>" . $purchaseNotes->reference_no . " : [" . number_format($purchaseNotes->balance_payment, 2) . "]</option>";
 							} else {
-								$transactionTypeList .= "<option value='" . $purchaseNotes->purchase_note_id  . "' >" . $purchaseNotes->reference_no . "</option>";
+								$transactionTypeList .= "<option value='" . $purchaseNotes->purchase_note_id  . "' >" . $purchaseNotes->reference_no . " : [" . number_format($purchaseNotes->balance_payment, 2) . "]</option>";
 							}
 						}
 					}
@@ -1120,12 +1121,12 @@ class Journal_entries_controller extends CI_Controller {
 				if ($allSalesNotes && sizeof($allSalesNotes) > 0) {
 					foreach ($allSalesNotes as $salesNotes) {
 						if ($selectedIndex == '') {
-							$transactionTypeList .= "<option value='" . $salesNotes->sales_note_id  . "' >" . $salesNotes->reference_no . "</option>";
+							$transactionTypeList .= "<option value='" . $salesNotes->sales_note_id  . "' >" . $salesNotes->reference_no . " : [" . number_format($salesNotes->balance_payment, 2) . "]</option>";
 						} else {
 							if ($selectedIndex == $salesNotes->sales_note_id) {
-								$transactionTypeList .= "<option value='" . $salesNotes->sales_note_id  . "' selected>" . $salesNotes->reference_no . "</option>";
+								$transactionTypeList .= "<option value='" . $salesNotes->sales_note_id  . "' selected>" . $salesNotes->reference_no . " : [" . number_format($salesNotes->balance_payment, 2) . "]</option>";
 							} else {
-								$transactionTypeList .= "<option value='" . $salesNotes->sales_note_id  . "' >" . $salesNotes->reference_no . "</option>";
+								$transactionTypeList .= "<option value='" . $salesNotes->sales_note_id  . "' >" . $salesNotes->reference_no . " : [" . number_format($salesNotes->balance_payment, 2) . "]</option>";
 							}
 						}
 					}
@@ -1145,12 +1146,12 @@ class Journal_entries_controller extends CI_Controller {
 				if ($allSupplierReturnNotes && sizeof($allSupplierReturnNotes) > 0) {
 					foreach ($allSupplierReturnNotes as $supplierReturnNote) {
 						if ($selectedIndex == '') {
-							$transactionTypeList .= "<option value='" . $supplierReturnNote->supplier_return_note_id  . "' >" . $supplierReturnNote->reference_no . "</option>";
+							$transactionTypeList .= "<option value='" . $supplierReturnNote->supplier_return_note_id  . "' >" . $supplierReturnNote->reference_no . " : [" . number_format($supplierReturnNote->balance_payment, 2) . "]</option>";
 						} else {
 							if ($selectedIndex == $salesNotes->sales_note_id) {
-								$transactionTypeList .= "<option value='" . $supplierReturnNote->supplier_return_note_id  . "' selected>" . $supplierReturnNote->reference_no . "</option>";
+								$transactionTypeList .= "<option value='" . $supplierReturnNote->supplier_return_note_id  . "' selected>" . $supplierReturnNote->reference_no . " : [" . number_format($supplierReturnNote->balance_payment, 2) . "]</option>";
 							} else {
-								$transactionTypeList .= "<option value='" . $supplierReturnNote->supplier_return_note_id  . "' >" . $supplierReturnNote->reference_no . "</option>";
+								$transactionTypeList .= "<option value='" . $supplierReturnNote->supplier_return_note_id  . "' >" . $supplierReturnNote->reference_no . " : [" . number_format($supplierReturnNote->balance_payment, 2) . "]</option>";
 							}
 						}
 					}
@@ -1170,12 +1171,12 @@ class Journal_entries_controller extends CI_Controller {
 				if ($allCustomerReturnNotes && sizeof($allCustomerReturnNotes) > 0) {
 					foreach ($allCustomerReturnNotes as $customerReturnNote) {
 						if ($selectedIndex == '') {
-							$transactionTypeList .= "<option value='" . $customerReturnNote->customer_return_note_id  . "' >" . $customerReturnNote->reference_no . "</option>";
+							$transactionTypeList .= "<option value='" . $customerReturnNote->customer_return_note_id  . "' >" . $customerReturnNote->reference_no . " : [" . number_format($customerReturnNote->balance_payment, 2) . "]</option>";
 						} else {
 							if ($selectedIndex == $salesNotes->sales_note_id) {
-								$transactionTypeList .= "<option value='" . $customerReturnNote->customer_return_note_id  . "' selected>" . $customerReturnNote->reference_no . "</option>";
+								$transactionTypeList .= "<option value='" . $customerReturnNote->customer_return_note_id  . "' selected>" . $customerReturnNote->reference_no . " : [" . number_format($customerReturnNote->balance_payment, 2) . "]</option>";
 							} else {
-								$transactionTypeList .= "<option value='" . $customerReturnNote->customer_return_note_id  . "' >" . $customerReturnNote->reference_no . "</option>";
+								$transactionTypeList .= "<option value='" . $customerReturnNote->customer_return_note_id  . "' >" . $customerReturnNote->reference_no . " : [" . number_format($customerReturnNote->balance_payment, 2) . "]</option>";
 							}
 						}
 					}
@@ -1205,9 +1206,10 @@ class Journal_entries_controller extends CI_Controller {
                                                                        $selectedIndex=null, $status=null, $peopleId=null, $locationId=null) {
 		
 		$transactionReferenceNo = '';
+        $transactionReferenceNoData = '';
 		if ($transactionTypeId == '') {
 			$transactionTypeId = $this->db->escape_str($this->input->post('transaction_type_id'));
-			$transactionReferenceNo = $this->db->escape_str($this->input->post('transaction_reference_no'));
+			$transactionReferenceNoData = $this->db->escape_str($this->input->post('transaction_reference_no'));
             $status = $this->db->escape_str($this->input->post('status'));
             $peopleId = $this->db->escape_str($this->input->post('people_id'));
             $locationId = $this->db->escape_str($this->input->post('location_id'));
@@ -1215,6 +1217,9 @@ class Journal_entries_controller extends CI_Controller {
 		
 		$journalEntries = '';
 		$journalEntryList = '';
+        
+        $transactionReferenceNoDataList = explode(":", $transactionReferenceNoData);
+        $transactionReferenceNo = trim($transactionReferenceNoDataList[0]);
 		
 		switch ($transactionTypeId) {
 			

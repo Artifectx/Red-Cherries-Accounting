@@ -213,7 +213,7 @@ class Purchase_note_model extends CI_Model {
 	}
     
     public function getAllOpenProductPurchasingPurchaseNoteIdsAndAllReferenceNumbers($order_field, $order_type, $peopleId, $locationId=null) {
-		$this->db->select('purchase_note_id, reference_no');
+		$this->db->select('purchase_note_id, reference_no, balance_payment');
 		$this->db->order_by($order_field, $order_type);
         $this->db->where('acm_bookkeeping_purchase_note.supplier_id', $peopleId);
         

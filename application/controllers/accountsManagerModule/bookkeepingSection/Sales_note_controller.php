@@ -196,18 +196,21 @@ class Sales_note_controller extends CI_Controller {
 				}
 				
 				if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-					$salesJournalEntryId = $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleSalesEntry, $salesNoteId, $salesNoteSalesEntryJournalEntries, '1', $salesNoteDate, $referenceNo, $locationId, $customerId, $salesAmount, '0', "Yes", 'Sales Note');
-					$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleCostEntry, $salesNoteId, $salesNoteCostEntryJournalEntries, '2', 
-                            $salesNoteDate, $referenceNo, $locationId, $customerId, $salesCost, '0', "No");
+					$salesJournalEntryId = $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleSalesEntry, '0', $salesNoteId, 
+                            $salesNoteSalesEntryJournalEntries, '1', $salesNoteDate, $referenceNo, $locationId, $customerId, 
+                            $salesAmount, '0', "Yes", 'Sales Note');
+                    
+					$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleCostEntry, '2', $salesNoteId, $salesNoteCostEntryJournalEntries, '2', 
+                            $salesNoteDate, $referenceNo, $locationId, $customerId, $salesCost, '0', "No", '','', '', '', $salesJournalEntryId);
 					
 					if ($discount > 0) {
-					$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForDiscount, $salesNoteId, $salesNoteDiscountJournalEntries, '3', 
+					$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForDiscount, '2', $salesNoteId, $salesNoteDiscountJournalEntries, '3', 
                             $salesNoteDate, $referenceNo, $locationId, $customerId, $discount, '0', "No", '','', '', '', $salesJournalEntryId);
 					}
 					
 					if ($freeIssueAmount > 0) {
-						$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForForFreeIssueAmount, $salesNoteId, $salesNoteFreeIssuesJournalEntries, '4', 
-                                $salesNoteDate, $referenceNo, $locationId, $customerId, $freeIssueAmount, '0', "No");
+						$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForForFreeIssueAmount, '2', $salesNoteId, $salesNoteFreeIssuesJournalEntries, '4', 
+                                $salesNoteDate, $referenceNo, $locationId, $customerId, $freeIssueAmount, '0', "No", '','', '', '', $salesJournalEntryId);
 					}
 				}else {
 					$result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
@@ -604,7 +607,7 @@ class Sales_note_controller extends CI_Controller {
 
                                     $receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
 
-                                    if ($customerChanged || $locationChanged) {
+                                    if ($customerChanged || $locationChanged || $salesNoteDateChanged) {
 
                                         $journalEntry = $this->journal_entries_model->getJournalEntryById($receivePaymentJournalEntryId);
 
@@ -634,6 +637,7 @@ class Sales_note_controller extends CI_Controller {
                                         $data = array(
                                             'location_id' => $locationId,
                                             'payee_payer_id' => $customerId,
+                                            'transaction_date' => $salesNoteDate,
                                             'actioned_user_id' => $this->user_id,
                                             'action_date' => $this->date,
                                             'last_action_status' => 'edited'
@@ -669,7 +673,7 @@ class Sales_note_controller extends CI_Controller {
 
                                         $receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
 
-                                        if ($customerChanged || $locationChanged) {
+                                    if ($customerChanged || $locationChanged || $salesNoteDateChanged) {
 
                                             $journalEntry = $this->journal_entries_model->getJournalEntryById($receivePaymentJournalEntryId);
 
@@ -699,6 +703,7 @@ class Sales_note_controller extends CI_Controller {
                                             $data = array(
                                                 'location_id' => $locationId,
                                                 'payee_payer_id' => $customerId,
+                                                'transaction_date' => $salesNoteDate,
                                                 'actioned_user_id' => $this->user_id,
                                                 'action_date' => $this->date,
                                                 'last_action_status' => 'edited'
@@ -1039,27 +1044,27 @@ class Sales_note_controller extends CI_Controller {
 					$primeEntryBooksToUpdateForDiscount = $this->getPrimeEntryBooksToUpdateForSalesNoteDiscountTransaction();
 					$primeEntryBooksToUpdateForForFreeIssueAmount = $this->getPrimeEntryBooksToUpdateForSalesNoteFreeIssuesTransaction();
 				
-					if ($salesAmountChanged || $customerChanged || $locationChanged) {
-						$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleSalesEntry, $salesNoteId, $salesNoteSalesEntryJournalEntries, 
+					if ($salesAmountChanged || $customerChanged || $locationChanged || $salesNoteDateChanged) {
+						$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleSalesEntry, '0', $salesNoteId, $salesNoteSalesEntryJournalEntries, 
                                 '1', $salesNoteDate, $referenceNo, $locationId, $customerId, $salesAmount, $salesOldAmount, "Yes", 
                                 '', '', '', true);
 						
 						$salesProfitMargin = $this->getSalesProfitMargin();
 						$salesCost = $salesAmount - ($salesAmount/100) * $salesProfitMargin;
 						
-						$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleCostEntry, $salesNoteId, $salesNoteCostEntryJournalEntries, 
+						$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleCostEntry, '2', $salesNoteId, $salesNoteCostEntryJournalEntries, 
                                 '2', $salesNoteDate, $referenceNo, $locationId, $customerId, $salesCost, $salesCostOldAmount, "No", 
                                 '', '', '', true);
 					}
 					
-					if ($discountChanged || $customerChanged || $locationChanged) {
-						$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForDiscount, $salesNoteId, $salesNoteDiscountJournalEntries, 
+					if ($discountChanged || $customerChanged || $locationChanged || $salesNoteDateChanged) {
+						$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForDiscount, '2', $salesNoteId, $salesNoteDiscountJournalEntries, 
                                 '3', $salesNoteDate, $referenceNo, $locationId, $customerId, $discount, $discountOldAmount, "No", 
                                 '', '', '', true);
 					}
 					
-					if ($freeIssueAmountChanged || $customerChanged || $locationChanged) {
-						$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForForFreeIssueAmount, $salesNoteId, $salesNoteFreeIssuesJournalEntries, 
+					if ($freeIssueAmountChanged || $customerChanged || $locationChanged || $salesNoteDateChanged) {
+						$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForForFreeIssueAmount, '2', $salesNoteId, $salesNoteFreeIssuesJournalEntries, 
                                 '4', $salesNoteDate, $referenceNo, $locationId, $customerId, $freeIssueAmount, $freeIssueOldAmount, "No", 
                                 '', '', '', true);
 					}
@@ -4384,7 +4389,7 @@ class Sales_note_controller extends CI_Controller {
 											<div class='form-group'>
 												<label class='control-label col-sm-3'>{$this->lang->line('Date')} *</label>
 												<div class='col-sm-4 controls'>
-													<div class='datepicker-input input-group' id='datepicker_edit'>
+													<div class='datepicker-input input-group' id='datepicker_sales_note_date_edit'>
 														<input class='form-control' id='sales_note_date_edit' name='sales_note_date_edit'
 															data-format='YYYY-MM-DD' placeholder='{$this->lang->line('Date')}' type='text' value='{$row->date}'>
 														<span class='input-group-addon'>
@@ -5339,7 +5344,7 @@ class Sales_note_controller extends CI_Controller {
 		return $primeEntryBooks;
 	}
     
-	public function postSalesNoteJournalEntries($primeEntryBooksToUpdate, $transactionId, $journalEntries, $transactionTypeId, $date, 
+	public function postSalesNoteJournalEntries($primeEntryBooksToUpdate, $referenceTransactionTypeId, $transactionId, $journalEntries, $transactionTypeId, $date, 
             $referenceNo, $locationId, $payeePayerId, $amount, $oldAmount, $shouldHaveAPaymentJournalEntry, $specialChartOfAccountId=null, 
             $specialChartOfAccountAmount=null, $specialChartOfAccountOldAmount=null, $updateJournalEntry=null, $referenceJournalEntryId=null) {
 		
@@ -5374,6 +5379,8 @@ class Sales_note_controller extends CI_Controller {
                         'location_id' => $locationId,
                         'payee_payer_type' => "Customer",
                         'payee_payer_id' => $payeePayerId,
+                        'reference_transaction_type_id' => $referenceTransactionTypeId,
+                        'reference_transaction_id' => $transactionId,
                         'reference_journal_entry_id' => $referenceJournalEntryId,
                         'description' => $description,
                         'post_type' => "Indirect",

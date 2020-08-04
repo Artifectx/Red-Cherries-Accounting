@@ -212,7 +212,7 @@ class Customer_return_note_model extends CI_Model {
 	}
     
     public function getAllOpenCustomerReturnNoteIdsAndAllReferenceNumbers($order_field, $order_type, $peopleId, $locationId=null) {
-		$this->db->select('customer_return_note_id, reference_no');
+		$this->db->select('customer_return_note_id, reference_no, balance_payment');
 		$this->db->order_by($order_field, $order_type);
         $this->db->where('acm_bookkeeping_customer_return_note.customer_id', $peopleId);
         
