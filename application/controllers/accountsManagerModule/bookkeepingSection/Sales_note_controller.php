@@ -4400,7 +4400,7 @@ class Sales_note_controller extends CI_Controller {
 												</div>
 											</div>
 											<div class='form-group'>
-												<label class='control-label col-sm-3'>{$this->lang->line('Customer')}</label>
+												<label class='control-label col-sm-3'>{$this->lang->line('Customer')} *</label>
 												<div class='col-sm-4 controls' id='customer_dropdown_edit'>
 													<select class='select2 form-control' id='customer_id_edit'>";
 												

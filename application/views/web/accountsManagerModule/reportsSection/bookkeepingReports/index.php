@@ -1063,6 +1063,10 @@
 			AccountingMethod = "Accrual";
 		}
 	}
+    
+    function handleLocationSelect(id) {
+        
+    }
 
 	var BookkeepingReport = {
 

@@ -3302,7 +3302,9 @@ INSERT  INTO `system_language_strings`(`language_string`,`language_string_type`,
 ('Journal entry for sales invoice claim transaction for Sales Invoice number : ', 'display_string', '7', 'Make Payment Screen'),
 ('Journal entry for finish good supplier return claim transaction for Finish Good Supplier Return number : ', 'display_string', '7', 'Receive Payment Screen'),
 ('Journal entry for raw material supplier return note claim transaction for Raw Material Supplier Return number : ', 'display_string', '7', 'Receive Payment Screen'),
-('Journal entry for sales invoice claim transaction for Sales Invoice number : ', 'display_string', '7', 'Receive Payment Screen');
+('Journal entry for sales invoice claim transaction for Sales Invoice number : ', 'display_string', '7', 'Receive Payment Screen'),
+('Amount Payable cannot be a negative value.', 'message', '7', 'Sales Note Screen'),
+('Balance Amount cannot be a negative value.', 'message', '7', 'Sales Note Screen');
 
 /*Data for the table `system_language_translations` */
 INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
@@ -6534,7 +6536,9 @@ INSERT  INTO `system_language_translations`(`language_string_id`,`language_name`
 ('3222', 'English', 'Journal entry for sales invoice claim transaction for Sales Invoice number : '),
 ('3223', 'English', 'Journal entry for finish good supplier return claim transaction for Finish Good Supplier Return number : '),
 ('3224', 'English', 'Journal entry for raw material supplier return note claim transaction for Raw Material Supplier Return number : '),
-('3225', 'English', 'Journal entry for sales invoice claim transaction for Sales Invoice number : ');
+('3225', 'English', 'Journal entry for sales invoice claim transaction for Sales Invoice number : '),
+('3226', 'English', 'Amount Payable cannot be a negative value.'),
+('3227', 'English', 'Balance Amount cannot be a negative value.');
 
 /*Data for the table `system_common_configurations` */
 INSERT  INTO `system_common_configurations`(`config_filed_name`,`config_filed_value`) VALUES

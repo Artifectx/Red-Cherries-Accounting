@@ -45,25 +45,14 @@ class Pdf_reports extends TCPDF {
 		$headerdata = $this->getHeaderData();
 		$company = $this->CI->company_information_model->getAll();
 
-		$licenseProperties = ioncube_license_properties();
-
 		if($company != null){
 			if($company[0]->company_logo !=''){
 				$image_file = base_url().$company[0]->company_logo;
 				$this->Image($image_file,'','',30,20);
 			}
 
-			$companyName = '';
-			if ($licenseProperties && sizeof($licenseProperties) > 0) {
-				if (array_key_exists("licensedTo", $licenseProperties)) {
-					$companyName = $licenseProperties['licensedTo']['value'];
-				} else {
-					$companyName = $company[0]->company_name;
-				}
-			} else {
-				$companyName = $company[0]->company_name;
-			}     
-
+			$companyName = $company[0]->company_name;
+			
 			$this->SetFont('Helvetica','B',15);
 			$this->Cell(0, 0, $companyName, 0, 0, 'C');
 			$this->SetFont('Helvetica','',8);

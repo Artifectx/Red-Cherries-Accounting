@@ -94,7 +94,7 @@
 																</div>
 															</div>
 															<div class='form-group'>
-																<label class='control-label col-sm-3'><?php echo $this->lang->line('Customer') ?></label>
+																<label class='control-label col-sm-3'><?php echo $this->lang->line('Customer') ?> *</label>
 																<div class='col-sm-4 controls'>
 																	<select id="customer_init" class="form-control"><option><?php echo $this->lang->line('-- Select --') ?></option></select>
 																	<!--Supplier drop down-->
@@ -995,39 +995,81 @@
 	}
 
 	function saveSalesNoteData() {
-		if (validateSalesNoteForm_save()) {
-            $(".msg_instant").show();
-            $(".msg_instant").html('<img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/>Saving data...');
-			SalesNote.saveSalesNoteData();
-			window.scrollTo(0,0);
-		}
+        
+        var amountPayable = $("#sales_amount_payable").val();
+        
+        if (amountPayable >= 0) {
+            if (validateSalesNoteForm_save()) {
+                $(".msg_instant").show();
+                $(".msg_instant").html('<img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/>Saving data...');
+
+                $("#customer_id").select2('destroy');
+                $("#customer_id").select2();
+
+                SalesNote.saveSalesNoteData();
+                window.scrollTo(0,0);
+            } else {
+                $("#customer_id").select2('destroy');
+                $("#customer_id").select2();
+            }
+        } else {
+            alert("<?php echo $this->lang->line('Amount Payable cannot be a negative value.') ?>");
+        }
 	}
 	
 	function saveSalesNotePaymentData() {
-		if (validateSalesNotePaymentForm()) {
-            $(".msg_instant").show();
-            $(".msg_instant").html('<img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/>Saving data...');
-			SalesNote.saveSalesNotePaymentData();
-			window.scrollTo(0,0);
-		}
+    
+        var balancePayment = $("#sales_balance_amount_on_payment").val();
+    
+        if (balancePayment >= 0) {
+            if (validateSalesNotePaymentForm()) {
+                $(".msg_instant").show();
+                $(".msg_instant").html('<img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/>Saving data...');
+                SalesNote.saveSalesNotePaymentData();
+                window.scrollTo(0,0);
+            }
+        } else {
+            alert("<?php echo $this->lang->line('Balance Amount cannot be a negative value.') ?>");
+        }
 	}
 
 	function editSalesNoteData(id) {
-		if (validateSalesNoteForm_edit()) {
-            $(".msg_instant").show();
-            $(".msg_instant").html('<img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/>Updating data...');
-			SalesNote.editSalesNoteData(id);
-			window.scrollTo(0,0);
-		}
+    
+        var amountPayable = $("#sales_amount_payable_edit").val();
+        
+        if (amountPayable >= 0) {
+            if (validateSalesNoteForm_edit()) {
+                $(".msg_instant").show();
+                $(".msg_instant").html('<img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/>Updating data...');
+
+                $("#customer_id_edit").select2('destroy');
+                $("#customer_id_edit").select2();
+
+                SalesNote.editSalesNoteData(id);
+                window.scrollTo(0,0);
+            } else {
+                $("#customer_id_edit").select2('destroy');
+                $("#customer_id_edit").select2();
+            }
+        } else {
+            alert("<?php echo $this->lang->line('Amount Payable cannot be a negative value.') ?>");
+        }
 	}
 	
 	function editSalesNotePaymentData() {
-		if (validateSalesNotePaymentForm()) {
-            $(".msg_instant").show();
-            $(".msg_instant").html('<img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/>Updating data...');
-			SalesNote.editSalesNotePaymentData();
-			window.scrollTo(0,0);
-		}
+    
+        var balancePayment = $("#sales_balance_amount_on_payment_edit").val();
+    
+        if (balancePayment >= 0) {
+            if (validateSalesNotePaymentForm()) {
+                $(".msg_instant").show();
+                $(".msg_instant").html('<img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/>Updating data...');
+                SalesNote.editSalesNotePaymentData();
+                window.scrollTo(0,0);
+            }
+        } else {
+            alert("<?php echo $this->lang->line('Balance Amount cannot be a negative value.') ?>");
+        }
 	}
 
 	function getSalesNoteData(id){
@@ -1181,8 +1223,6 @@
 			var cashPayment = "";
 			var chequePayment = "";
             
-            amount = parseFloat(amount);
-
 			if (SalesNoteScreenOperationStatus == "Add") {
 				discount = $("#discount").val();
 				customerSaleableReturnAmount = $("#customer_saleable_return_amount").val();
@@ -1198,6 +1238,9 @@
 			}
 
 			if (amount != "") {
+                
+                amount = parseFloat(amount);
+                
 				if (validateDiscount() && validateCustomerSaleableReturnAmount() && validateCustomerMarketReturnAmount()) {
 					if (discount != "") {
 						amountPayable = amount - discount;
@@ -1979,6 +2022,10 @@
 		
 	}
     
+    function handleTerritorySelect() {
+        
+    }
+    
     function handleLocationSelect() {
         
     }
@@ -2324,13 +2371,17 @@
 						$(".msg_data").html(msg);
 						$("#sales_note_payment_save").attr('disabled', false);
 						SalesNotePaymentDataSaved = true;
+                        
+                        var year = $("#current_year").val();
+						var month = $("#current_month").val();
+						getTableData(year, month, "", "");
 					} else {
 						$(".msg_data").show();
 						$(".msg_data").html(response.result);
 						$("#sales_note_payment_save").attr('disabled', false);
 					}
 				}
-			})
+			});
 		},
 
 		editSalesNoteData: function (id) {
@@ -2444,6 +2495,10 @@
 						$(".msg_data").show();
 						$(".msg_data").html(msg);
 						$(".save:input").attr('disabled', false);
+                        
+                        var year = $("#current_year").val();
+						var month = $("#current_month").val();
+						getTableData(year, month, "", "");
 					} else {
 						$(".msg_data").show();
 						$(".msg_data").html(response.result);
@@ -3507,6 +3562,7 @@
 	function validateSalesNoteForm_save() {
 		return (isNotEmpty("reference_no", "<?php echo $this->lang->line('reference_no').' '.$this->lang->line('field is required')?>")
 			&& isNotEmpty("sales_note_date", "<?php echo $this->lang->line('Date').' '.$this->lang->line('field is required')?>")
+            && isSelected("customer_id", "<?php echo $this->lang->line('Customer').' '.$this->lang->line('field is required')?>")
 			&& isSelected("location", "<?php echo $this->lang->line('Location').' '.$this->lang->line('field is required')?>")
 			&& validateSalesAmount()
 			&& validateDiscount()
@@ -3524,6 +3580,7 @@
 	function validateSalesNoteForm_edit() {
 		return (isNotEmpty("reference_no_edit", "<?php echo $this->lang->line('reference_no').' '.$this->lang->line('field is required')?>")
 			&& isNotEmpty("sales_note_date_edit", "<?php echo $this->lang->line('Date').' '.$this->lang->line('field is required')?>")
+            && isSelected("customer_id_edit", "<?php echo $this->lang->line('Customer').' '.$this->lang->line('field is required')?>")
 			&& isSelected("location_edit", "<?php echo $this->lang->line('Location').' '.$this->lang->line('field is required')?>")
 		);
 	}
@@ -3661,7 +3718,9 @@
 		SalesNote.getNextReferenceNo();
 		SalesNoteCancelled = false;
 		$("#sales_note_date").val(moment().format('YYYY-MM-DD'));
-		$("#customer_id").val('0').trigger('change');
+        $("#customer_id").select2('destroy');
+		$("#customer_id").val('0');
+        $("#customer_id").select2();
 		$("#location").val('0');
 		$("#territory").val('0');
 		$("#sales_amount").val('');
