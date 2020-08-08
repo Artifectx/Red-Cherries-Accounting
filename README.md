@@ -35,7 +35,7 @@ Username : Admin<br>
 Password : rcaccounting
 
 # Software Release
-SourceForge Location : 
+SourceForge Location : https://sourceforge.net/projects/red-cherries-accounting/
 
 # Products Web Site
 https://redcherriessoft.com/
