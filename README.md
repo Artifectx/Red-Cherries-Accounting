@@ -1,8 +1,7 @@
 
 ![Banner](https://github.com/gitsampath/rc_accounting.wiki.docs/blob/master/Banner.png)
 
-Red Cherries Accounting
-=======================
+# Red Cherries Accounting
 
 Red Cherries Accounting is a web based accounting software solution 
 for Small and Medium Enterprices (SME) to manage financial information. 
@@ -20,3 +19,29 @@ GNU General Public License for more details.
 
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ 
+# Getting Started
+- To install Red Cherries Accounting, refer the documentation available in https://github.com/Artifectx/Red-Cherries-Accounting/wiki/Getting-Started
+
+- Release note information is available in https://github.com/Artifectx/Red-Cherries-Accounting/wiki/Release-Notes
+
+# Demo
+URL : https://demo-ops.redcherriessoft.com/
+
+Username : Super_Admin<br>
+Password : rcaccounting
+
+Username : Admin<br>
+Password : rcaccounting
+
+# Software Release
+SourceForge Location : 
+
+# Products Web Site
+https://redcherriessoft.com/
+
+# Company Web Site
+https://artifectx.com/
+
+## License 
+GNU General Public License V3
