@@ -43,5 +43,5 @@ https://redcherriessoft.com/
 # Company Web Site
 https://artifectx.com/
 
-## License 
+# License 
 GNU General Public License V3
