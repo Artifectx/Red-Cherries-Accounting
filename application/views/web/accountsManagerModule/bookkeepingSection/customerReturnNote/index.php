@@ -326,18 +326,32 @@
 		if (validateForm_save()) {
             $(".msg_instant").show();
             $(".msg_instant").html('<img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/>Saving data...');
+            
+            $("#customer_id").select2('destroy');
+            $("#customer_id").select2();
+            
 			CustomerReturnNote.saveData();
 			window.scrollTo(0,0);
-		}
+		} else {
+            $("#customer_id").select2('destroy');
+            $("#customer_id").select2();
+        }
 	}
 
 	function editCustomerReturnNoteData(id) {
 		if (validateForm_edit()) {
             $(".msg_instant").show();
             $(".msg_instant").html('<img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/>Updating data...');
+            
+            $("#customer_id_edit").select2('destroy');
+            $("#customer_id_edit").select2();
+            
 			CustomerReturnNote.editCustomerReturnNoteData(id);
 			window.scrollTo(0,0);
-		}
+		} else {
+            $("#customer_id_edit").select2('destroy');
+            $("#customer_id_edit").select2();
+        }
 	}
 
 	function getCustomerReturnNoteData(id){
@@ -845,7 +859,9 @@
 	function clearForm(){
 		$("#reference_no").val('');
 		$("#customer_return_note_date").val(moment().format('YYYY-MM-DD'));
-		$("#customer_id").val('0').trigger('change');
+		$("#customer_id").select2('destroy');
+		$("#customer_id").val('0');
+        $("#customer_id").select2();
 		$("#location").val('0');
 		$("#territory").val('0');
 		$("#customer_return_amount").val('');
