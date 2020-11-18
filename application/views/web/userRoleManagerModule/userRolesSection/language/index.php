@@ -66,8 +66,29 @@
 											<div class='col-sm-4 controls'>
 												<select class="form-control" id="new_language" name="new_language">
 													<option value="0"><?php echo $this->lang->line('-- Select --') ?></option>
-													<option value="english" <?php if ($userLanguage == 'english'){ echo 'Selected';} ?>><?php echo $this->lang->line('English') ?></option>
-													<option value="sinhala" <?php if ($userLanguage == 'sinhala'){ echo 'Selected';} ?>><?php echo $this->lang->line('Sinhala') ?></option>
+                                                    <option value="chinesesimplified" <?php if ($userLanguage == 'chinesesimplified'){ echo 'Selected';} ?>>Chinese (Simplified)</option>
+                                                    <option value="chinesetraditional" <?php if ($userLanguage == 'chinesetraditional'){ echo 'Selected';} ?>>Chinese (Traditional)</option>
+													<option value="english" <?php if ($userLanguage == 'english'){ echo 'Selected';} ?>>English</option>
+                                                    <option value="french" <?php if ($userLanguage == 'french'){ echo 'Selected';} ?>>French</option>
+                                                    <option value="german" <?php if ($userLanguage == 'german'){ echo 'Selected';} ?>>German</option>
+                                                    <option value="hindi" <?php if ($userLanguage == 'hindi'){ echo 'Selected';} ?>>Hindi</option>
+                                                    <option value="hungarian" <?php if ($userLanguage == 'hungarian'){ echo 'Selected';} ?>>Hungarian</option>
+                                                    <option value="italian" <?php if ($userLanguage == 'italian'){ echo 'Selected';} ?>>Italian</option>
+                                                    <option value="indonesian" <?php if ($userLanguage == 'indonesian'){ echo 'Selected';} ?>>Indonesian</option>
+                                                    <option value="japanese" <?php if ($userLanguage == 'japanese'){ echo 'Selected';} ?>>Japanese</option>
+                                                    <option value="korean" <?php if ($userLanguage == 'korean'){ echo 'Selected';} ?>>Korean</option>
+                                                    <option value="nepali" <?php if ($userLanguage == 'nepali'){ echo 'Selected';} ?>>Nepali</option>
+                                                    <option value="portuguese" <?php if ($userLanguage == 'portuguese'){ echo 'Selected';} ?>>Portuguese</option>
+                                                    <option value="polish" <?php if ($userLanguage == 'polish'){ echo 'Selected';} ?>>Polish</option>
+                                                    <option value="russian" <?php if ($userLanguage == 'russian'){ echo 'Selected';} ?>>Russian</option>
+                                                    <option value="romanian" <?php if ($userLanguage == 'romanian'){ echo 'Selected';} ?>>Romanian</option>
+                                                    <option value="sinhala" <?php if ($userLanguage == 'sinhala'){ echo 'Selected';} ?>>Sinhala</option>
+                                                    <option value="spanish" <?php if ($userLanguage == 'spanish'){ echo 'Selected';} ?>>Spanish</option>
+                                                    <option value="tamil" <?php if ($userLanguage == 'tamil'){ echo 'Selected';} ?>>Tamil</option>
+                                                    <option value="thai" <?php if ($userLanguage == 'thai'){ echo 'Selected';} ?>>Thai</option>
+                                                    <option value="turkish" <?php if ($userLanguage == 'turkish'){ echo 'Selected';} ?>>Turkish</option>
+                                                    <option value="ukrainian" <?php if ($userLanguage == 'ukrainian'){ echo 'Selected';} ?>>Ukrainian</option>
+                                                    <option value="vietnamese" <?php if ($userLanguage == 'vietnamese'){ echo 'Selected';} ?>>Vietnamese</option>
 												</select>
 												<div id="new_languageError" class="red"><?php echo form_error('new_language'); ?></div>
 											</div>

@@ -234,30 +234,6 @@
 			&& isNotEmpty("password", "<?php echo $this->lang->line('error_password').' '.$this->lang->line('field is required')?>")
 		);
 	}
-
-	//form sign up validation
-	function validateFormSignUp() {
-		return (isNotEmpty("first_name", "<?php echo $this->lang->line('first_name').' '.$this->lang->line('field is required')?>")
-			&& isNotEmpty("last_name", "<?php echo $this->lang->line('last_name').' '.$this->lang->line('field is required')?>")
-			&& isNotEmpty("comapany_name", "<?php echo $this->lang->line('comapany_name').' '.$this->lang->line('field is required')?>")
-			&& isNotEmpty("job_title", "<?php echo $this->lang->line('job_title').' '.$this->lang->line('field is required')?>")
-			&& isValidEmail("contact_email", "<?php echo $this->lang->line('contact_email').' '.$this->lang->line('field is required')?>")
-			&& isNotEmpty("contact_phone", "<?php echo $this->lang->line('contact_phone').' '.$this->lang->line('field is required')?>")
-			&& isSelected("country", "<?php echo $this->lang->line('country').' '.$this->lang->line('field is required')?>")
-			&& isNotEmpty("no_of_employees", "<?php echo $this->lang->line('no_of_employees').' '.$this->lang->line('field is required')?>")
-		);
-	}
-
-	function clearForm(){
-		$("#first_name").val('');
-		$("#last_name").val('');
-		$("#comapany_name").val('');
-		$("#job_title").val('');
-		$("#contact_email").val('');
-		$("#contact_phone").val('');
-		$("#country").val('');
-		$("#no_of_employees").val('');
-	}
 </script>
 
 

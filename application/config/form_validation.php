@@ -363,51 +363,6 @@ $config = array(
 			'rules' => 'trim|required'
 		)
 	),
-
-	//---------Sign Up Screen
-	'login/signUp' => array(
-		array(
-			'field' => 'first_name',
-			'label' => 'lang:first_name',
-			'rules' => 'trim|required'
-		),
-		array(
-			'field' => 'last_name',
-			'label' => 'lang:last_name',
-			'rules' => 'trim|required'
-		),
-		array(
-			'field' => 'comapany_name',
-			'label' => 'lang:comapany_name',
-			'rules' => 'trim|required'
-		),
-		array(
-			'field' => 'job_title',
-			'label' => 'lang:job_title',
-			'rules' => 'trim|required'
-		),
-		array(
-			'field' => 'contact_email',
-			'label' => 'lang:contact_email',
-			'rules' => 'trim|required|valid_email'
-		),
-		array(
-			'field' => 'contact_phone',
-			'label' => 'lang:contact_phone',
-			'rules' => 'trim|required|numeric'
-		),
-		array(
-			'field' => 'country',
-			'label' => 'lang:country',
-			'rules' => 'trim|required'
-		),
-		array(
-			'field' => 'no_of_employees',
-			'label' => 'lang:no_of_employees',
-			'rules' => 'trim|required'
-		)
-	),
-
 	
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////---------Accounts  Manager Module-----------///////////////////////////////////////////////////////////////////////////

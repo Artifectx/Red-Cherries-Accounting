@@ -1034,7 +1034,7 @@
 						$(".msg_data").hide();
 						$(".validation").hide();
 						$("#dataTable").hide();
-						$("#empty_activity_list_message").html("<label class='control-label col-sm-12' style='text-align:center; color:blue;'><?php echo $this->lang->line('Thid program still does not have any activities scheduled. Click ') ?> <a onclick='addNewProgramActivity(" + programId + ")' href='#' style='color:orange;'>here</a> <?php echo $this->lang->line(' to add activities to the program.') ?></label>");
+						$("#empty_activity_list_message").html("<label class='control-label col-sm-12' style='text-align:center; color:blue;'><?php echo $this->lang->line('This program still does not have any activities scheduled. Click ') ?> <a onclick='addNewProgramActivity(" + programId + ")' href='#' style='color:orange;'>here</a> <?php echo $this->lang->line(' to add activities to the program.') ?></label>");
 					} else {
 						$(".loader").show();
 						$(".msg_data").hide();

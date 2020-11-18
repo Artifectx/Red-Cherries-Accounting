@@ -136,6 +136,8 @@ class System_language_pack_controller extends CI_Controller {
             $moduleArray = array();
             $allModules = $this->user_model->getAllSystemModules('system_module_id', 'asc');
             
+            $moduleArray[0] = '';
+            
             foreach($allModules as $module) {
                 $moduleArray[$module->system_module_id] = $module->system_module;
             }
@@ -171,7 +173,8 @@ class System_language_pack_controller extends CI_Controller {
                         if ($row->translated_string != '') {
                             $translation = "<textarea class='form-control' id='translation_edit_" . $row->language_translation_id . "' name='translation_edit_" . $row->language_translation_id . "' placeholder='{$this->lang->line('Translation')}' onblur='editTranslation(this.id);'>{$row->translated_string}</textarea>";
                         } else {
-                            $translation = "<textarea class='form-control' id='translation_edit_" . $row->language_string_id . "' name='translation_edit_" . $row->language_string_id . "' placeholder='{$this->lang->line('Translation')}' onblur='editTranslation(this.id);'>{$row->language_string}</textarea>";
+                            $englishTranslation = $this->system_language_pack_model->getEnglishTranslationForLanguageString($row->language_string_id);
+                            $translation = "<textarea class='form-control' id='translation_edit_" . $row->language_string_id . "' name='translation_edit_" . $row->language_string_id . "' placeholder='{$this->lang->line('Translation')}' onblur='editTranslation(this.id);'>{$englishTranslation[0]->translated_string}</textarea>";
                         }
 
                         $html .= "	<td style='width:50%'>" . $translation . "</td>";

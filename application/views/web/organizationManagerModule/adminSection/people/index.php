@@ -605,7 +605,7 @@
 				'<a class="close" href="#" data-dismiss="alert">× </a>'+
 				'<h4><i class="icon-ok-sign"></i>'+
 				'<?php echo $this->lang->line('Success') ?></h4>'+
-				'<?php echo $this->lang->line('Document Successfuly Uploaded') ?>'+
+				'<?php echo $this->lang->line('Document Successfully Uploaded') ?>'+
 				'</div>';
 		
 			var fileName = $("#file_to_upload").val();

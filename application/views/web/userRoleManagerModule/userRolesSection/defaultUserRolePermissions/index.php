@@ -82,9 +82,7 @@
                     <div class='row'>
                         <div class='col-sm-12'>
                             <div class='box bordered-box <?php //echo BOXHEADER; ?>-border' style='margin-bottom:0;'>
-                                <!--<a class='btn btn-success btn-sm new'><?php //echo $this->lang->line('Add New Module') ?></a>-->
                                 <p>&nbsp;
-
                                 <!--showing tabale-->
                                 <div id="dataTable">
                                 </div>

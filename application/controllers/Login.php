@@ -136,78 +136,6 @@ class Login extends CI_Controller {
 		}
 	}
 
-	public function signUp(){
-		if($this->form_validation->run() == FALSE){
-			echo validation_errors('<div class="alert alert-danger alert-dismissable">
-										<a class="close" data-dismiss="alert" href="#">&times;</a>
-										<h4><i class="icon-remove-sign"></i>Error</h4>',
-				'</div>');
-		} else {
-			$from = "info@artifectx.com";
-			$name = "FlexibleHr Management System";
-			$sub = "Flexible HR Request Quote & Free Account Sign Up";
-			$msg = "Dear " . $this->db->escape_str($this->input->post('first_name')) . "<br><br>
-							Thank You for your interest on <strong>FlexibleHR</strong> - The No.1 online HR software for small and medium business organizations. <br>
-							Your new account is been processing and we will let you know after setup is completed.<br><br>
-							Please feel free to contact us if you need any clarifications. <br><br>
-							Thanking you & have a nice day!<br><br>
-							Best Regards,<br>
-							Artifectx Team.<br><br>
-							<strong>For more info contact :</strong><br><br>
-							Mike  : +94-77-9089655<br>
-							Sam   : +94-77-9738068<br>
-							web   : http://www.artifectx.com <br>
-							Email : info@artifectx.com";
-			$this->load->library('email');
-			$this->email->clear();
-			$config['mailtype'] = 'html';
-			$this->email->initialize($config);
-			$this->email->from($from, $name);
-			$this->email->to($this->db->escape_str($this->input->post('contact_email')));
-			$this->email->subject($sub);
-			$this->email->message($msg);
-			//$this->email->attach('/uploads/bre.jpg');
-			$this->email->send();
-
-			//send copy
-			$from = $this->db->escape_str($this->input->post('contact_email'));
-			$name = "FlexibleHr Management System";
-			$sub = "Flexible HR Request Quote & Free Account Sign Up";
-			$msg = "<strong>New Customer Requestion</strong><br><br>
-							<strong>Customer Info :</strong><br><br>
-							First Name : ".$this->db->escape_str($this->input->post('first_name'))."<br>
-							Last Name : ".$this->db->escape_str($this->input->post('last_name'))."<br>
-							Company Name : ".$this->db->escape_str($this->input->post('comapany_name'))."<br>
-							Job Title : ".$this->db->escape_str($this->input->post('job_title'))."<br>
-							Contact Email : ".$this->db->escape_str($this->input->post('contact_email'))."<br>
-							Contact Phone No : ".$this->db->escape_str($this->input->post('contact_phone'))."<br>
-							Country : ".$this->db->escape_str($this->input->post('country'))."<br>
-							No of Employees : ".$this->db->escape_str($this->input->post('no_of_employees'))."<br><br><br>
-							<strong>* Note : <strong> Automatic E-mail from FlexibleHR demo web.
-							";
-			$this->load->library('email');
-			$this->email->clear();
-			$config['mailtype'] = 'html';
-			$this->email->initialize($config);
-			$this->email->from($from, $name);
-			$this->email->to('sherath82@gmail.com');
-			$this->email->subject($sub);
-			$this->email->message($msg);
-			$this->email->send();
-
-			$this->email->clear();
-			$config['mailtype'] = 'html';
-			$this->email->initialize($config);
-			$this->email->from($from, $name);
-			$this->email->to('info@artifectx.com');
-			$this->email->subject($sub);
-			$this->email->message($msg);
-			$this->email->send();
-
-			echo "ok";
-		}
-	}
-
 	//password forgot
 	public function resetPassword() {
 		if ($this->form_validation->run() == FALSE) {
@@ -240,7 +168,7 @@ class Login extends CI_Controller {
 
 				$from = $result[0]->email;
 				$name = "eStock Manager";
-				$sub = $this->lang->line('Forgotten your password at eStock Manager System');
+				$sub = $this->lang->line('Forgotten your password for Red Cherries Accounting');
 				$msg = "".$this->lang->line('Forgot your password?')."<br><br>Dear " . $nameOfUser . "<br>".$this->lang->line('Your account password has been reset and you can now login to your account area using the details below')."<br><br>".$this->lang->line('User Name')." : " . $user_name . "<br>".$this->lang->line('Password')." : " . $pass . "<br><br>".$this->lang->line('Password')." http://demo-estock.artifectx.com/";
 				$this->load->library('email');
 				$this->email->clear();

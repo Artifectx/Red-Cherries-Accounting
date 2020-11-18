@@ -36,10 +36,10 @@
 								$html .= "<li style='margin: 0.5% 0.5% 0.5% 0.5%;'>
 											<a class='tip'
 											   href='#'
-											   title='{$row->system_sub_module}' onclick='setSystemSubModulesHeaderTitle(\"{$row->system_sub_module}\",\"{$row->system_sub_module_dashboard_url}\")'>
+											   title='{$this->lang->line($row->system_sub_module)}' onclick='setSystemSubModulesHeaderTitle(\"{$row->system_sub_module}\",\"{$row->system_sub_module_dashboard_url}\")'>
 												<i><img src='{$url}assets/images/system_modules/{$row->system_sub_module_image_url}'
 														alt=''/></i>
-												<span><span>{$row->system_sub_module}</span></span>
+												<span><span>{$this->lang->line($row->system_sub_module)}</span></span>
 											</a>
 										</li>";
 							}
@@ -88,10 +88,10 @@
 									$html .= "<li style='margin: 0.5% 0.5% 0.5% 0.5%;'>
 											<a class='tip'
 											   href='#'
-											   title='{$row->system_sub_module}' onclick='setSystemSubModulesHeaderTitle(\"{$row->system_sub_module}\",\"{$row->system_sub_module_dashboard_url}\")'>
+											   title='{$this->lang->line($row->system_sub_module)}' onclick='setSystemSubModulesHeaderTitle(\"{$row->system_sub_module}\",\"{$row->system_sub_module_dashboard_url}\")'>
 												<i><img src='{$url}assets/images/system_modules/{$row->system_sub_module_image_url}'
 														alt=''/></i>
-												<span><span>{$row->system_sub_module}</span></span>
+												<span><span>{$this->lang->line($row->system_sub_module)}</span></span>
 											</a>
 										</li>";
 								} 

@@ -20,7 +20,7 @@
  */
 
 if ( ! defined('BASEPATH')) exit('No direct script access allowed');
-define("Version", "1.0 Beta 1");
+define("Version", "1.0 Beta 2");
 
 require_once dirname(__FILE__) . '/tcpdf/tcpdf.php';
 

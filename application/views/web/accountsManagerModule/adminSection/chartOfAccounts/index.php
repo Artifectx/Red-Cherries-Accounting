@@ -192,7 +192,7 @@
 				'<a class="close" href="#" data-dismiss="alert">× </a>'+
 				'<h4><i class="icon-ok-sign"></i>'+
 				'<?php echo $this->lang->line('Success') ?></h4>'+
-				'<?php echo $this->lang->line('Chart of Account Sucessfully Saved') ?>'+
+				'<?php echo $this->lang->line('Chart of Account Successfully Saved') ?>'+
 				'</div>';
 
 		var CurrentNode = $("#html1").jstree().get_selected(true)[0]
@@ -274,7 +274,7 @@
 				'<a class="close" href="#" data-dismiss="alert">x </a>'+
 				'<h4><i class="icon-ok-sign"></i>'+
 				'<?php echo $this->lang->line('Success') ?></h4>'+
-				'<?php echo $this->lang->line('Chart of Account Sucessfully Deleted') ?>'+
+				'<?php echo $this->lang->line('Chart of Account Successfully Deleted') ?>'+
 				'</div>';
 
 		var CurrentNode = $("#html1").jstree().get_selected(true)[0]['original'];
@@ -318,7 +318,7 @@
 				'<a class="close" href="#" data-dismiss="alert">× </a>'+
 				'<h4><i class="icon-ok-sign"></i>'+
 				'<?php echo $this->lang->line('Success') ?></h4>'+
-				'<?php echo $this->lang->line('Chart of Account Sucessfully Moved') ?>'+
+				'<?php echo $this->lang->line('Chart of Account Successfully Moved') ?>'+
 				'</div>';
 
 		$.ajax({

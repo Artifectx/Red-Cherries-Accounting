@@ -165,7 +165,7 @@
 				'<a class="close" href="#" data-dismiss="alert">× </a>'+
 				'<h4><i class="icon-ok-sign"></i>'+
 				'<?php echo $this->lang->line('Success') ?></h4>'+
-				'<?php echo $this->lang->line('Company Structure Sucessfully Saved') ?>'+
+				'<?php echo $this->lang->line('Company Structure Successfully Saved') ?>'+
 				'</div>';
 
 		var CurrentNode = $("#html1").jstree().get_selected(true)[0]
@@ -240,7 +240,7 @@
 				'<a class="close" href="#" data-dismiss="alert">x </a>'+
 				'<h4><i class="icon-ok-sign"></i>'+
 				'<?php echo $this->lang->line('Success') ?></h4>'+
-				'<?php echo $this->lang->line('Company Sucessfully Deleted') ?>'+
+				'<?php echo $this->lang->line('Company Successfully Deleted') ?>'+
 				'</div>';
 
 		var CurrentNode = $("#html1").jstree().get_selected(true)[0]['original'];
@@ -284,7 +284,7 @@
 				'<a class="close" href="#" data-dismiss="alert">× </a>'+
 				'<h4><i class="icon-ok-sign"></i>'+
 				'<?php echo $this->lang->line('Success') ?></h4>'+
-				'<?php echo $this->lang->line('Company Sucessfully Moved') ?>'+
+				'<?php echo $this->lang->line('Company Successfully Moved') ?>'+
 				'</div>';
 
 		$.ajax({

@@ -122,7 +122,7 @@ class Profile_controller extends CI_Controller {
 
 					$salt=$options['salt'];
 					$this->user_model->changePassword($this->user_id, $new_password,$salt);
-					$this->session->set_flashdata('flashSuccess', $this->lang->line('Password Sucessfully Changed'));
+					$this->session->set_flashdata('flashSuccess', $this->lang->line('Password Successfully Changed'));
 					redirect('userRoleManagerModule/userRolesSection/profile_controller/password');
 				} else {
 					$this->session->set_flashdata('flashError', $this->lang->line('Incorrect Current Password'));
@@ -138,7 +138,7 @@ class Profile_controller extends CI_Controller {
 		} else {
 			$language = $this->db->escape_str($this->input->post('new_language'));
 			$this->user_model->setUserLanguage($this->user_id, $language);
-			$this->session->set_flashdata('flashSuccess', $this->lang->line('Language Sucessfully Changed'));
+			$this->session->set_flashdata('flashSuccess', $this->lang->line('Language Successfully Changed'));
 			redirect('userRoleManagerModule/userRolesSection/profile_controller/language');
 		}
 	}

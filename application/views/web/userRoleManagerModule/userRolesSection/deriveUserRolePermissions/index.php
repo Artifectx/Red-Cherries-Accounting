@@ -80,9 +80,7 @@
 					<div class='row'>
 						<div class='col-sm-12'>
 							<div class='box bordered-box <?php //echo BOXHEADER; ?>-border' style='margin-bottom:0;'>
-								<!--<a class='btn btn-success btn-sm new'><?php //echo $this->lang->line('Add New Module') ?></a>-->
 								<p>&nbsp;
-
 								<div class='loader' align="center"><img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/> Loading data...</div>
 
 								<!--showing tabale-->

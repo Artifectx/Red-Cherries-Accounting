@@ -181,13 +181,30 @@ class System_language_pack_model extends CI_model {
 
 	public function getLanguageOptionList() {
 
-		$this->optionList = '';
-		$this->optionList .= '<option value="english">English</option>';
-		$this->optionList .= '<option value="french">French</option>';
-		$this->optionList .= '<option value="german">German</option>';
-		$this->optionList .= '<option value="chinese">Chinese</option>';
-		$this->optionList .= '<option value="japanes">Japanes</option>';
-		$this->optionList .= '<option value="sinhala">Sinhala</option>';
+		$this->optionList = '<option value="0">' . $this->lang->line('-- Select --') . '</option>';
+        $this->optionList .= '<option value="chinesesimplified">Chinese (Simplified)</option>';
+        $this->optionList .= '<option value="chinesetraditional">Chinese (Traditional)</option>';
+        $this->optionList .= '<option value="english">English</option>';
+        $this->optionList .= '<option value="french">French</option>';
+        $this->optionList .= '<option value="german">German</option>';
+        $this->optionList .= '<option value="hindi">Hindi</option>';
+        $this->optionList .= '<option value="hungarian">Hungarian</option>';
+        $this->optionList .= '<option value="italian">Italian</option>';
+        $this->optionList .= '<option value="indonesian">Indonesian</option>';
+        $this->optionList .= '<option value="japanese">Japanese</option>';
+        $this->optionList .= '<option value="korean">Korean</option>';
+        $this->optionList .= '<option value="nepali">Nepali</option>';
+        $this->optionList .= '<option value="portuguese">Portuguese</option>';
+        $this->optionList .= '<option value="polish">Polish</option>';
+        $this->optionList .= '<option value="russian">Russian</option>';
+        $this->optionList .= '<option value="romanian">Romanian</option>';
+        $this->optionList .= '<option value="sinhala">Sinhala</option>';
+        $this->optionList .= '<option value="spanish">Spanish</option>';
+        $this->optionList .= '<option value="tamil">Tamil</option>';
+        $this->optionList .= '<option value="thai">Thai</option>';
+        $this->optionList .= '<option value="turkish">Turkish</option>';
+        $this->optionList .= '<option value="ukrainian">Ukrainian</option>';
+        $this->optionList .= '<option value="vietnamese">Vietnamese</option>';
 
 		return $this->optionList;
 	}
@@ -218,4 +235,15 @@ class System_language_pack_model extends CI_model {
 			return false;
 		}
 	}
+    
+    public function getEnglishTranslationForLanguageString($languageStringId) {
+        $this->db->where('language_name', "English");
+        $this->db->where('language_string_id', $languageStringId);
+		$query = $this->db->get('system_language_translations');
+		if ($query->num_rows() > 0) {
+			return $query->result();
+		} else {
+			return false;
+		}
+    }
 }

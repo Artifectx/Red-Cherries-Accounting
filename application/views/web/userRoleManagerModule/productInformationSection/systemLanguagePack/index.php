@@ -178,7 +178,7 @@
 				dataType: 'html',
 				success: function (response) {
 					$("#language_translation_id_" + rowCount).val(response);
-					$("#translation_generation_status").text("Translation Generation is Pending");
+					$("#translation_generation_status").text('<?php echo $this->lang->line('Translation Generation is Pending') ?>');
 					$("#translation_generation_status_div").show();
 					$("#translation_generation_div").show();
 				}
@@ -233,7 +233,7 @@
 				dataType: 'html',
 				success:function (response) {
 					if (response == "Pending") {
-						$("#translation_generation_status").text("Translation Generation is Pending");
+						$("#translation_generation_status").text('<?php echo $this->lang->line('Translation Generation is Pending') ?>');
 						$("#translation_generation_status_div").show();
 						$("#translation_generation_div").show();
 					} else {
