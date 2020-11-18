@@ -1,6 +1,8 @@
 
 ![Banner](https://github.com/gitsampath/rc_accounting.wiki.docs/blob/master/Banner.png)
 
+[![Download Red-Cherries-Accounting](https://img.shields.io/sourceforge/dm/red-cherries-accounting.svg)](https://sourceforge.net/projects/red-cherries-accounting/files/latest/download)[![Download Red-Cherries-Accounting](https://img.shields.io/sourceforge/dw/red-cherries-accounting.svg)](https://sourceforge.net/projects/red-cherries-accounting/files/latest/download)[![Download Red-Cherries-Accounting](https://img.shields.io/sourceforge/dd/red-cherries-accounting.svg)](https://sourceforge.net/projects/red-cherries-accounting/files/latest/download)[![Download Red-Cherries-Accounting](https://img.shields.io/sourceforge/dt/red-cherries-accounting.svg)](https://sourceforge.net/projects/red-cherries-accounting/files/latest/download)
+
 # Red Cherries Accounting
 
 Red Cherries Accounting is a web based accounting software solution 
