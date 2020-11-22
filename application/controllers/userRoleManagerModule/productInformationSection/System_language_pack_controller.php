@@ -174,7 +174,12 @@ class System_language_pack_controller extends CI_Controller {
                             $translation = "<textarea class='form-control' id='translation_edit_" . $row->language_translation_id . "' name='translation_edit_" . $row->language_translation_id . "' placeholder='{$this->lang->line('Translation')}' onblur='editTranslation(this.id);'>{$row->translated_string}</textarea>";
                         } else {
                             $englishTranslation = $this->system_language_pack_model->getEnglishTranslationForLanguageString($row->language_string_id);
-                            $translation = "<textarea class='form-control' id='translation_edit_" . $row->language_string_id . "' name='translation_edit_" . $row->language_string_id . "' placeholder='{$this->lang->line('Translation')}' onblur='editTranslation(this.id);'>{$englishTranslation[0]->translated_string}</textarea>";
+                            
+                            if ($englishTranslation && sizeof ($englishTranslation) > 0) {
+                                $translation = "<textarea class='form-control' id='translation_edit_" . $row->language_string_id . "' name='translation_edit_" . $row->language_string_id . "' placeholder='{$this->lang->line('Translation')}' onblur='editTranslation(this.id);'>{$englishTranslation[0]->translated_string}</textarea>";
+                            } else {
+                                $translation = "<textarea class='form-control' id='translation_edit_" . $row->language_string_id . "' name='translation_edit_" . $row->language_string_id . "' placeholder='{$this->lang->line('Translation')}' onblur='editTranslation(this.id);'></textarea>";
+                            }
                         }
 
                         $html .= "	<td style='width:50%'>" . $translation . "</td>";
@@ -299,10 +304,10 @@ class System_language_pack_controller extends CI_Controller {
 		
 		if ($displayStrings && sizeof($displayStrings) > 0) {
 			foreach($displayStrings as $languageString) {
-				$string = "'" . $languageString->language_string . "'";
-				$translation = "'" . $languageString->translated_string . "'";
+				$string = '"' . $languageString->language_string . '"';
+				$translation = '"' . $languageString->translated_string . '"';
 				
-				if ($translation == "''") {
+				if ($translation == '""') {
 					$translation = $string;
 				}
 				
@@ -314,10 +319,10 @@ class System_language_pack_controller extends CI_Controller {
 		
 		if ($productNameStrings && sizeof($productNameStrings) > 0) {
 			foreach($productNameStrings as $languageString) {
-				$string = "'" . $languageString->language_string . "'";
-				$translation = "'" . $languageString->translated_string . "'";
+				$string = '"' . $languageString->language_string . '"';
+				$translation = '"' . $languageString->translated_string . '"';
 				
-				if ($translation == "''") {
+				if ($translation == '""') {
 					$translation = $string;
 				}
 				
@@ -336,10 +341,10 @@ class System_language_pack_controller extends CI_Controller {
 		
 		if ($messageStrings && sizeof($messageStrings) > 0) {
 			foreach($messageStrings as $languageString) {
-				$string = "'" . $languageString->language_string . "'";
-				$translation = "'" . $languageString->translated_string . "'";
+				$string = '"' . $languageString->language_string . '"';
+				$translation = '"' . $languageString->translated_string . '"';
 				
-				if ($translation == "''") {
+				if ($translation == '""') {
 					$translation = $string;
 				}
 				

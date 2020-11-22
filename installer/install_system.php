@@ -168,25 +168,28 @@ function install($newVersionNo, $mysqli) {
 
 										$path = $path . "/" . "system_data.sql";
 
-											if (file_exists($path)) {
-												$queryList = getQueries($path);
-												$i = 1;
+                                        mysqli_query($mysqli, "SET character_set_client=utf8");
+                                        mysqli_query($mysqli, "SET character_set_connection=utf8");
+                                        
+                                        if (file_exists($path)) {
+                                            $queryList = getQueries($path);
+                                            $i = 1;
 
-												if (!$errorsFound) {
-													foreach ($queryList as $q) {
-														mysqli_query($mysqli, $q);
-														if (mysqli_errno($mysqli)) {
-															$errorsFound = true;
-															$result = 'error';
-															$message = "Error with create query $i in script $path : $q. Error details: " . mysqli_error($mysqli) . ".<br>\n".'<br>';
-															break;
-														}
-														$i++;
-													}
-												}
-											}
+                                            if (!$errorsFound) {
+                                                foreach ($queryList as $q) {
+                                                    mysqli_query($mysqli, $q);
+                                                    if (mysqli_errno($mysqli)) {
+                                                        $errorsFound = true;
+                                                        $result = 'error';
+                                                        $message = "Error with create query $i in script $path : $q. Error details: " . mysqli_error($mysqli) . ".<br>\n".'<br>';
+                                                        break;
+                                                    }
+                                                    $i++;
+                                                }
+                                            }
+                                        }
 
-											$path = $originalPath;
+                                        $path = $originalPath;
 
 										break;
 
@@ -1042,25 +1045,28 @@ function upgrade($currentVersionNo, $newVersionNo, $mysqli) {
 
 										$path = $path . "/" . "system_data.sql";
 
-											if (file_exists($path)) {
-												$queryList = getQueries($path);
-												$i = 1;
+                                        mysqli_query($mysqli, "SET character_set_client=utf8");
+                                        mysqli_query($mysqli, "SET character_set_connection=utf8");
+                                                
+                                        if (file_exists($path)) {
+                                            $queryList = getQueries($path);
+                                            $i = 1;
 
-												if (!$errorsFound) {
-													foreach ($queryList as $q) {
-														mysqli_query($mysqli, $q);
-														if (mysqli_errno($mysqli)) {
-															$errorsFound = true;
-															$result = 'error';
-															$message = "Error with create query $i in script $path : $q. Error details: " . mysqli_error($mysqli) . ".<br>\n".'<br>';
-															break;
-														}
-														$i++;
-													}
-												}
-											}
+                                            if (!$errorsFound) {
+                                                foreach ($queryList as $q) {
+                                                    mysqli_query($mysqli, $q);
+                                                    if (mysqli_errno($mysqli)) {
+                                                        $errorsFound = true;
+                                                        $result = 'error';
+                                                        $message = "Error with create query $i in script $path : $q. Error details: " . mysqli_error($mysqli) . ".<br>\n".'<br>';
+                                                        break;
+                                                    }
+                                                    $i++;
+                                                }
+                                            }
+                                        }
 
-											$path = $originalPath;
+                                        $path = $originalPath;
 
 										break;
 

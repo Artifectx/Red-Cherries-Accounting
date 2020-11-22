@@ -98,7 +98,7 @@
 						<div class="modal-header">
 							<button aria-hidden='true' class='close' data-dismiss='modal' type='button'>x</button>
 							<h4 align="center"><?php echo $this->lang->line('Forgot your password?') ?></h4>
-							<h6><?php echo $this->lang->line('Enter the Email Address associated with your account and click "Submit" to receive a password.') ?></h6>
+							<h6><?php echo $this->lang->line('Enter the Email Address associated with your account and click Submit to receive a password.') ?></h6>
 						</div>
 						<div class="modal-body">
 							<div class='col-sm-12'>
