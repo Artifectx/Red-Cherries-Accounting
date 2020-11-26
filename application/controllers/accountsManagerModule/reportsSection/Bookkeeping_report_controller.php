@@ -2771,7 +2771,9 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['credit_amount']);
+                                    //Change introduced on 26/11/2020 to fix a bug
+									//$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['credit_amount']);
+                                    $resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								}
 							}
 
@@ -3357,9 +3359,9 @@ class Bookkeeping_report_controller extends CI_Controller {
 
                             $debtTotal = $debtTotal + $debitAmount;
 
-                            $referenceTransactions = $this->journal_entries_model->getReferenceJournalEntriesOfAJournalEntry($journalEntryId);
+                            $referenceTransactionsList = $this->journal_entries_model->getReferenceJournalEntriesOfAJournalEntry($journalEntryId);
 
-                            $claimReferenceTransactions = false;
+                            $claimReferenceTransactionsList = array();
                         
                             $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
 
@@ -3371,8 +3373,8 @@ class Bookkeeping_report_controller extends CI_Controller {
                                     $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
                                     $referenceTransaction = $this->journal_entries_model->getJournalEntryById($claimReferenceJournalEntryId);
 
-                                    if ($referenceTransaction) {
-                                        $claimReferenceTransactions[] = $referenceTransaction;
+                                    if ($referenceTransaction & sizeof($referenceTransaction) > 0) {
+                                        $claimReferenceTransactionsList[] = $referenceTransaction[0];
                                     }
                                 }
                             }
@@ -3382,17 +3384,37 @@ class Bookkeeping_report_controller extends CI_Controller {
                             $balanceAmount = 0;
                             $referenceTransactionsCount = 0;
                             $claimReferenceTransactionsCount = 0;
+                            $referenceTransactions = false;
+                            $claimReferenceTransactions = false;
 
-                            if ($referenceTransactions) {
-                                $referenceTransactionsCount = sizeof($referenceTransactions);
+                            if ($referenceTransactionsList && sizeof($referenceTransactionsList) > 0) {
+                                foreach ($referenceTransactionsList as $referenceTransaction) {
+                                    $referenceJournalEntryId = $referenceTransaction->journal_entry_id;
+                                    $referenceGeneralLedgerEntry = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId, '102', "Yes");
+                                    
+                                    if ($referenceGeneralLedgerEntry && sizeof($referenceGeneralLedgerEntry) > 0) {
+                                        $referenceTransactions[] = $referenceTransaction;
+                                        $referenceTransactionsCount++;
+                                    }
+                                }
                             }
 
-                            if ($claimReferenceTransactions) {
-                                $claimReferenceTransactionsCount = sizeof($claimReferenceTransactions);
+                            if ($claimReferenceTransactionsList && sizeof($claimReferenceTransactionsList) > 0) {
+                                foreach ($claimReferenceTransactionsList as $referenceTransaction) {
+                                    $referenceJournalEntryId = $referenceTransaction->journal_entry_id;
+                                    $referenceGeneralLedgerEntry = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId, '102', "Yes");
+                                    
+                                    if ($referenceGeneralLedgerEntry && sizeof($referenceGeneralLedgerEntry) > 0) {
+                                        $claimReferenceTransactions[] = $referenceTransaction;
+                                        $claimReferenceTransactionsCount++;
+                                    }
+                                }
                             }
 
                             $referenceTransactionsCountTotal = $referenceTransactionsCount + $claimReferenceTransactionsCount;
                                 
+                            $referenceTransactionListed = false;
+                            
                             if ($referenceTransactions && sizeof($referenceTransactions) > 0) {
                                 
                                 foreach ($referenceTransactions as $referenceTransaction) {
@@ -3404,6 +3426,9 @@ class Bookkeeping_report_controller extends CI_Controller {
                                     $referenceGeneralLedgerEntry = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId, '102', "Yes");
                                     
                                     if ($referenceGeneralLedgerEntry && sizeof($referenceGeneralLedgerEntry) > 0) {
+                                        
+                                        $referenceTransactionListed = true;
+                                        
                                         if ($count == 1) {
                                             $balanceAmount = round((float)$debitAmount - (float)$referenceGeneralLedgerEntry[0]->credit_value);
                                             $totalAmountPaid = $totalAmountPaid + (float)$referenceGeneralLedgerEntry[0]->credit_value;
@@ -3448,93 +3473,146 @@ class Bookkeeping_report_controller extends CI_Controller {
                                 }
 
                                 if ($claimReferenceTransactions && sizeof($claimReferenceTransactions) > 0) {
+                                    
                                     foreach ($claimReferenceTransactions as $referenceTransaction) {
                                     
-                                        $referenceJournalEntryId = $referenceTransaction[0]->journal_entry_id;
-                                        $referenceTransactionDate = $referenceTransaction[0]->transaction_date;
-                                        $referenceTransactionDescription = $referenceTransaction[0]->description;
+                                        $referenceJournalEntryId = $referenceTransaction->journal_entry_id;
+                                        $referenceTransactionDate = $referenceTransaction->transaction_date;
+                                        $referenceTransactionDescription = $referenceTransaction->description;
 
                                         $referenceGeneralLedgerEntry = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId, '102', "Yes");
-                                        
-                                        $creditAmountTotal = round((float)$creditAmountTotal + (float)$referenceGeneralLedgerEntry[0]->credit_value);
-                                        $balanceAmount = round($debitAmount - $creditAmountTotal);
-                                        $totalAmountPaid = $totalAmountPaid + (float)$referenceGeneralLedgerEntry[0]->credit_value;
+                                            
+                                        if ($referenceGeneralLedgerEntry && sizeof($referenceGeneralLedgerEntry) > 0) {
+                                            
+                                            $referenceTransactionListed = true;
+                                            
+                                            if ($count == 1) {
 
-                                        $html .= '<tr style="line-height:15px;">';
-                                        $html .= '    <td style="text-align:left; width: 8%"><span style="font-size:8px">' . $referenceTransactionDate . '</span></td>';
-                                        $html .= '    <td style="text-align:left; width: 10%"><span style="font-size:8px"></span></td>';
-                                        $html .= '    <td style="text-align:left; width: 14%"><span style="font-size:8px"></span></td>';
-                                        $html .= '    <td style="text-align:left; width: 18%"><span style="font-size:8px"></span></td>';
-                                        $html .= '    <td style="text-align:right; width: 8%"><span style="font-size:8px"></span></td>';
-                                        $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px"></span></td>';
-                                        $html .= '    <td style="text-align:left; width: 18%"><span style="font-size:8px">' . $referenceTransactionDescription . '</span></td>';
-                                        $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px">' . number_format($referenceGeneralLedgerEntry[0]->credit_value, 2) . '</span></td>';
+                                                $balanceAmount = round((float)$debitAmount - (float)$referenceGeneralLedgerEntry[0]->credit_value);
+                                                $totalAmountPaid = $totalAmountPaid + (float)$referenceGeneralLedgerEntry[0]->credit_value;
 
-                                        if ($referenceTransactionsCountTotal == $count) {
-                                            $html .= '    <td style="text-align:center; width: 8%" bgcolor="#eaecec"><span style="font-size:8px">' . number_format($balanceAmount, 2) . '</span></td>';
-                                        } else {
-                                            $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px">' . number_format($balanceAmount, 2) . '</span></td>';
+                                                $html .= '    <td style="text-align:left; width: 18%"><span style="font-size:8px">' . $referenceTransactionDescription . '</span></td>';
+                                                $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px">' . number_format($referenceGeneralLedgerEntry[0]->credit_value, 2) . '</span></td>';
+
+                                                if ($referenceTransactionsCountTotal == $count) {
+                                                    $html .= '    <td style="text-align:center; width: 8%" bgcolor="#eaecec"><span style="font-size:8px">' . number_format($balanceAmount, 2) . '</span></td>';
+                                                } else {
+                                                    $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px">' . number_format($balanceAmount, 2) . '</span></td>';
+                                                }
+
+                                                $html .= "</tr>";
+                                            } else {
+
+                                                $creditAmountTotal = round((float)$creditAmountTotal + (float)$referenceGeneralLedgerEntry[0]->credit_value);
+                                                $balanceAmount = round($debitAmount - $creditAmountTotal);
+                                                $totalAmountPaid = $totalAmountPaid + (float)$referenceGeneralLedgerEntry[0]->credit_value;
+
+                                                $html .= '<tr style="line-height:15px;">';
+                                                $html .= '    <td style="text-align:left; width: 8%"><span style="font-size:8px">' . $referenceTransactionDate . '</span></td>';
+                                                $html .= '    <td style="text-align:left; width: 10%"><span style="font-size:8px"></span></td>';
+                                                $html .= '    <td style="text-align:left; width: 14%"><span style="font-size:8px"></span></td>';
+                                                $html .= '    <td style="text-align:left; width: 18%"><span style="font-size:8px"></span></td>';
+                                                $html .= '    <td style="text-align:right; width: 8%"><span style="font-size:8px"></span></td>';
+                                                $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px"></span></td>';
+                                                $html .= '    <td style="text-align:left; width: 18%"><span style="font-size:8px">' . $referenceTransactionDescription . '</span></td>';
+                                                $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px">' . number_format($referenceGeneralLedgerEntry[0]->credit_value, 2) . '</span></td>';
+
+                                                if ($referenceTransactionsCountTotal == $count) {
+                                                    $html .= '    <td style="text-align:center; width: 8%" bgcolor="#eaecec"><span style="font-size:8px">' . number_format($balanceAmount, 2) . '</span></td>';
+                                                } else {
+                                                    $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px">' . number_format($balanceAmount, 2) . '</span></td>';
+                                                }
+
+                                                $html .= "</tr>";
+                                            }
+
+                                            $count++;
                                         }
-
+                                    }
+                                    
+                                    if ($referenceTransactionListed == false) {
+                                        $html .= '    <td style="text-align:left; width: 18%"><span style="font-size:8px"></span></td>';
+                                        $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px"></span></td>';
+                                        $html .= '    <td style="text-align:center; width: 8%" bgcolor="#eaecec"><span style="font-size:8px;">' . number_format($debitAmount, 2) . '</span></td>';
                                         $html .= "</tr>";
-                                        
-                                        $count++;
                                     }
                                     
                                     $totalBalanceAmount = $totalBalanceAmount + $balanceAmount;
                                 } else {
+                                    
+                                    if ($referenceTransactionListed == false) {
+                                        $html .= '    <td style="text-align:left; width: 18%"><span style="font-size:8px"></span></td>';
+                                        $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px"></span></td>';
+                                        $html .= '    <td style="text-align:center; width: 8%" bgcolor="#eaecec"><span style="font-size:8px;">' . number_format($debitAmount, 2) . '</span></td>';
+                                        $html .= "</tr>";
+                                    }
+                                    
                                     $totalBalanceAmount = $totalBalanceAmount + $balanceAmount;
                                 }
                             } else {
                                 
                                 if ($claimReferenceTransactions && sizeof($claimReferenceTransactions) > 0) {
+                                    
                                     foreach ($claimReferenceTransactions as $referenceTransaction) {
                                     
-                                        $referenceJournalEntryId = $referenceTransaction[0]->journal_entry_id;
-                                        $referenceTransactionDate = $referenceTransaction[0]->transaction_date;
-                                        $referenceTransactionDescription = $referenceTransaction[0]->description;
+                                        $referenceJournalEntryId = $referenceTransaction->journal_entry_id;
+                                        $referenceTransactionDate = $referenceTransaction->transaction_date;
+                                        $referenceTransactionDescription = $referenceTransaction->description;
 
                                         $referenceGeneralLedgerEntry = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId, '102', "Yes");
-                                        if ($count == 1) {
-                                            $balanceAmount = round((float)$debitAmount - (float)$referenceGeneralLedgerEntry[0]->credit_value);
-                                            $totalAmountPaid = $totalAmountPaid + (float)$referenceGeneralLedgerEntry[0]->credit_value;
+                                        
+                                        if ($referenceGeneralLedgerEntry && sizeof($referenceGeneralLedgerEntry) > 0) {
+                                            
+                                            $referenceTransactionListed = true;
+                                            
+                                            if ($count == 1) {
+                                                $balanceAmount = round((float)$debitAmount - (float)$referenceGeneralLedgerEntry[0]->credit_value);
+                                                $totalAmountPaid = $totalAmountPaid + (float)$referenceGeneralLedgerEntry[0]->credit_value;
 
-                                            $html .= '    <td style="text-align:left; width: 18%"><span style="font-size:8px">' . $referenceTransactionDescription . '</span></td>';
-                                            $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px">' . number_format($referenceGeneralLedgerEntry[0]->credit_value, 2) . '</span></td>';
+                                                $html .= '    <td style="text-align:left; width: 18%"><span style="font-size:8px">' . $referenceTransactionDescription . '</span></td>';
+                                                $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px">' . number_format($referenceGeneralLedgerEntry[0]->credit_value, 2) . '</span></td>';
 
-                                            if ($referenceTransactionsCountTotal == $count) {
-                                                $html .= '    <td style="text-align:center; width: 8%;" bgcolor="#eaecec"><span style="font-size:8px">' . number_format($balanceAmount, 2) . '</span></td>';
+                                                if ($referenceTransactionsCountTotal == $count) {
+                                                    $html .= '    <td style="text-align:center; width: 8%;" bgcolor="#eaecec"><span style="font-size:8px">' . number_format($balanceAmount, 2) . '</span></td>';
+                                                } else {
+                                                    $html .= '    <td style="text-align:center; width: 8%;"><span style="font-size:8px">' . number_format($balanceAmount, 2) . '</span></td>';
+                                                }
+
+                                                $html .= "</tr>";
+                                                $creditAmountTotal = (float)$referenceGeneralLedgerEntry[0]->credit_value;
                                             } else {
-                                                $html .= '    <td style="text-align:center; width: 8%;"><span style="font-size:8px">' . number_format($balanceAmount, 2) . '</span></td>';
+                                                $creditAmountTotal = round((float)$creditAmountTotal + (float)$referenceGeneralLedgerEntry[0]->credit_value);
+                                                $balanceAmount = round($debitAmount - $creditAmountTotal);
+                                                $totalAmountPaid = $totalAmountPaid + (float)$referenceGeneralLedgerEntry[0]->credit_value;
+
+                                                $html .= '<tr style="line-height:15px;">';
+                                                $html .= '    <td style="text-align:left; width: 8%"><span style="font-size:8px">' . $referenceTransactionDate . '</span></td>';
+                                                $html .= '    <td style="text-align:left; width: 10%"><span style="font-size:8px"></span></td>';
+                                                $html .= '    <td style="text-align:left; width: 14%"><span style="font-size:8px"></span></td>';
+                                                $html .= '    <td style="text-align:left; width: 18%"><span style="font-size:8px"></span></td>';
+                                                $html .= '    <td style="text-align:right; width: 8%"><span style="font-size:8px"></span></td>';
+                                                $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px"></span></td>';
+                                                $html .= '    <td style="text-align:left; width: 18%"><span style="font-size:8px">' . $referenceTransactionDescription . '</span></td>';
+                                                $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px">' . number_format($referenceGeneralLedgerEntry[0]->credit_value, 2) . '</span></td>';
+
+                                                if ($referenceTransactionsCountTotal == $count) {
+                                                    $html .= '    <td style="text-align:center; width: 8%" bgcolor="#eaecec"><span style="font-size:8px">' . number_format($balanceAmount, 2) . '</span></td>';
+                                                } else {
+                                                    $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px">' . number_format($balanceAmount, 2) . '</span></td>';
+                                                }
+
+                                                $html .= "</tr>";
                                             }
 
-                                            $html .= "</tr>";
-                                            $creditAmountTotal = (float)$referenceGeneralLedgerEntry[0]->credit_value;
-                                        } else {
-                                            $creditAmountTotal = round((float)$creditAmountTotal + (float)$referenceGeneralLedgerEntry[0]->credit_value);
-                                            $balanceAmount = round($debitAmount - $creditAmountTotal);
-                                            $totalAmountPaid = $totalAmountPaid + (float)$referenceGeneralLedgerEntry[0]->credit_value;
-
-                                            $html .= '<tr style="line-height:15px;">';
-                                            $html .= '    <td style="text-align:left; width: 8%"><span style="font-size:8px">' . $referenceTransactionDate . '</span></td>';
-                                            $html .= '    <td style="text-align:left; width: 10%"><span style="font-size:8px"></span></td>';
-                                            $html .= '    <td style="text-align:left; width: 14%"><span style="font-size:8px"></span></td>';
-                                            $html .= '    <td style="text-align:left; width: 18%"><span style="font-size:8px"></span></td>';
-                                            $html .= '    <td style="text-align:right; width: 8%"><span style="font-size:8px"></span></td>';
-                                            $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px"></span></td>';
-                                            $html .= '    <td style="text-align:left; width: 18%"><span style="font-size:8px">' . $referenceTransactionDescription . '</span></td>';
-                                            $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px">' . number_format($referenceGeneralLedgerEntry[0]->credit_value, 2) . '</span></td>';
-
-                                            if ($referenceTransactionsCountTotal == $count) {
-                                                $html .= '    <td style="text-align:center; width: 8%" bgcolor="#eaecec"><span style="font-size:8px">' . number_format($balanceAmount, 2) . '</span></td>';
-                                            } else {
-                                                $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px">' . number_format($balanceAmount, 2) . '</span></td>';
-                                            }
-
-                                            $html .= "</tr>";
+                                            $count++;
                                         }
-
-                                        $count++;
+                                    }
+                                    
+                                    if ($referenceTransactionListed == false) {
+                                        $html .= '    <td style="text-align:left; width: 18%"><span style="font-size:8px"></span></td>';
+                                        $html .= '    <td style="text-align:center; width: 8%"><span style="font-size:8px"></span></td>';
+                                        $html .= '    <td style="text-align:center; width: 8%" bgcolor="#eaecec"><span style="font-size:8px;">' . number_format($debitAmount, 2) . '</span></td>';
+                                        $html .= "</tr>";
                                     }
                                     
                                     $totalBalanceAmount = $totalBalanceAmount + $balanceAmount;
@@ -3621,8 +3699,8 @@ class Bookkeeping_report_controller extends CI_Controller {
                                     $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
                                     $referenceTransaction = $this->journal_entries_model->getJournalEntryById($claimReferenceJournalEntryId);
 
-                                    if ($referenceTransaction) {
-                                        $claimReferenceTransactions[] = $referenceTransaction;
+                                    if ($referenceTransaction && sizeof($referenceTransaction) > 0) {
+                                        $claimReferenceTransactions[] = $referenceTransaction[0];
                                     }
                                 }
                             }
@@ -3631,14 +3709,16 @@ class Bookkeeping_report_controller extends CI_Controller {
                                 $count = 1;
                                 $creditAmountTotal = 0;
                                 $balanceAmount = 0;
-
-                                $referenceTransactionsCount = sizeof($referenceTransactions);
+                                $referenceTransactionConsidered = false;
 
                                 foreach ($referenceTransactions as $referenceTransaction) {
                                     $referenceJournalEntryId = $referenceTransaction->journal_entry_id;
                                     $referenceGeneralLedgerEntry = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId, '102', "Yes");
                                     
                                     if ($referenceGeneralLedgerEntry && sizeof($referenceGeneralLedgerEntry) > 0) {
+                                        
+                                        $referenceTransactionConsidered = true;
+                                        
                                         if ($count == 1) {
                                             $balanceAmount = round((float)$debitAmount - (float)$referenceGeneralLedgerEntry[0]->credit_value);
 
@@ -3658,10 +3738,17 @@ class Bookkeeping_report_controller extends CI_Controller {
                                         $referenceGeneralLedgerEntry = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId, '102', "Yes");
 
                                         if ($referenceGeneralLedgerEntry && sizeof($referenceGeneralLedgerEntry) > 0) {
+                                            
+                                            $referenceTransactionConsidered = true;
+                                            
                                             $creditAmountTotal = round((float)$creditAmountTotal + (float)$referenceGeneralLedgerEntry[0]->credit_value);
                                             $balanceAmount = round($balanceAmount - $creditAmountTotal);
                                         }
                                     }
+                                }
+                                
+                                if ($referenceTransactionConsidered == false) {
+                                    $balanceAmount = $debitAmount;
                                 }
 
                                 if (array_key_exists($payeePayerId, $debtorBalances)) {
@@ -3674,11 +3761,19 @@ class Bookkeeping_report_controller extends CI_Controller {
                             } else {
 
                                 if ($claimReferenceTransactions && sizeof($claimReferenceTransactions) > 0) {
+                                    
+                                    $creditAmountTotal = 0;
+                                    $balanceAmount = 0;
+                                    $referenceTransactionConsidered = false;
+                                    
                                     foreach ($claimReferenceTransactions as $referenceTransaction) {
                                         $referenceJournalEntryId = $referenceTransaction->journal_entry_id;
                                         $referenceGeneralLedgerEntry = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId, '102', "Yes");
 
                                         if ($referenceGeneralLedgerEntry && sizeof($referenceGeneralLedgerEntry) > 0) {
+                                            
+                                            $referenceTransactionConsidered = true;
+                                            
                                             if ($count == 1) {
                                                 $balanceAmount = round((float)$debitAmount - (float)$referenceGeneralLedgerEntry[0]->credit_value);
 
@@ -3691,7 +3786,25 @@ class Bookkeeping_report_controller extends CI_Controller {
                                             $count++;
                                         }
                                     }
+                                    
+                                    if ($referenceTransactionConsidered == false) {
+                                        $balanceAmount = $debitAmount;
+                                        
+                                        if (array_key_exists($payeePayerId, $debtorBalances)) {
+                                            $debtorBalances[$payeePayerId] = $debtorBalances[$payeePayerId] + $balanceAmount;
+                                        } else {
+                                            $debtorBalances[$payeePayerId] = $balanceAmount;
+                                        }
+                                    } else {
+                                        if (array_key_exists($payeePayerId, $debtorBalances)) {
+                                            $debtorBalances[$payeePayerId] = $debtorBalances[$payeePayerId] + $balanceAmount;
+                                        } else {
+                                            $debtorBalances[$payeePayerId] = $balanceAmount;
+                                        }
+                                    }
                                 } else {
+                                    $balanceAmount = $debitAmount;
+                                    
                                     if (array_key_exists($payeePayerId, $debtorBalances)) {
                                         $debtorBalances[$payeePayerId] = $debtorBalances[$payeePayerId] + $debitAmount;
                                     } else {
@@ -3699,7 +3812,7 @@ class Bookkeeping_report_controller extends CI_Controller {
                                     }
                                 }
 
-                                $totalBalanceAmount = $totalBalanceAmount + $debitAmount;
+                                $totalBalanceAmount = $totalBalanceAmount + $balanceAmount;
                             }
                         }
                     }
@@ -5121,7 +5234,9 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['credit_amount']);
+                                    //Change introduced on 26/11/2020 to fix a bug
+									//$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['credit_amount']);
+                                    $resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								}
 							}
 

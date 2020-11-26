@@ -193,6 +193,7 @@ class Make_payment_controller extends CI_Controller {
                 $makePaymentClaimAmountTotal = '0.00';
                 $salesNoteAmountTotal = '0.00';
                 $supplierReturnNoteAmountTotal = '0.00';
+                $otherReferenceTransactionDeductionAmountTotal = '0.00';
                 
                 $claimTransactionList = array();
 				
@@ -206,6 +207,7 @@ class Make_payment_controller extends CI_Controller {
 							for($y = 1; $y <= $rowCount; $y++) {
                                 
                                 $claimAmount = 0;
+                                $referenceTransactionNote = '';
                                 
 								if ($referenceTransactionData[$x][0][$y] == '2') {
                                     //Sales Note
@@ -263,27 +265,62 @@ class Make_payment_controller extends CI_Controller {
                                         $claimTransaction = array('0' => $journalEntryId, '1' => $claimAmount, '2' => $referenceNo);
                                         $claimTransactionList[] = $claimTransaction;
 									}
-								}
+								} else if ($referenceTransactionData[$x][0][$y] == '5') {
+                                    if ($referenceTransactionData[$x][3][$y] == "Deduction") {
+                                        $journalEntryId = $referenceTransactionData[$x][2][$y];
+                                        $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+
+                                        $transactionAmount = 0;
+                                        if ($glTransactions && sizeof($glTransactions) > 0) {
+                                            if ($glTransactions[0]->debit_value > 0) {
+                                                $transactionAmount = $glTransactions[0]->debit_value;
+                                            } else if ($glTransactions[0]->credit_value > 0) {
+                                                $transactionAmount = $glTransactions[0]->credit_value;
+                                            }
+                                        }
+                                        
+                                        $claimAmount = $transactionAmount;
+                                        
+                                        $data = array(
+											'status' => "Closed",
+											'actioned_user_id' => $this->user_id,
+											'action_date' => $this->date,
+											'last_action_status' => 'added'
+										);
+                                        
+                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $data);
+                                        
+                                        $otherReferenceTransactionDeductionAmountTotal = $otherReferenceTransactionDeductionAmountTotal + $transactionAmount;
+                                        
+                                        $claimTransaction = array('0' => $journalEntryId, '1' => $claimAmount, '2' => '');
+                                        $claimTransactionList[] = $claimTransaction;
+                                        
+                                        $referenceTransactionNote = "Deduction";
+                                    }
+                                }
                                 
                                 $data = array(
-									'make_payment_id' => $makePaymentId,
-									'reference_transaction_type_id' => $referenceTransactionData[$x][0][$y],
-									'reference_transaction_id' => $referenceTransactionData[$x][1][$y],
-									'reference_journal_entry_id' => $referenceTransactionData[$x][2][$y],
+                                    'make_payment_id' => $makePaymentId,
+                                    'reference_transaction_type_id' => $referenceTransactionData[$x][0][$y],
+                                    'reference_transaction_id' => $referenceTransactionData[$x][1][$y],
+                                    'reference_transaction_note' => $referenceTransactionNote,
+                                    'reference_journal_entry_id' => $referenceTransactionData[$x][2][$y],
                                     'claim_amount' => $claimAmount,
-									'actioned_user_id' => $this->user_id,
-									'action_date' => $this->date,
-									'last_action_status' => 'added'
-								);
+                                    'actioned_user_id' => $this->user_id,
+                                    'action_date' => $this->date,
+                                    'last_action_status' => 'added'
+                                );
 
-								$this->make_payment_model->addMakePaymentReferenceTransaction($data);
+                                $this->make_payment_model->addMakePaymentReferenceTransaction($data);
 							}
 						}
 					}
 				}
                 
-                $makePaymentClaimAmountTotal = $salesNoteAmountTotal + $supplierReturnNoteAmountTotal;
-			
+                $makePaymentClaimAmountTotal = $salesNoteAmountTotal + $supplierReturnNoteAmountTotal + $otherReferenceTransactionDeductionAmountTotal;
+                $pendingClaimAmountTotalForPurchaseNotes = $supplierReturnNoteAmountTotal + $otherReferenceTransactionDeductionAmountTotal;
+                $pendingClaimAmountTotalForCustomerReturnNotes = $salesNoteAmountTotal + $otherReferenceTransactionDeductionAmountTotal;
+                
 				if ($paymentMethodData && sizeof($paymentMethodData) > 0) {
 
                     $totalPaid = 0;
@@ -356,24 +393,24 @@ class Make_payment_controller extends CI_Controller {
                                                         
                                                             $amountToClaimFromPayment = 0;
                                                             $amountToClaimFromPurchaseNoteAmount = 0;
+                                                            
+                                                            if ($pendingClaimAmountTotalForPurchaseNotes > 0) {
 
-                                                            if ($supplierReturnNoteAmountTotal > 0) {
-
-                                                                if ($currentBalancePayment >= $supplierReturnNoteAmountTotal) {
-                                                                    $amountToClaimFromPayment = $currentBalancePayment - $supplierReturnNoteAmountTotal;
+                                                                if ($currentBalancePayment >= $pendingClaimAmountTotalForPurchaseNotes) {
+                                                                    $amountToClaimFromPayment = $currentBalancePayment - $pendingClaimAmountTotalForPurchaseNotes;
 
                                                                     if ($amountToClaimFromPayment > $remainingPaymentAmount) {
                                                                         $amountToClaimFromPayment = $remainingPaymentAmount;
                                                                     }
 
-                                                                    $amountToClaimFromPurchaseNoteAmount = $supplierReturnNoteAmountTotal;
-                                                                    $newBalancePayment = $totalAmount - ($totalPaid + $amountToClaimFromPayment + $supplierReturnNoteAmountTotal);
+                                                                    $amountToClaimFromPurchaseNoteAmount = $pendingClaimAmountTotalForPurchaseNotes;
+                                                                    $newBalancePayment = $totalAmount - ($totalPaid + $amountToClaimFromPayment + $pendingClaimAmountTotalForPurchaseNotes);
                                                                     $remainingPaymentAmount = $remainingPaymentAmount - $amountToClaimFromPayment;
-                                                                    $supplierReturnNoteAmountTotal = 0;
+                                                                    $pendingClaimAmountTotalForPurchaseNotes = 0;
                                                                 } else {
                                                                     $amountToClaimFromPurchaseNoteAmount = $currentBalancePayment;
                                                                     $newBalancePayment = $totalAmount - ($totalPaid + $amountToClaimFromPurchaseNoteAmount);
-                                                                    $supplierReturnNoteAmountTotal = $supplierReturnNoteAmountTotal - $amountToClaimFromPurchaseNoteAmount;
+                                                                    $pendingClaimAmountTotalForPurchaseNotes = $pendingClaimAmountTotalForPurchaseNotes - $amountToClaimFromPurchaseNoteAmount;
                                                                 }
                                                             } else {
                                                                 $newBalancePayment = $totalAmount - ($totalPaid + $remainingPaymentAmount);
@@ -1234,23 +1271,23 @@ class Make_payment_controller extends CI_Controller {
                                                             $amountToClaimFromPayment = 0;
                                                             $amountToClaimFromCustomerReturnAmount = 0;
 
-                                                            if ($salesNoteAmountTotal > 0) {
+                                                            if ($pendingClaimAmountTotalForCustomerReturnNotes > 0) {
 
-                                                                if ($currentBalancePayment >= $salesNoteAmountTotal) {
-                                                                    $amountToClaimFromPayment = $currentBalancePayment - $salesNoteAmountTotal;
+                                                                if ($currentBalancePayment >= $pendingClaimAmountTotalForCustomerReturnNotes) {
+                                                                    $amountToClaimFromPayment = $currentBalancePayment - $pendingClaimAmountTotalForCustomerReturnNotes;
 
                                                                     if ($amountToClaimFromPayment > $remainingPaymentAmount) {
                                                                         $amountToClaimFromPayment = $remainingPaymentAmount;
                                                                     }
 
-                                                                    $amountToClaimFromCustomerReturnAmount = $salesNoteAmountTotal;
-                                                                    $newBalancePayment = $totalReceivable - ($totalReceived + $amountToClaimFromPayment + $salesNoteAmountTotal);
+                                                                    $amountToClaimFromCustomerReturnAmount = $pendingClaimAmountTotalForCustomerReturnNotes;
+                                                                    $newBalancePayment = $totalReceivable - ($totalReceived + $amountToClaimFromPayment + $pendingClaimAmountTotalForCustomerReturnNotes);
                                                                     $remainingPaymentAmount = $remainingPaymentAmount - $amountToClaimFromPayment;
-                                                                    $salesNoteAmountTotal = 0;
+                                                                    $pendingClaimAmountTotalForCustomerReturnNotes = 0;
                                                                 } else {
                                                                     $amountToClaimFromCustomerReturnAmount = $currentBalancePayment;
                                                                     $newBalancePayment = $totalReceivable - ($totalReceived + $amountToClaimFromCustomerReturnAmount);
-                                                                    $salesNoteAmountTotal = $salesNoteAmountTotal - $amountToClaimFromCustomerReturnAmount;
+                                                                    $pendingClaimAmountTotalForCustomerReturnNotes = $pendingClaimAmountTotalForCustomerReturnNotes - $amountToClaimFromCustomerReturnAmount;
                                                                 }
                                                             } else {
                                                                 $newBalancePayment = $totalReceivable - ($totalReceived + $remainingPaymentAmount);
@@ -2636,6 +2673,7 @@ class Make_payment_controller extends CI_Controller {
 
                                 $referenceTransactionTypeId = $paymentReference->reference_transaction_type_id;
                                 $referenceTransactionId = $paymentReference->reference_transaction_id;
+                                $referenceTransactionNote = $paymentReference->reference_transaction_note;
                                 $referenceTransactionClaimAmount = $paymentReference->claim_amount;
                                 
                                 if ($referenceTransactionTypeId == '1') {
@@ -2844,82 +2882,95 @@ class Make_payment_controller extends CI_Controller {
                                         $this->customer_return_note_model->editCustomerReturnNoteData($referenceTransactionId, $customerReturnNoteData);
                                     }
                                 } else if ($referenceTransactionTypeId == '5') {
-                                    $journalEntryId = $paymentReference->reference_journal_entry_id;
-                                    $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
                                     
-                                    $balanceAmount = $journalEntry[0]->balance_amount;
-                                    
-                                    $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+                                    if ($referenceTransactionNote != "Deduction") {
+                                        
+                                        $journalEntryId = $paymentReference->reference_journal_entry_id;
+                                        $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
 
-                                    $transactionAmount = 0;
-                                    if ($glTransactions && sizeof($glTransactions) > 0) {
-                                        if ($glTransactions[0]->debit_value > 0) {
-                                            $transactionAmount = $glTransactions[0]->debit_value;
-                                        } else if ($glTransactions[0]->credit_value > 0) {
-                                            $transactionAmount = $glTransactions[0]->credit_value;
+                                        $balanceAmount = $journalEntry[0]->balance_amount;
+
+                                        $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+
+                                        $transactionAmount = 0;
+                                        if ($glTransactions && sizeof($glTransactions) > 0) {
+                                            if ($glTransactions[0]->debit_value > 0) {
+                                                $transactionAmount = $glTransactions[0]->debit_value;
+                                            } else if ($glTransactions[0]->credit_value > 0) {
+                                                $transactionAmount = $glTransactions[0]->credit_value;
+                                            }
                                         }
-                                    }
-                                    
-                                    if ($cashAmount > 0) {
-                                        if (($transactionAmount - $balanceAmount) >= $cashAmount) {
-                                            
-                                            $balanceAmount = $balanceAmount + $cashAmount;
-                                            $cashAmount = 0;
-                                            
-                                            $journalEntryData = array(
-                                                'balance_amount' => $balanceAmount,
-                                                'status' => "Open",
-                                                'actioned_user_id' => $this->user_id,
-                                                'action_date' => $this->date,
-                                                'last_action_status' => 'edited'
-                                            );
 
-                                            $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
-                                        } else if (($transactionAmount - $balanceAmount) < $cashAmount) {
-                                            $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
-                                            $cashAmount = $cashAmount - ($transactionAmount - $balanceAmount);
-                                            
-                                            $journalEntryData = array(
-                                                'balance_amount' => $balanceAmount,
-                                                'status' => "Open",
-                                                'actioned_user_id' => $this->user_id,
-                                                'action_date' => $this->date,
-                                                'last_action_status' => 'edited'
-                                            );
+                                        if ($cashAmount > 0) {
+                                            if (($transactionAmount - $balanceAmount) >= $cashAmount) {
 
-                                            $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                                $balanceAmount = $balanceAmount + $cashAmount;
+                                                $cashAmount = 0;
+
+                                                $journalEntryData = array(
+                                                    'balance_amount' => $balanceAmount,
+                                                    'status' => "Open",
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'edited'
+                                                );
+
+                                                $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                            } else if (($transactionAmount - $balanceAmount) < $cashAmount) {
+                                                $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
+                                                $cashAmount = $cashAmount - ($transactionAmount - $balanceAmount);
+
+                                                $journalEntryData = array(
+                                                    'balance_amount' => $balanceAmount,
+                                                    'status' => "Open",
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'edited'
+                                                );
+
+                                                $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                            }
                                         }
-                                    }
-                                    
-                                    if ($chequeAmount > 0) {
-                                        if (($transactionAmount - $balanceAmount) >= $chequeAmount) {
-                                            
-                                            $balanceAmount = $balanceAmount + $chequeAmount;
-                                            $chequeAmount = 0;
-                                            
-                                            $journalEntryData = array(
-                                                'balance_amount' => $balanceAmount,
-                                                'status' => "Open",
-                                                'actioned_user_id' => $this->user_id,
-                                                'action_date' => $this->date,
-                                                'last_action_status' => 'edited'
-                                            );
 
-                                            $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
-                                        } else if (($transactionAmount - $balanceAmount) < $chequeAmount) {
-                                            $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
-                                            $chequeAmount = $chequeAmount - ($transactionAmount - $balanceAmount);
-                                            
-                                            $journalEntryData = array(
-                                                'balance_amount' => $balanceAmount,
-                                                'status' => "Open",
-                                                'actioned_user_id' => $this->user_id,
-                                                'action_date' => $this->date,
-                                                'last_action_status' => 'edited'
-                                            );
+                                        if ($chequeAmount > 0) {
+                                            if (($transactionAmount - $balanceAmount) >= $chequeAmount) {
 
-                                            $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                                $balanceAmount = $balanceAmount + $chequeAmount;
+                                                $chequeAmount = 0;
+
+                                                $journalEntryData = array(
+                                                    'balance_amount' => $balanceAmount,
+                                                    'status' => "Open",
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'edited'
+                                                );
+
+                                                $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                            } else if (($transactionAmount - $balanceAmount) < $chequeAmount) {
+                                                $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
+                                                $chequeAmount = $chequeAmount - ($transactionAmount - $balanceAmount);
+
+                                                $journalEntryData = array(
+                                                    'balance_amount' => $balanceAmount,
+                                                    'status' => "Open",
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'edited'
+                                                );
+
+                                                $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                            }
                                         }
+                                    } else {
+                                        $journalEntryData = array(
+                                            'status' => "Open",
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'edited'
+                                        );
+
+                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
                                     }
                                 }
                                 
@@ -2976,6 +3027,7 @@ class Make_payment_controller extends CI_Controller {
                 $makePaymentClaimAmountTotal = '0.00';
                 $salesNoteAmountTotal = '0.00';
                 $supplierReturnNoteAmountTotal = '0.00';
+                $otherReferenceTransactionDeductionAmountTotal = '0.00';
                 
                 $claimTransactionList = array();
                 
@@ -2989,6 +3041,7 @@ class Make_payment_controller extends CI_Controller {
 							for($y = 1; $y <= $rowCount; $y++) {
 									
                                 $claimAmount = 0;
+                                $referenceTransactionNote = '';
                                 
 								if ($referenceTransactionData[$x][0][$y] == '2') {
                                     //Sales Note
@@ -3046,26 +3099,61 @@ class Make_payment_controller extends CI_Controller {
                                         $claimTransaction = array('0' => $journalEntryId, '1' => $claimAmount, '2' => $referenceNo);
                                         $claimTransactionList[] = $claimTransaction;
 									}
-								}
+								} else if ($referenceTransactionData[$x][0][$y] == '5') {
+                                    if ($referenceTransactionData[$x][3][$y] == "Deduction") {
+                                        $journalEntryId = $referenceTransactionData[$x][2][$y];
+                                        $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+
+                                        $transactionAmount = 0;
+                                        if ($glTransactions && sizeof($glTransactions) > 0) {
+                                            if ($glTransactions[0]->debit_value > 0) {
+                                                $transactionAmount = $glTransactions[0]->debit_value;
+                                            } else if ($glTransactions[0]->credit_value > 0) {
+                                                $transactionAmount = $glTransactions[0]->credit_value;
+                                            }
+                                        }
+                                        
+                                        $claimAmount = $transactionAmount;
+                                        
+                                        $data = array(
+											'status' => "Closed",
+											'actioned_user_id' => $this->user_id,
+											'action_date' => $this->date,
+											'last_action_status' => 'added'
+										);
+                                        
+                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $data);
+                                        
+                                        $otherReferenceTransactionDeductionAmountTotal = $otherReferenceTransactionDeductionAmountTotal + $transactionAmount;
+                                        
+                                        $claimTransaction = array('0' => $journalEntryId, '1' => $claimAmount, '2' => '');
+                                        $claimTransactionList[] = $claimTransaction;
+                                        
+                                        $referenceTransactionNote = "Deduction";
+                                    }
+                                }
                                 
                                 $data = array(
-									'make_payment_id' => $makePaymentId,
-									'reference_transaction_type_id' => $referenceTransactionData[$x][0][$y],
-									'reference_transaction_id' => $referenceTransactionData[$x][1][$y],
-									'reference_journal_entry_id' => $referenceTransactionData[$x][2][$y],
+                                    'make_payment_id' => $makePaymentId,
+                                    'reference_transaction_type_id' => $referenceTransactionData[$x][0][$y],
+                                    'reference_transaction_id' => $referenceTransactionData[$x][1][$y],
+                                    'reference_transaction_note' => $referenceTransactionNote,
+                                    'reference_journal_entry_id' => $referenceTransactionData[$x][2][$y],
                                     'claim_amount' => $claimAmount,
-									'actioned_user_id' => $this->user_id,
-									'action_date' => $this->date,
-									'last_action_status' => 'added'
-								);
+                                    'actioned_user_id' => $this->user_id,
+                                    'action_date' => $this->date,
+                                    'last_action_status' => 'added'
+                                );
 
-								$this->make_payment_model->addMakePaymentReferenceTransaction($data);
+                                $this->make_payment_model->addMakePaymentReferenceTransaction($data);
 							}
 						}
 					}
 				}
                 
-                $makePaymentClaimAmountTotal = $salesNoteAmountTotal + $supplierReturnNoteAmountTotal;
+                $makePaymentClaimAmountTotal = $salesNoteAmountTotal + $supplierReturnNoteAmountTotal + $otherReferenceTransactionDeductionAmountTotal;
+                $pendingClaimAmountTotalForPurchaseNotes = $supplierReturnNoteAmountTotal + $otherReferenceTransactionDeductionAmountTotal;
+                $pendingClaimAmountTotalForCustomerReturnNotes = $salesNoteAmountTotal + $otherReferenceTransactionDeductionAmountTotal;
                 
                 if ($paymentMethodData && sizeof($paymentMethodData) > 0) {
 
@@ -3138,23 +3226,23 @@ class Make_payment_controller extends CI_Controller {
                                                             $amountToClaimFromPayment = 0;
                                                             $amountToClaimFromPurchaseNoteAmount = 0;
 
-                                                            if ($supplierReturnNoteAmountTotal > 0) {
+                                                            if ($pendingClaimAmountTotalForPurchaseNotes > 0) {
 
-                                                                if ($currentBalancePayment >= $supplierReturnNoteAmountTotal) {
-                                                                    $amountToClaimFromPayment = $currentBalancePayment - $supplierReturnNoteAmountTotal;
+                                                                if ($currentBalancePayment >= $pendingClaimAmountTotalForPurchaseNotes) {
+                                                                    $amountToClaimFromPayment = $currentBalancePayment - $pendingClaimAmountTotalForPurchaseNotes;
 
                                                                     if ($amountToClaimFromPayment > $remainingPaymentAmount) {
                                                                         $amountToClaimFromPayment = $remainingPaymentAmount;
                                                                     }
 
-                                                                    $amountToClaimFromPurchaseNoteAmount = $supplierReturnNoteAmountTotal;
-                                                                    $newBalancePayment = $totalAmount - ($totalPaid + $amountToClaimFromPayment + $supplierReturnNoteAmountTotal);
+                                                                    $amountToClaimFromPurchaseNoteAmount = $pendingClaimAmountTotalForPurchaseNotes;
+                                                                    $newBalancePayment = $totalAmount - ($totalPaid + $amountToClaimFromPayment + $pendingClaimAmountTotalForPurchaseNotes);
                                                                     $remainingPaymentAmount = $remainingPaymentAmount - $amountToClaimFromPayment;
-                                                                    $supplierReturnNoteAmountTotal = 0;
+                                                                    $pendingClaimAmountTotalForPurchaseNotes = 0;
                                                                 } else {
                                                                     $amountToClaimFromPurchaseNoteAmount = $currentBalancePayment;
                                                                     $newBalancePayment = $totalAmount - ($totalPaid + $amountToClaimFromPurchaseNoteAmount);
-                                                                    $supplierReturnNoteAmountTotal = $supplierReturnNoteAmountTotal - $amountToClaimFromPurchaseNoteAmount;
+                                                                    $pendingClaimAmountTotalForPurchaseNotes = $pendingClaimAmountTotalForPurchaseNotes - $amountToClaimFromPurchaseNoteAmount;
                                                                 }
                                                             } else {
                                                                 $newBalancePayment = $totalAmount - ($totalPaid + $remainingPaymentAmount);
@@ -4015,23 +4103,23 @@ class Make_payment_controller extends CI_Controller {
                                                             $amountToClaimFromPayment = 0;
                                                             $amountToClaimFromCustomerReturnAmount = 0;
 
-                                                            if ($salesNoteAmountTotal > 0) {
+                                                            if ($pendingClaimAmountTotalForCustomerReturnNotes > 0) {
 
-                                                                if ($currentBalancePayment >= $salesNoteAmountTotal) {
-                                                                    $amountToClaimFromPayment = $currentBalancePayment - $salesNoteAmountTotal;
+                                                                if ($currentBalancePayment >= $pendingClaimAmountTotalForCustomerReturnNotes) {
+                                                                    $amountToClaimFromPayment = $currentBalancePayment - $pendingClaimAmountTotalForCustomerReturnNotes;
 
                                                                     if ($amountToClaimFromPayment > $remainingPaymentAmount) {
                                                                         $amountToClaimFromPayment = $remainingPaymentAmount;
                                                                     }
 
-                                                                    $amountToClaimFromCustomerReturnAmount = $salesNoteAmountTotal;
-                                                                    $newBalancePayment = $totalReceivable - ($totalReceived + $amountToClaimFromPayment + $salesNoteAmountTotal);
+                                                                    $amountToClaimFromCustomerReturnAmount = $pendingClaimAmountTotalForCustomerReturnNotes;
+                                                                    $newBalancePayment = $totalReceivable - ($totalReceived + $amountToClaimFromPayment + $pendingClaimAmountTotalForCustomerReturnNotes);
                                                                     $remainingPaymentAmount = $remainingPaymentAmount - $amountToClaimFromPayment;
-                                                                    $salesNoteAmountTotal = 0;
+                                                                    $pendingClaimAmountTotalForCustomerReturnNotes = 0;
                                                                 } else {
                                                                     $amountToClaimFromCustomerReturnAmount = $currentBalancePayment;
                                                                     $newBalancePayment = $totalReceivable - ($totalReceived + $amountToClaimFromCustomerReturnAmount);
-                                                                    $salesNoteAmountTotal = $salesNoteAmountTotal - $amountToClaimFromCustomerReturnAmount;
+                                                                    $pendingClaimAmountTotalForCustomerReturnNotes = $pendingClaimAmountTotalForCustomerReturnNotes - $amountToClaimFromCustomerReturnAmount;
                                                                 }
                                                             } else {
                                                                 $newBalancePayment = $totalReceivable - ($totalReceived + $remainingPaymentAmount);

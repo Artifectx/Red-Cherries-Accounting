@@ -1350,6 +1350,38 @@
     function handleSalesRepSelect() {
         
     }
+    
+    function deductReferenceTransaction(id) {
+        if (MakePaymentScreenOperationStatus == "Add") {
+            var rowCount = id.substring(29,31);
+
+            var transactionValue = $("#reference_transaction_amount_" + rowCount).text();
+            $("#reference_transaction_amount_" + rowCount).text("(" + transactionValue + ")");
+            $("#reference_transaction_note_" + rowCount).val("Deduction");
+
+            var transactionTotal = $("#reference_amount_total").text();
+
+            transactionTotal = parseFloat(transactionTotal.replace(",", "")) - (2 * parseFloat(transactionValue.replace(",", "")));
+            $("#reference_amount_total").text(transactionTotal.toFixed(2));
+            $("#amount_to_add_payment_type").val(transactionTotal.toFixed(2));
+            
+            TransactionAmountTotal = transactionTotal.toFixed(2);
+        } else if (MakePaymentScreenOperationStatus == "View") {
+            var rowCount = id.substring(34,36);
+
+            var transactionValue = $("#reference_transaction_amount_edit_" + rowCount).text();
+            $("#reference_transaction_amount_edit_" + rowCount).text("(" + transactionValue + ")");
+            $("#reference_transaction_note_edit_" + rowCount).val("Deduction");
+
+            var transactionTotal = $("#reference_amount_total_edit").text();
+
+            transactionTotal = parseFloat(transactionTotal.replace(",", "")) - (2 * parseFloat(transactionValue.replace(",", "")));
+            $("#reference_amount_total_edit").text(transactionTotal.toFixed(2));
+            $("#amount_to_add_payment_type_edit").val(transactionTotal.toFixed(2));
+
+            TransactionAmountTotal = transactionTotal.toFixed(2);
+        }
+    }
 	
 	var MakePayment = {
 		cancelData: function () {
@@ -1383,7 +1415,7 @@
 						$("#reference_no_div").after(response.result);
 					}
 				}
-			})
+			});
 		},
 
 		//save GRN data
@@ -1402,6 +1434,7 @@
 
 			var referenceTransactionDataSet = [];
 			var referenceTransactionTypes = {};
+            var referenceTransactionNotes = {};
 			var referenceTransactionIds = {};
 			var referenceJournalEntryIds = {};
 
@@ -1411,6 +1444,7 @@
 				if (referenceTransactionElement.length == 1) {
 
 					referenceTransactionTypes[referenceTransactionCount] = $("#reference_transaction_type_" + referenceTransactionCount).val();
+                    referenceTransactionNotes[referenceTransactionCount] = $("#reference_transaction_note_" + referenceTransactionCount).val();
 					referenceTransactionIds[referenceTransactionCount] = $("#reference_transaction_id_" + referenceTransactionCount).val();
 					referenceJournalEntryIds[referenceTransactionCount] = $("#reference_journal_entry_id_" + referenceTransactionCount).val();
 					referenceTransactionCount++;
@@ -1423,6 +1457,7 @@
 			referenceTransactionDataSet.push(referenceTransactionTypes);
 			referenceTransactionDataSet.push(referenceTransactionIds);
 			referenceTransactionDataSet.push(referenceJournalEntryIds);
+            referenceTransactionDataSet.push(referenceTransactionNotes);
 
 			referenceTransactionData.push(referenceTransactionDataSet);
 			
@@ -1539,6 +1574,7 @@
 
 			var referenceTransactionDataSet = [];
 			var referenceTransactionTypes = {};
+            var referenceTransactionNotes = {};
 			var referenceTransactionIds = {};
 			var referenceJournalEntryIds = {};
 
@@ -1548,6 +1584,7 @@
 				if (referenceTransactionElement.length == 1) {
 
 					referenceTransactionTypes[referenceTransactionCount] = $("#reference_transaction_type_edit_" + referenceTransactionCount).val();
+                    referenceTransactionNotes[referenceTransactionCount] = $("#reference_transaction_note_edit_" + referenceTransactionCount).val();
 					referenceTransactionIds[referenceTransactionCount] = $("#reference_transaction_id_edit_" + referenceTransactionCount).val();
 					referenceJournalEntryIds[referenceTransactionCount] = $("#reference_journal_entry_id_edit_" + referenceTransactionCount).val();
 					referenceTransactionCount++;
@@ -1560,6 +1597,7 @@
 			referenceTransactionDataSet.push(referenceTransactionTypes);
 			referenceTransactionDataSet.push(referenceTransactionIds);
 			referenceTransactionDataSet.push(referenceJournalEntryIds);
+            referenceTransactionDataSet.push(referenceTransactionNotes);
 
 			referenceTransactionData.push(referenceTransactionDataSet);
 			
@@ -1880,10 +1918,14 @@
 			var referenceJournalEntry = '';
 			
 			if (MakePaymentScreenOperationStatus == "Add") {
-				referenceTransaction = $("#reference_transaction_id option:selected").text();
+                if ($("#reference_transaction_id").val() != '0') {
+                    referenceTransaction = $("#reference_transaction_id option:selected").text();
+                }
 				referenceJournalEntry = $("#reference_journal_entry_id option:selected").text();
 			} else if (MakePaymentScreenOperationStatus == "View") {
-				referenceTransaction = $("#reference_transaction_id_edit option:selected").text();
+                if ($("#reference_transaction_id_edit").val() != '0') {
+                    referenceTransaction = $("#reference_transaction_id_edit option:selected").text();
+                }
 				referenceJournalEntry = $("#reference_journal_entry_id_edit option:selected").text();
 			}
 		
@@ -1909,6 +1951,7 @@
 						if (MakePaymentScreenOperationStatus == "Add") {
 							html = "	<tr id='row_" + ReferenceTransactionRowCount + "'> " +
 										"      <input class='form-control' id='reference_transaction_type_" + ReferenceTransactionRowCount + "' name='reference_transaction_type_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceTransactionType + "'>" +
+                                        "      <input class='form-control' id='reference_transaction_note_" + ReferenceTransactionRowCount + "' name='reference_transaction_note_" + ReferenceTransactionRowCount + "' type='hidden' value=''>" +
 										"      <input class='form-control' id='reference_transaction_id_" + ReferenceTransactionRowCount + "' name='reference_transaction_id_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceTransactionId + "'>" +
 										"      <input class='form-control' id='reference_journal_entry_id_" + ReferenceTransactionRowCount + "' name='reference_journal_entry_id_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceJournalEntryId + "'>" +
 										"	<td id='reference_transaction_" + ReferenceTransactionRowCount + "'>" + referenceTransaction + "</td>" +
@@ -1921,6 +1964,7 @@
 						} else if (MakePaymentScreenOperationStatus == "View") {
 							html = "	<tr id='row_edit_" + ReferenceTransactionRowCount + "'> " +
 										"      <input class='form-control' id='reference_transaction_type_edit_" + ReferenceTransactionRowCount + "' name='reference_transaction_type_edit_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceTransactionType + "'>" +
+                                        "      <input class='form-control' id='reference_transaction_note_edit_" + ReferenceTransactionRowCount + "' name='reference_transaction_note_" + ReferenceTransactionRowCount + "' type='hidden' value=''>" +
 										"      <input class='form-control' id='reference_transaction_id_edit_" + ReferenceTransactionRowCount + "' name='reference_transaction_id_edit_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceTransactionId + "'>" +
 										"      <input class='form-control' id='reference_journal_entry_id_edit_" + ReferenceTransactionRowCount + "' name='reference_journal_entry_id_edit_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceJournalEntryId + "'>" +
 										"	<td id='reference_transaction_edit_" + ReferenceTransactionRowCount + "'>" + referenceTransaction + "</td>" +
@@ -1935,6 +1979,7 @@
 						if (MakePaymentScreenOperationStatus == "Add") {
 							html = "	<tr id='row_" + ReferenceTransactionRowCount + "'> " +
 										"      <input class='form-control' id='reference_transaction_type_" + ReferenceTransactionRowCount + "' name='reference_transaction_type_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceTransactionType + "'>" +
+                                        "      <input class='form-control' id='reference_transaction_note_" + ReferenceTransactionRowCount + "' name='reference_transaction_note_" + ReferenceTransactionRowCount + "' type='hidden' value=''>" +
 										"      <input class='form-control' id='reference_transaction_id_" + ReferenceTransactionRowCount + "' name='reference_transaction_id_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceTransactionId + "'>" +
 										"      <input class='form-control' id='reference_journal_entry_id_" + ReferenceTransactionRowCount + "' name='reference_journal_entry_id_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceJournalEntryId + "'>" +
 										"	<td id='reference_transaction_" + ReferenceTransactionRowCount + "'>" + referenceTransaction + "</td>" +
@@ -1947,6 +1992,7 @@
 						} else if (MakePaymentScreenOperationStatus == "View") {
 							html = "	<tr id='row_" + ReferenceTransactionRowCount + "'> " +
 										"      <input class='form-control' id='reference_transaction_type_edit_" + ReferenceTransactionRowCount + "' name='reference_transaction_type_edit_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceTransactionType + "'>" +
+                                        "      <input class='form-control' id='reference_transaction_note_edit_" + ReferenceTransactionRowCount + "' name='reference_transaction_note_" + ReferenceTransactionRowCount + "' type='hidden' value=''>" +
 										"      <input class='form-control' id='reference_transaction_id_edit_" + ReferenceTransactionRowCount + "' name='reference_transaction_id_edit_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceTransactionId + "'>" +
 										"      <input class='form-control' id='reference_journal_entry_id_edit_" + ReferenceTransactionRowCount + "' name='reference_journal_entry_id_edit_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceJournalEntryId + "'>" +
 										"	<td id='reference_transaction_edit_" + ReferenceTransactionRowCount + "'>" + referenceTransaction + "</td>" +
@@ -1961,6 +2007,7 @@
 						if (MakePaymentScreenOperationStatus == "Add") {
 							html = "	<tr id='row_" + ReferenceTransactionRowCount + "'> " +
 										"      <input class='form-control' id='reference_transaction_type_" + ReferenceTransactionRowCount + "' name='reference_transaction_type_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceTransactionType + "'>" +
+                                        "      <input class='form-control' id='reference_transaction_note_" + ReferenceTransactionRowCount + "' name='reference_transaction_note_" + ReferenceTransactionRowCount + "' type='hidden' value=''>" +
 										"      <input class='form-control' id='reference_transaction_id_" + ReferenceTransactionRowCount + "' name='reference_transaction_id_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceTransactionId + "'>" +
 										"      <input class='form-control' id='reference_journal_entry_id_" + ReferenceTransactionRowCount + "' name='reference_journal_entry_id_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceJournalEntryId + "'>" +
 										"	<td id='reference_transaction_" + ReferenceTransactionRowCount + "'>" + referenceTransaction + "</td>" +
@@ -1968,11 +2015,15 @@
 										"	<td id='reference_transaction_amount_" + ReferenceTransactionRowCount + "'>" + response.transactionAmount + "</td>" +
 										"	<td><a class='btn btn-danger btn-xs delete' id='delete_reference_transaction_" + ReferenceTransactionRowCount + "' title='<?php echo $this->lang->line('Delete') ?>' onclick='deleteReferenceTransaction(this.id);'>" +
 										"			<i class='icon-remove'></i>" +
-										"		 </a></td>" +
+										"		</a>" +
+                                        "       <a class='btn btn-primary btn-xs delete' id='deduct_reference_transaction_" + ReferenceTransactionRowCount + "' title='<?php echo $this->lang->line('Deduction') ?>' onclick='deductReferenceTransaction(this.id);'>" +
+										"			<i class='icon-minus'></i>" +
+										"		</a></td>" +
 										"	</tr>";
 						} else if (MakePaymentScreenOperationStatus == "View") {
 							html = "	<tr id='row_" + ReferenceTransactionRowCount + "'> " +
 										"      <input class='form-control' id='reference_transaction_type_edit_" + ReferenceTransactionRowCount + "' name='reference_transaction_type_edit_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceTransactionType + "'>" +
+                                        "      <input class='form-control' id='reference_transaction_note_edit_" + ReferenceTransactionRowCount + "' name='reference_transaction_note_" + ReferenceTransactionRowCount + "' type='hidden' value=''>" +
 										"      <input class='form-control' id='reference_transaction_id_edit_" + ReferenceTransactionRowCount + "' name='reference_transaction_id_edit_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceTransactionId + "'>" +
 										"      <input class='form-control' id='reference_journal_entry_id_edit_" + ReferenceTransactionRowCount + "' name='reference_journal_entry_id_edit_" + ReferenceTransactionRowCount + "' type='hidden' value='" + referenceJournalEntryId + "'>" +
 										"	<td id='reference_transaction_edit_" + ReferenceTransactionRowCount + "'>" + referenceTransaction + "</td>" +
@@ -1980,7 +2031,10 @@
 										"	<td id='reference_transaction_amount_edit_" + ReferenceTransactionRowCount + "'>" + response.transactionAmount + "</td>" +
 										"	<td><a class='btn btn-danger btn-xs delete' id='delete_reference_transaction_edit_" + ReferenceTransactionRowCount + "' title='<?php echo $this->lang->line('Delete') ?>' onclick='deleteReferenceTransaction(this.id);'>" +
 										"			<i class='icon-remove'></i>" +
-										"		 </a></td>" +
+										"		</a>" +
+                                        "       <a class='btn btn-primary btn-xs delete' id='deduct_reference_transaction_edit_" + ReferenceTransactionRowCount + "' title='<?php echo $this->lang->line('Deduction') ?>' onclick='deductReferenceTransaction(this.id);'>" +
+										"			<i class='icon-minus'></i>" +
+										"		</a></td>" +
 										"	</tr>";
 						}
 					}

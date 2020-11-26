@@ -3041,6 +3041,15 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Select prime entry book/s for account transactions');
 
+/*Data for the table `system_language_strings` */
+INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Deduction', 'display_string', '7', 'Make Payment Screen');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Deduction');
+
 /*Correct spelling mistakes*/
 UPDATE `system_language_strings` SET `language_string` =  'Chart of Account Successfully Saved' WHERE `language_string` = 'Chart of Account Sucessfully Saved';
 UPDATE `system_language_translations` SET `translated_string` =  'Chart of Account Successfully Saved' WHERE `translated_string` = 'Chart of Account Sucessfully Saved';
