@@ -1562,6 +1562,13 @@
 				'<?php echo $this->lang->line('success')?></h4>' +
 				'<?php echo $this->lang->line('success_saved')?>' +
 				'</div>';
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('Previous financial year is not closed! Please close the previous financal year before add transactions.')?>' +
+				'</div>';
 
             //Gather Reference Transaction Details
 			var referenceTransactionData = [];
@@ -1685,7 +1692,7 @@
 						ReceivePayment.getNextReferenceNo();
 					} else {
 						$(".msg_data").show();
-						$(".msg_data").html(response.result);
+						$(".msg_data").html(msgError);
 						$(".save:input").attr('disabled', false);
 					}
 				}

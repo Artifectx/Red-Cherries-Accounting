@@ -68,6 +68,7 @@ class Sales_note_controller extends CI_Controller {
 		$this->load->model('organizationManagerModule/adminSection/google_analytics_model', '', TRUE);
 		$this->load->model('accountsManagerModule/adminSection/prime_entry_book_model', '', TRUE);
         $this->load->model('accountsManagerModule/adminSection/bank_model', '', TRUE);
+        $this->load->model('accountsManagerModule/adminSection/financial_year_ends_model', '', TRUE);
 		$this->load->model('accountsManagerModule/bookkeepingSection/journal_entries_model', '', TRUE);
 		$this->load->model('accountsManagerModule/bookkeepingSection/sales_note_model', '', TRUE);
 		$this->load->model('accountsManagerModule/bookkeepingSection/customer_return_note_model', '', TRUE);
@@ -116,107 +117,135 @@ class Sales_note_controller extends CI_Controller {
 
 	public function add() {
 		if(isset($this->data['ACM_Bookkeeping_Add_Sales_Note_Permissions'])) {
+            
 			$salesNoteId = '';
 			$salesJournalEntryId = '';
+            
 			if ($this->form_validation->run() == FALSE) {
 				$result =  validation_errors('<div class="alert alert-danger alert-dismissable">
 										<a class="close" data-dismiss="alert" href="#">&times;</a>
 										<h4><i class="icon-remove-sign"></i>Error</h4>',
 					'</div>');
 			} else {
-				$referenceNo = $this->db->escape_str($this->input->post('reference_no'));
-				$salesNoteDate = $this->db->escape_str($this->input->post('sales_note_date'));
-				$customerId = $this->db->escape_str($this->input->post('customer_id'));
-				$territoryId = $this->db->escape_str($this->input->post('territory_id'));
-				$locationId = $this->db->escape_str($this->input->post('location_id'));
-				$salesAmount = $this->db->escape_str($this->input->post('sales_amount'));
-				$discount = $this->db->escape_str($this->input->post('discount'));
-				$freeIssueAmount = $this->db->escape_str($this->input->post('free_issue_amount'));
-				$amountPayable = $this->db->escape_str($this->input->post('amount_payable'));
-				$remark = preg_replace('~\\\n~',"\r\n", $this->db->escape_str($this->input->post('remark')));
-				
-				$salesProfitMargin = $this->getSalesProfitMargin();
-				$salesCost = $salesAmount - ($salesAmount/100) * $salesProfitMargin;
+                
+                $currentDate = date('Y-m-d');
+                $year = date('Y', strtotime($currentDate));
 
-				$data = array(
-					'reference_no' => $referenceNo,
-					'date' => $salesNoteDate,
-					'customer_id' => $customerId,
-					'territory_id' => $territoryId,
-					'location_id' => $locationId,
-					'sales_amount' => $salesAmount,
-					'discount' => $discount,
-					'free_issue_amount' => $freeIssueAmount,
-					'amount_payable' => $amountPayable,
-                    'balance_payment' => $amountPayable,
-					'remark' => $remark,
-					'actioned_user_id' => $this->user_id,
-					'added_date' => $this->date,
-					'action_date' => $this->date,
-					'last_action_status' => 'added'
-				);
+                $financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
+                $financialYearStartDay = $this->system_configurations_model->getFinancialYearStartDayNo();
+                $financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
+                $financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
 
-				$salesNoteId = $this->sales_note_model->add($data);
-				
-				$salesNoteSalesEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '1');
-				$salesNoteCostEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '2');
-				$salesNoteDiscountJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '3');
-				$salesNoteFreeIssuesJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '4');
-				
-				$correctChartOfAccountsFoundInPrimeEntryBooks = true;
+                $financialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 
-				$primeEntryBooksToUpdateForSaleSalesEntry = $this->getPrimeEntryBooksToUpdateForSalesNoteSalesEntryTransaction();
-				$primeEntryBooksToUpdateForSaleCostEntry = $this->getPrimeEntryBooksToUpdateForSalesNoteCostEntryTransaction();
-				$primeEntryBooksToUpdateForDiscount = $this->getPrimeEntryBooksToUpdateForSalesNoteDiscountTransaction();
-				$primeEntryBooksToUpdateForForFreeIssueAmount = $this->getPrimeEntryBooksToUpdateForSalesNoteFreeIssuesTransaction();
-				
-				$primeEntryBooksToUpdate = '';
-				
-				if ($primeEntryBooksToUpdateForSaleSalesEntry && $primeEntryBooksToUpdateForSaleCostEntry) {
-					$primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForSaleSalesEntry, $primeEntryBooksToUpdateForSaleCostEntry);
-				}
-				
-				if ($primeEntryBooksToUpdate && $primeEntryBooksToUpdateForDiscount) {
-					$primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdate, $primeEntryBooksToUpdateForDiscount);
-				}
-				
-				if ($primeEntryBooksToUpdate && $primeEntryBooksToUpdateForForFreeIssueAmount) {
-					$primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdate, $primeEntryBooksToUpdateForForFreeIssueAmount);
-				}
+                if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($financialYearEndDateToCompare) < strtotime($currentDate)) {
+                    $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                } else {
+                    if ($financialYearStartMonth > 1 || $financialYearStartDay > 1) {
+                        $financialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                    } else {
+                        $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                    }
+                }
+            
+                if ($this->financial_year_ends_model->isPreviousFinancialYearClosed($financialYearStartDate)) {
+                
+                    $referenceNo = $this->db->escape_str($this->input->post('reference_no'));
+                    $salesNoteDate = $this->db->escape_str($this->input->post('sales_note_date'));
+                    $customerId = $this->db->escape_str($this->input->post('customer_id'));
+                    $territoryId = $this->db->escape_str($this->input->post('territory_id'));
+                    $locationId = $this->db->escape_str($this->input->post('location_id'));
+                    $salesAmount = $this->db->escape_str($this->input->post('sales_amount'));
+                    $discount = $this->db->escape_str($this->input->post('discount'));
+                    $freeIssueAmount = $this->db->escape_str($this->input->post('free_issue_amount'));
+                    $amountPayable = $this->db->escape_str($this->input->post('amount_payable'));
+                    $remark = preg_replace('~\\\n~',"\r\n", $this->db->escape_str($this->input->post('remark')));
 
-				if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                    foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                        $primeEntryBookId = $primeEntryBook->config_filed_value;
-                        $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                    $salesProfitMargin = $this->getSalesProfitMargin();
+                    $salesCost = $salesAmount - ($salesAmount/100) * $salesProfitMargin;
 
-                        if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                    $data = array(
+                        'reference_no' => $referenceNo,
+                        'date' => $salesNoteDate,
+                        'customer_id' => $customerId,
+                        'territory_id' => $territoryId,
+                        'location_id' => $locationId,
+                        'sales_amount' => $salesAmount,
+                        'discount' => $discount,
+                        'free_issue_amount' => $freeIssueAmount,
+                        'amount_payable' => $amountPayable,
+                        'balance_payment' => $amountPayable,
+                        'remark' => $remark,
+                        'actioned_user_id' => $this->user_id,
+                        'added_date' => $this->date,
+                        'action_date' => $this->date,
+                        'last_action_status' => 'added'
+                    );
+
+                    $salesNoteId = $this->sales_note_model->add($data);
+
+                    $salesNoteSalesEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '1');
+                    $salesNoteCostEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '2');
+                    $salesNoteDiscountJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '3');
+                    $salesNoteFreeIssuesJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '4');
+
+                    $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+                    $primeEntryBooksToUpdateForSaleSalesEntry = $this->getPrimeEntryBooksToUpdateForSalesNoteSalesEntryTransaction();
+                    $primeEntryBooksToUpdateForSaleCostEntry = $this->getPrimeEntryBooksToUpdateForSalesNoteCostEntryTransaction();
+                    $primeEntryBooksToUpdateForDiscount = $this->getPrimeEntryBooksToUpdateForSalesNoteDiscountTransaction();
+                    $primeEntryBooksToUpdateForForFreeIssueAmount = $this->getPrimeEntryBooksToUpdateForSalesNoteFreeIssuesTransaction();
+
+                    $primeEntryBooksToUpdate = '';
+
+                    if ($primeEntryBooksToUpdateForSaleSalesEntry && $primeEntryBooksToUpdateForSaleCostEntry) {
+                        $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForSaleSalesEntry, $primeEntryBooksToUpdateForSaleCostEntry);
+                    }
+
+                    if ($primeEntryBooksToUpdate && $primeEntryBooksToUpdateForDiscount) {
+                        $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdate, $primeEntryBooksToUpdateForDiscount);
+                    }
+
+                    if ($primeEntryBooksToUpdate && $primeEntryBooksToUpdateForForFreeIssueAmount) {
+                        $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdate, $primeEntryBooksToUpdateForForFreeIssueAmount);
+                    }
+
+                    if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                        foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                            $primeEntryBookId = $primeEntryBook->config_filed_value;
+                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                            if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                            }
                         }
                     }
-				}
-				
-				if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-					$salesJournalEntryId = $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleSalesEntry, '0', $salesNoteId, 
-                            $salesNoteSalesEntryJournalEntries, '1', $salesNoteDate, $referenceNo, $locationId, $customerId, 
-                            $salesAmount, '0', "Yes", 'Sales Note');
-                    
-					$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleCostEntry, '2', $salesNoteId, $salesNoteCostEntryJournalEntries, '2', 
-                            $salesNoteDate, $referenceNo, $locationId, $customerId, $salesCost, '0', "No", '','', '', '', $salesJournalEntryId);
-					
-					if ($discount > 0) {
-					$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForDiscount, '2', $salesNoteId, $salesNoteDiscountJournalEntries, '3', 
-                            $salesNoteDate, $referenceNo, $locationId, $customerId, $discount, '0', "No", '','', '', '', $salesJournalEntryId);
-					}
-					
-					if ($freeIssueAmount > 0) {
-						$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForForFreeIssueAmount, '2', $salesNoteId, $salesNoteFreeIssuesJournalEntries, '4', 
-                                $salesNoteDate, $referenceNo, $locationId, $customerId, $freeIssueAmount, '0', "No", '','', '', '', $salesJournalEntryId);
-					}
-				}else {
-					$result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
-				}
 
-				$result = 'ok';
+                    if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                        $salesJournalEntryId = $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleSalesEntry, '0', $salesNoteId, 
+                                $salesNoteSalesEntryJournalEntries, '1', $salesNoteDate, $referenceNo, $locationId, $customerId, 
+                                $salesAmount, '0', "Yes", 'Sales Note');
+
+                        $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleCostEntry, '2', $salesNoteId, $salesNoteCostEntryJournalEntries, '2', 
+                                $salesNoteDate, $referenceNo, $locationId, $customerId, $salesCost, '0', "No", '','', '', '', $salesJournalEntryId);
+
+                        if ($discount > 0) {
+                        $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForDiscount, '2', $salesNoteId, $salesNoteDiscountJournalEntries, '3', 
+                                $salesNoteDate, $referenceNo, $locationId, $customerId, $discount, '0', "No", '','', '', '', $salesJournalEntryId);
+                        }
+
+                        if ($freeIssueAmount > 0) {
+                            $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForForFreeIssueAmount, '2', $salesNoteId, $salesNoteFreeIssuesJournalEntries, '4', 
+                                    $salesNoteDate, $referenceNo, $locationId, $customerId, $freeIssueAmount, '0', "No", '','', '', '', $salesJournalEntryId);
+                        }
+                    }else {
+                        $result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
+                    }
+
+                    $result = 'ok';
+                } else {
+                    $result = "previous_financial_year_not_closed";
+                }
 			}
 
 			echo json_encode(array('result' => $result, 'salesNoteId' => $salesNoteId, 'salesJournalEntryId' => $salesJournalEntryId));

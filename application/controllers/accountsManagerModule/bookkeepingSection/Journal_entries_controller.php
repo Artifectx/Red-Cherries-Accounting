@@ -57,13 +57,14 @@ class Journal_entries_controller extends CI_Controller {
 		$this->data['show_footer'] = true;
 
 		//load models
+        $this->load->model('accountsManagerModule/adminSection/prime_entry_book_model', '', TRUE);
+		$this->load->model('accountsManagerModule/adminSection/chart_of_accounts_model', '', TRUE);
+        $this->load->model('accountsManagerModule/adminSection/financial_year_ends_model', '', TRUE);
 		$this->load->model('accountsManagerModule/bookkeepingSection/journal_entries_model', '', TRUE);
         $this->load->model('accountsManagerModule/bookkeepingSection/purchase_note_model', '', TRUE);
 		$this->load->model('accountsManagerModule/bookkeepingSection/sales_note_model', '', TRUE);
         $this->load->model('accountsManagerModule/bookkeepingSection/supplier_return_note_model', '', TRUE);
         $this->load->model('accountsManagerModule/bookkeepingSection/customer_return_note_model', '', TRUE);
-		$this->load->model('accountsManagerModule/adminSection/prime_entry_book_model', '', TRUE);
-		$this->load->model('accountsManagerModule/adminSection/chart_of_accounts_model', '', TRUE);
 		$this->load->model('organizationManagerModule/adminSection/locations_model', '', TRUE);
 		$this->load->model('organizationManagerModule/adminSection/google_analytics_model', '', TRUE);
 		$this->load->model('userRoleManagerModule/user_model', '', TRUE);
@@ -159,182 +160,212 @@ class Journal_entries_controller extends CI_Controller {
 
 				echo $result;
 			} else {
-				$journalEntryId = $this->db->escape_str($this->input->post('journal_entry_id'));
-				$primeEntryBookId = $this->db->escape_str($this->input->post('prime_entry_book_id'));
-				$transactionDate = $this->db->escape_str($this->input->post('transaction_date'));
-				$payeePayerType = $this->db->escape_str($this->input->post('payee_payer_type'));
-				$payeePayerId = $this->db->escape_str($this->input->post('payee_payer_id'));
-				$dueDate = $this->db->escape_str($this->input->post('due_date'));
-				$referenceNo = $this->db->escape_str($this->input->post('reference_no'));
-				$saveOption = $this->db->escape_str($this->input->post('save_option'));
-				$primeEntrybookName = $this->db->escape_str($this->input->post('prime_entry_book_name'));
-				$referenceTransactionTypeId = $this->db->escape_str($this->input->post('reference_transaction_type_id'));
-				$referenceTransactionId = $this->db->escape_str($this->input->post('reference_transaction_id'));
-				$referenceJournalEntryId = $this->db->escape_str($this->input->post('reference_journal_entry_id'));
-				
-				$description = $this->db->escape_str($this->input->post('description'));
-				
-				if ($description == '' && $primeEntryBookId != '0' && $primeEntryBookId != '') {
-					$primaryEntryBook = $this->prime_entry_book_model->getPrimeEntryBookById($primeEntryBookId);
-					$description = "Journal entry for " . strtolower($primaryEntryBook[0]->prime_entry_book_name);
-				}
-				
-				if ($saveOption == "save_with_chart_of_account_values") {
+                
+                $journalEntryId = '';
+                
+                $currentDate = date('Y-m-d');
+                $year = date('Y', strtotime($currentDate));
 
-					if ($journalEntryId == '') {
-						$data = array(
-							'prime_entry_book_id' => $primeEntryBookId,
-							'transaction_date' => $transactionDate,
-							'payee_payer_type' => $payeePayerType,
-							'payee_payer_id' => $payeePayerId,
-							'due_date' => $dueDate,
-							'reference_no' => $referenceNo,
-							'should_have_a_payment_journal_entry' => "Yes",
-							'reference_transaction_type_id' => $referenceTransactionTypeId,
-							'reference_transaction_id' => $referenceTransactionId,
-							'reference_journal_entry_id' => $referenceJournalEntryId,
-							'location_id' => $this->db->escape_str($this->input->post('location_id')),
-							'description' => $description,
-							'post_type' => "Direct",
-							'actioned_user_id' => $this->user_id,
-							'action_date' => $this->date,
-							'last_action_status' => 'added'
-						);
+                $financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
+                $financialYearStartDay = $this->system_configurations_model->getFinancialYearStartDayNo();
+                $financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
+                $financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
 
-						$journalEntryId = $this->journal_entries_model->addJournalEntry($data);
-					}
+                $financialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 
-					$debitChartOfAccountIds = explode(",", $this->db->escape_str($this->input->post('debit_chart_of_account_id')));
-					$creditChartOfAccountIds = explode(",", $this->db->escape_str($this->input->post('credit_chart_of_account_id')));
+                if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($financialYearEndDateToCompare) < strtotime($currentDate)) {
+                    $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                } else {
+                    if ($financialYearStartMonth > 1 || $financialYearStartDay > 1) {
+                        $financialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                    } else {
+                        $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                    }
+                }
+            
+                if ($this->financial_year_ends_model->isPreviousFinancialYearClosed($financialYearStartDate)) {
+                
+                    $journalEntryId = $this->db->escape_str($this->input->post('journal_entry_id'));
+                    $primeEntryBookId = $this->db->escape_str($this->input->post('prime_entry_book_id'));
+                    $transactionDate = $this->db->escape_str($this->input->post('transaction_date'));
+                    $payeePayerType = $this->db->escape_str($this->input->post('payee_payer_type'));
+                    $payeePayerId = $this->db->escape_str($this->input->post('payee_payer_id'));
+                    $dueDate = $this->db->escape_str($this->input->post('due_date'));
+                    $referenceNo = $this->db->escape_str($this->input->post('reference_no'));
+                    $saveOption = $this->db->escape_str($this->input->post('save_option'));
+                    $primeEntrybookName = $this->db->escape_str($this->input->post('prime_entry_book_name'));
+                    $referenceTransactionTypeId = $this->db->escape_str($this->input->post('reference_transaction_type_id'));
+                    $referenceTransactionId = $this->db->escape_str($this->input->post('reference_transaction_id'));
+                    $referenceJournalEntryId = $this->db->escape_str($this->input->post('reference_journal_entry_id'));
 
-					$debitChartOfAccountValues = explode(",", $this->db->escape_str($this->input->post('debit_chart_of_account_value')));
-					$creditChartOfAccountValues = explode(",", $this->db->escape_str($this->input->post('credit_chart_of_account_value')));
+                    $description = $this->db->escape_str($this->input->post('description'));
 
-					$debitChartOfAccountValueCount = sizeof($debitChartOfAccountValues);
+                    if ($description == '' && $primeEntryBookId != '0' && $primeEntryBookId != '') {
+                        $primaryEntryBook = $this->prime_entry_book_model->getPrimeEntryBookById($primeEntryBookId);
+                        $description = "Journal entry for " . strtolower($primaryEntryBook[0]->prime_entry_book_name);
+                    }
 
-					for ($i = 0; $i < $debitChartOfAccountValueCount; $i++) {
-						$data = array(
-							'journal_entry_id' => $journalEntryId,
-							'prime_entry_book_id' => $primeEntryBookId,
-							'transaction_date' => $transactionDate,
-							'chart_of_account_id' => $debitChartOfAccountIds[$i],
-							'debit_value' => $debitChartOfAccountValues[$i],
-							'actioned_user_id' => $this->user_id,
-							'action_date' => $this->date,
-							'last_action_status' => 'added'
-						);
+                    if ($saveOption == "save_with_chart_of_account_values") {
 
-						$this->journal_entries_model->addGeneralLedgerTransaction($data);
+                        if ($journalEntryId == '') {
+                            $data = array(
+                                'prime_entry_book_id' => $primeEntryBookId,
+                                'transaction_date' => $transactionDate,
+                                'payee_payer_type' => $payeePayerType,
+                                'payee_payer_id' => $payeePayerId,
+                                'due_date' => $dueDate,
+                                'reference_no' => $referenceNo,
+                                'should_have_a_payment_journal_entry' => "Yes",
+                                'reference_transaction_type_id' => $referenceTransactionTypeId,
+                                'reference_transaction_id' => $referenceTransactionId,
+                                'reference_journal_entry_id' => $referenceJournalEntryId,
+                                'location_id' => $this->db->escape_str($this->input->post('location_id')),
+                                'description' => $description,
+                                'post_type' => "Direct",
+                                'actioned_user_id' => $this->user_id,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'added'
+                            );
 
-						//Same time add the data to previous years record table.
-						$this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
-					}
+                            $journalEntryId = $this->journal_entries_model->addJournalEntry($data);
+                        }
 
-					$creditChartOfAccountValueCount = sizeof($creditChartOfAccountValues);
+                        $debitChartOfAccountIds = explode(",", $this->db->escape_str($this->input->post('debit_chart_of_account_id')));
+                        $creditChartOfAccountIds = explode(",", $this->db->escape_str($this->input->post('credit_chart_of_account_id')));
 
-					for ($i = 0; $i < $creditChartOfAccountValueCount; $i++) {
-						$data = array(
-							'journal_entry_id' => $journalEntryId,
-							'prime_entry_book_id' => $primeEntryBookId,
-							'transaction_date' => $transactionDate,
-							'chart_of_account_id' => $creditChartOfAccountIds[$i],
-							'credit_value' => $creditChartOfAccountValues[$i],
-							'actioned_user_id' => $this->user_id,
-							'action_date' => $this->date,
-							'last_action_status' => 'added'
-						);
+                        $debitChartOfAccountValues = explode(",", $this->db->escape_str($this->input->post('debit_chart_of_account_value')));
+                        $creditChartOfAccountValues = explode(",", $this->db->escape_str($this->input->post('credit_chart_of_account_value')));
 
-						$this->journal_entries_model->addGeneralLedgerTransaction($data);
+                        $debitChartOfAccountValueCount = sizeof($debitChartOfAccountValues);
 
-						//Same time add the data to previous years record table.
-						$this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
-					}
-				} else if ($saveOption == "save_without_chart_of_account_values") {
-					
-					if ($payeePayerId != '0') {
-						$shouldHaveAPaymentJournalEntry = "Yes";
-					} else {
-						$shouldHaveAPaymentJournalEntry = "No";
-					}
-					
-					$data = array(
-						'transaction_date' => $transactionDate,
-						'payee_payer_type' => $payeePayerType,
-						'payee_payer_id' => $payeePayerId,
-						'due_date' => $dueDate,
-						'reference_no' => $referenceNo,
-						'should_have_a_payment_journal_entry' => $shouldHaveAPaymentJournalEntry,
-						'location_id' => $this->db->escape_str($this->input->post('location_id')),
-						'description' => $this->db->escape_str($this->input->post('description')),
-						'post_type' => "Direct",
-						'actioned_user_id' => $this->user_id,
-						'action_date' => $this->date,
-						'last_action_status' => 'added'
-					);
+                        for ($i = 0; $i < $debitChartOfAccountValueCount; $i++) {
+                            $data = array(
+                                'journal_entry_id' => $journalEntryId,
+                                'prime_entry_book_id' => $primeEntryBookId,
+                                'transaction_date' => $transactionDate,
+                                'chart_of_account_id' => $debitChartOfAccountIds[$i],
+                                'debit_value' => $debitChartOfAccountValues[$i],
+                                'actioned_user_id' => $this->user_id,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'added'
+                            );
 
-					$journalEntryId = $this->journal_entries_model->addJournalEntry($data);
-				}
+                            $this->journal_entries_model->addGeneralLedgerTransaction($data);
 
-				if ($primeEntrybookName != '') {
+                            //Same time add the data to previous years record table.
+                            $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
+                        }
 
-					$data = array(
-						'prime_entry_book_name' => $primeEntrybookName,
-						'description' => $this->db->escape_str($this->input->post('description')),
-						'actioned_user_id' => $this->user_id,
-						'action_date' => $this->date,
-						'last_action_status' => 'added'
-					);
+                        $creditChartOfAccountValueCount = sizeof($creditChartOfAccountValues);
 
-					$primeEntryBookId = $this->prime_entry_book_model->addPrimeEntryBook($data);
+                        for ($i = 0; $i < $creditChartOfAccountValueCount; $i++) {
+                            $data = array(
+                                'journal_entry_id' => $journalEntryId,
+                                'prime_entry_book_id' => $primeEntryBookId,
+                                'transaction_date' => $transactionDate,
+                                'chart_of_account_id' => $creditChartOfAccountIds[$i],
+                                'credit_value' => $creditChartOfAccountValues[$i],
+                                'actioned_user_id' => $this->user_id,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'added'
+                            );
 
-					$debitChartOfAccounts = explode(",", $this->db->escape_str($this->input->post('debit_chart_of_account_id')));
-					$creditChartOfAccounts = explode(",", $this->db->escape_str($this->input->post('credit_chart_of_account_id')));
+                            $this->journal_entries_model->addGeneralLedgerTransaction($data);
 
-					$debitChartOfAccountsCount = sizeof($debitChartOfAccounts);
+                            //Same time add the data to previous years record table.
+                            $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
+                        }
+                    } else if ($saveOption == "save_without_chart_of_account_values") {
 
-					for ($i = 0; $i < $debitChartOfAccountsCount; $i++) {
-						if ($debitChartOfAccounts[$i] != '0') {
-							$data = array(
-								'prime_entry_book_id' => $primeEntryBookId,
-								'chart_of_account_id' => $debitChartOfAccounts[$i],
-								'debit_or_credit' => 'debit',
-								'actioned_user_id' => $this->user_id,
-								'action_date' => $this->date,
-								'last_action_status' => 'added'
-							);
+                        if ($payeePayerId != '0') {
+                            $shouldHaveAPaymentJournalEntry = "Yes";
+                        } else {
+                            $shouldHaveAPaymentJournalEntry = "No";
+                        }
 
-							$this->prime_entry_book_model->addPrimeEntryBookChartOfAccount($data);
-						}
-					}
+                        $data = array(
+                            'transaction_date' => $transactionDate,
+                            'payee_payer_type' => $payeePayerType,
+                            'payee_payer_id' => $payeePayerId,
+                            'due_date' => $dueDate,
+                            'reference_no' => $referenceNo,
+                            'should_have_a_payment_journal_entry' => $shouldHaveAPaymentJournalEntry,
+                            'location_id' => $this->db->escape_str($this->input->post('location_id')),
+                            'description' => $this->db->escape_str($this->input->post('description')),
+                            'post_type' => "Direct",
+                            'actioned_user_id' => $this->user_id,
+                            'action_date' => $this->date,
+                            'last_action_status' => 'added'
+                        );
 
-					$creditChartOfAccountsCount = sizeof($creditChartOfAccounts);
+                        $journalEntryId = $this->journal_entries_model->addJournalEntry($data);
+                    }
 
-					for ($i = 0; $i < $creditChartOfAccountsCount; $i++) {
-						if ($creditChartOfAccounts[$i] != '0') {
-							$data = array(
-								'prime_entry_book_id' => $primeEntryBookId,
-								'chart_of_account_id' => $creditChartOfAccounts[$i],
-								'debit_or_credit' => 'credit',
-								'actioned_user_id' => $this->user_id,
-								'action_date' => $this->date,
-								'last_action_status' => 'added'
-							);
+                    if ($primeEntrybookName != '') {
 
-							$this->prime_entry_book_model->addPrimeEntryBookChartOfAccount($data);
-						}
-					}
+                        $data = array(
+                            'prime_entry_book_name' => $primeEntrybookName,
+                            'description' => $this->db->escape_str($this->input->post('description')),
+                            'actioned_user_id' => $this->user_id,
+                            'action_date' => $this->date,
+                            'last_action_status' => 'added'
+                        );
 
-					$journalEntryData = array(
-						'prime_entry_book_id' => $primeEntryBookId,
-						'actioned_user_id' => $this->user_id,
-						'action_date' => $this->date,
-						'last_action_status' => 'edited'
-					);
+                        $primeEntryBookId = $this->prime_entry_book_model->addPrimeEntryBook($data);
 
-					$this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
-				}
+                        $debitChartOfAccounts = explode(",", $this->db->escape_str($this->input->post('debit_chart_of_account_id')));
+                        $creditChartOfAccounts = explode(",", $this->db->escape_str($this->input->post('credit_chart_of_account_id')));
 
-				echo json_encode(array('result' => "ok", 'journalEntryId' => $journalEntryId));
+                        $debitChartOfAccountsCount = sizeof($debitChartOfAccounts);
+
+                        for ($i = 0; $i < $debitChartOfAccountsCount; $i++) {
+                            if ($debitChartOfAccounts[$i] != '0') {
+                                $data = array(
+                                    'prime_entry_book_id' => $primeEntryBookId,
+                                    'chart_of_account_id' => $debitChartOfAccounts[$i],
+                                    'debit_or_credit' => 'debit',
+                                    'actioned_user_id' => $this->user_id,
+                                    'action_date' => $this->date,
+                                    'last_action_status' => 'added'
+                                );
+
+                                $this->prime_entry_book_model->addPrimeEntryBookChartOfAccount($data);
+                            }
+                        }
+
+                        $creditChartOfAccountsCount = sizeof($creditChartOfAccounts);
+
+                        for ($i = 0; $i < $creditChartOfAccountsCount; $i++) {
+                            if ($creditChartOfAccounts[$i] != '0') {
+                                $data = array(
+                                    'prime_entry_book_id' => $primeEntryBookId,
+                                    'chart_of_account_id' => $creditChartOfAccounts[$i],
+                                    'debit_or_credit' => 'credit',
+                                    'actioned_user_id' => $this->user_id,
+                                    'action_date' => $this->date,
+                                    'last_action_status' => 'added'
+                                );
+
+                                $this->prime_entry_book_model->addPrimeEntryBookChartOfAccount($data);
+                            }
+                        }
+
+                        $journalEntryData = array(
+                            'prime_entry_book_id' => $primeEntryBookId,
+                            'actioned_user_id' => $this->user_id,
+                            'action_date' => $this->date,
+                            'last_action_status' => 'edited'
+                        );
+
+                        $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                    }
+                    
+                    $result = "ok";
+                } else {
+                    $result = "previous_financial_year_not_closed";
+                }
+
+				echo json_encode(array('result' => $result, 'journalEntryId' => $journalEntryId));
 			}
 		}
 	}
@@ -459,8 +490,16 @@ class Journal_entries_controller extends CI_Controller {
 		if(isset($this->data['ACM_Bookkeeping_Edit_Journal_Entry_Permissions'])) {
 			$journalEntryId = $this->db->escape_str($this->input->post('journal_entry_id'));
 
-			$generalLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
-
+            $generalLedgerTransactions = '';
+            
+            if ($journalEntryId != '' && $journalEntryId != '0') {
+                $generalLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+            }
+            
+            if ($generalLedgerTransactions == '') {
+                $generalLedgerTransactions = $this->journal_entries_model->getPreviousYearsGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+            }
+            
 			$journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
 			$primeEntryBookId = $journalEntry[0]->prime_entry_book_id;
 

@@ -67,6 +67,7 @@ class Customer_return_note_controller extends CI_Controller {
 		$this->load->model('organizationManagerModule/adminSection/territories_model', '', TRUE);
 		$this->load->model('organizationManagerModule/adminSection/google_analytics_model', '', TRUE);
 		$this->load->model('accountsManagerModule/adminSection/prime_entry_book_model', '', TRUE);
+        $this->load->model('accountsManagerModule/adminSection/financial_year_ends_model', '', TRUE);
 		$this->load->model('accountsManagerModule/bookkeepingSection/journal_entries_model', '', TRUE);
 		$this->load->model('accountsManagerModule/bookkeepingSection/customer_return_note_model', '', TRUE);
         $this->load->model('accountsManagerModule/bookkeepingSection/make_payment_model', '', TRUE);
@@ -124,110 +125,136 @@ class Customer_return_note_controller extends CI_Controller {
 										<h4><i class="icon-remove-sign"></i>Error</h4>',
 					'</div>');
 			} else {
-				$referenceNo = $this->db->escape_str($this->input->post('reference_no'));
-				$customerReturnNoteDate = $this->db->escape_str($this->input->post('customer_return_note_date'));
-				$deliveryRouteId = $this->db->escape_str($this->input->post('delivery_route_id'));
-				$customerId = $this->db->escape_str($this->input->post('customer_id'));
-				$territoryId = $this->db->escape_str($this->input->post('territory_id'));
-				$locationId = $this->db->escape_str($this->input->post('location_id'));
-				$customerReturnAmount = $this->db->escape_str($this->input->post('customer_return_amount'));
-				$type = $this->db->escape_str($this->input->post('type'));
-				$remark = preg_replace('~\\\n~',"\r\n", $this->db->escape_str($this->input->post('remark')));
-				
-				$salesProfitMargin = $this->getSalesProfitMargin();
-				
-				$profitPortion = "";
-				$salesCost = "";
-				$CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId = $this->system_configurations_model->getCustomerMarketReturnCostEntryProfitMarginCreditChartOfAccount();
-				if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
-					$profitPortion = ($customerReturnAmount/100) * $salesProfitMargin;
-					$salesCost = $customerReturnAmount;
-				} else {
-					$salesCost = $customerReturnAmount - ($customerReturnAmount/100) * $salesProfitMargin;
-				}
+                
+                $currentDate = date('Y-m-d');
+                $year = date('Y', strtotime($currentDate));
 
-				$data = array(
-					'reference_no' => $referenceNo,
-					'date' => $customerReturnNoteDate,
-					'delivery_route_id' => $deliveryRouteId,
-					'customer_id' => $customerId,
-					'territory_id' => $territoryId,
-					'location_id' => $locationId,
-					'amount' => $customerReturnAmount,
-                    'balance_payment' => $customerReturnAmount,
-					'type' => $type,
-					'remark' => $remark,
-					'actioned_user_id' => $this->user_id,
-					'added_date' => $this->date,
-					'action_date' => $this->date,
-					'last_action_status' => 'added'
-				);
+                $financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
+                $financialYearStartDay = $this->system_configurations_model->getFinancialYearStartDayNo();
+                $financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
+                $financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
 
-				$customerReturnNoteId = $this->customer_return_note_model->add($data);
-				
-				$correctChartOfAccountsFoundInPrimeEntryBooks = true;
-				$primeEntryBooksToUpdate = '';
-				
-				if ($type == "saleable_return") {
-					$customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
-					$customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
-					
-					$primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteSalesEntryTransaction();
-					$primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteCostEntryTransaction();
-					
-					if ($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry && $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry) {
-						$primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry);
-					}
-				} else if ($type == "market_return") {
-					$customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '3');
-					$customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '4');
-					
-					$primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteSalesEntryTransaction();
-					$primeEntryBooksToUpdateForCustomerMarketReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteCostEntryTransaction();
-					
-					if ($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry && $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry) {
-						$primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry);
-					}
-				}
-				
-				if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-					if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-						foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-							$primeEntryBookId = $primeEntryBook->config_filed_value;
-							$primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                $financialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 
-							if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 3) {
-								$correctChartOfAccountsFoundInPrimeEntryBooks = false;
-							}
-						}
-					}
-				}
-				
-				if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-					if ($type == "saleable_return") {
-						$description = $this->lang->line('Journal entry for saleable return sales entry for Customer Return Note number : ') . $referenceNo;
-						$this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $customerReturnNoteId, 
-                                $customerSaleableReturnNoteSalesEntryJournalEntries, '1', $customerReturnNoteDate, $referenceNo, 
-                                $locationId, $customerId, $customerReturnAmount, '0', $description);
-						$description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $referenceNo;
-						$this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $customerReturnNoteId, 
-                                $customerSaleableReturnNoteCostEntryJournalEntries, '2', $customerReturnNoteDate, $referenceNo, 
-                                $locationId, $customerId, $salesCost, '0', $description);
-					} else if ($type == "market_return") {
-						$description = $this->lang->line('Journal entry for market return sales entry for Customer Return Note number : ') . $referenceNo;
-						$this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $customerReturnNoteId, 
-                                $customerMarketReturnNoteSalesEntryJournalEntries, '3', $customerReturnNoteDate, $referenceNo, 
-                                $locationId, $customerId, $customerReturnAmount, '0', $description);
-						$description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $referenceNo;
-						$this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $customerReturnNoteId, 
-                                $customerMarketReturnNoteCostEntryJournalEntries, '4', $customerReturnNoteDate, $referenceNo, 
-                                $locationId, $customerId, $salesCost, '0', $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, '0');
-					}
-				} else {
-					$result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
-				}
+                if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($financialYearEndDateToCompare) < strtotime($currentDate)) {
+                    $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                } else {
+                    if ($financialYearStartMonth > 1 || $financialYearStartDay > 1) {
+                        $financialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                    } else {
+                        $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                    }
+                }
+            
+                if ($this->financial_year_ends_model->isPreviousFinancialYearClosed($financialYearStartDate)) {
+                
+                    $referenceNo = $this->db->escape_str($this->input->post('reference_no'));
+                    $customerReturnNoteDate = $this->db->escape_str($this->input->post('customer_return_note_date'));
+                    $deliveryRouteId = $this->db->escape_str($this->input->post('delivery_route_id'));
+                    $customerId = $this->db->escape_str($this->input->post('customer_id'));
+                    $territoryId = $this->db->escape_str($this->input->post('territory_id'));
+                    $locationId = $this->db->escape_str($this->input->post('location_id'));
+                    $customerReturnAmount = $this->db->escape_str($this->input->post('customer_return_amount'));
+                    $type = $this->db->escape_str($this->input->post('type'));
+                    $remark = preg_replace('~\\\n~',"\r\n", $this->db->escape_str($this->input->post('remark')));
 
-				$result = 'ok';
+                    $salesProfitMargin = $this->getSalesProfitMargin();
+
+                    $profitPortion = "";
+                    $salesCost = "";
+                    $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId = $this->system_configurations_model->getCustomerMarketReturnCostEntryProfitMarginCreditChartOfAccount();
+                    if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
+                        $profitPortion = ($customerReturnAmount/100) * $salesProfitMargin;
+                        $salesCost = $customerReturnAmount;
+                    } else {
+                        $salesCost = $customerReturnAmount - ($customerReturnAmount/100) * $salesProfitMargin;
+                    }
+
+                    $data = array(
+                        'reference_no' => $referenceNo,
+                        'date' => $customerReturnNoteDate,
+                        'delivery_route_id' => $deliveryRouteId,
+                        'customer_id' => $customerId,
+                        'territory_id' => $territoryId,
+                        'location_id' => $locationId,
+                        'amount' => $customerReturnAmount,
+                        'balance_payment' => $customerReturnAmount,
+                        'type' => $type,
+                        'remark' => $remark,
+                        'actioned_user_id' => $this->user_id,
+                        'added_date' => $this->date,
+                        'action_date' => $this->date,
+                        'last_action_status' => 'added'
+                    );
+
+                    $customerReturnNoteId = $this->customer_return_note_model->add($data);
+
+                    $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+                    $primeEntryBooksToUpdate = '';
+
+                    if ($type == "saleable_return") {
+                        $customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
+                        $customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
+
+                        $primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteSalesEntryTransaction();
+                        $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteCostEntryTransaction();
+
+                        if ($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry && $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry) {
+                            $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry);
+                        }
+                    } else if ($type == "market_return") {
+                        $customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '3');
+                        $customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '4');
+
+                        $primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteSalesEntryTransaction();
+                        $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteCostEntryTransaction();
+
+                        if ($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry && $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry) {
+                            $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry);
+                        }
+                    }
+
+                    if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 3) {
+                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                }
+                            }
+                        }
+                    }
+
+                    if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                        if ($type == "saleable_return") {
+                            $description = $this->lang->line('Journal entry for saleable return sales entry for Customer Return Note number : ') . $referenceNo;
+                            $this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $customerReturnNoteId, 
+                                    $customerSaleableReturnNoteSalesEntryJournalEntries, '1', $customerReturnNoteDate, $referenceNo, 
+                                    $locationId, $customerId, $customerReturnAmount, '0', $description);
+                            $description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $referenceNo;
+                            $this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $customerReturnNoteId, 
+                                    $customerSaleableReturnNoteCostEntryJournalEntries, '2', $customerReturnNoteDate, $referenceNo, 
+                                    $locationId, $customerId, $salesCost, '0', $description);
+                        } else if ($type == "market_return") {
+                            $description = $this->lang->line('Journal entry for market return sales entry for Customer Return Note number : ') . $referenceNo;
+                            $this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $customerReturnNoteId, 
+                                    $customerMarketReturnNoteSalesEntryJournalEntries, '3', $customerReturnNoteDate, $referenceNo, 
+                                    $locationId, $customerId, $customerReturnAmount, '0', $description);
+                            $description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $referenceNo;
+                            $this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $customerReturnNoteId, 
+                                    $customerMarketReturnNoteCostEntryJournalEntries, '4', $customerReturnNoteDate, $referenceNo, 
+                                    $locationId, $customerId, $salesCost, '0', $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, '0');
+                        }
+                    } else {
+                        $result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
+                    }
+
+                    $result = 'ok';
+                } else {
+                    $result = "previous_financial_year_not_closed";
+                }
 			}
 
 			echo json_encode(array('result' => $result));

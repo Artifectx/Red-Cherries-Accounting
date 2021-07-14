@@ -66,6 +66,7 @@ class Purchase_note_controller extends CI_Controller {
 		$this->load->model('organizationManagerModule/adminSection/locations_model', '', TRUE);
 		$this->load->model('organizationManagerModule/adminSection/google_analytics_model', '', TRUE);
 		$this->load->model('accountsManagerModule/adminSection/prime_entry_book_model', '', TRUE);
+        $this->load->model('accountsManagerModule/adminSection/financial_year_ends_model', '', TRUE);
 		$this->load->model('accountsManagerModule/bookkeepingSection/journal_entries_model', '', TRUE);
 		$this->load->model('accountsManagerModule/bookkeepingSection/purchase_note_model', '', TRUE);
         $this->load->model('accountsManagerModule/bookkeepingSection/make_payment_model', '', TRUE);
@@ -120,181 +121,207 @@ class Purchase_note_controller extends CI_Controller {
 										<h4><i class="icon-remove-sign"></i>Error</h4>',
 					'</div>');
 			} else {
-				$referenceNo = $this->db->escape_str($this->input->post('reference_no'));
-				$purchaseNoteDate = $this->db->escape_str($this->input->post('purchase_note_date'));
-				$supplierId = $this->db->escape_str($this->input->post('supplier_id'));
-				$locationId = $this->db->escape_str($this->input->post('location_id'));
-				$amount = $this->db->escape_str($this->input->post('amount'));
-				$type = $this->db->escape_str($this->input->post('type'));
-				$remark = preg_replace('~\\\n~',"\r\n", $this->db->escape_str($this->input->post('remark')));
+                
+                $currentDate = date('Y-m-d');
+                $year = date('Y', strtotime($currentDate));
 
-				$data = array(
-					'reference_no' => $referenceNo,
-					'date' => $purchaseNoteDate,
-					'supplier_id' => $supplierId,
-					'location_id' => $locationId,
-					'amount' => $amount,
-                    'balance_payment' => $amount,
-					'type' => $type,
-					'remark' => $remark,
-					'actioned_user_id' => $this->user_id,
-					'added_date' => $this->date,
-					'action_date' => $this->date,
-					'last_action_status' => 'added'
-				);
+                $financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
+                $financialYearStartDay = $this->system_configurations_model->getFinancialYearStartDayNo();
+                $financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
+                $financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
 
-				$purchaseNoteId = $this->purchase_note_model->add($data);
-				
-				$purchaseNoteJournalEntries = $this->purchase_note_model->getPurchaseNoteJournalEntries($purchaseNoteId);
-				
-				$correctChartOfAccountsFoundInPrimeEntryBooks = true;
+                $financialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 
-				$description = "";
-				if ($type == "product_purchase") {
-					$description = $this->lang->line('Journal entry for receiving sales items for Purchase Note number : ') . $referenceNo;
-					$primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForPurchaseNoteTransaction();
-				} else if ($type == "receive_free_issues") {
-					$description = $this->lang->line('Journal entry for receiving free items for Purchase Note number : ') . $referenceNo;
-					$primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForPurchaseNoteFreeIssuesTransaction();
-				}
+                if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($financialYearEndDateToCompare) < strtotime($currentDate)) {
+                    $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                } else {
+                    if ($financialYearStartMonth > 1 || $financialYearStartDay > 1) {
+                        $financialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                    } else {
+                        $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                    }
+                }
+            
+                if ($this->financial_year_ends_model->isPreviousFinancialYearClosed($financialYearStartDate)) {
+                
+                    $referenceNo = $this->db->escape_str($this->input->post('reference_no'));
+                    $purchaseNoteDate = $this->db->escape_str($this->input->post('purchase_note_date'));
+                    $supplierId = $this->db->escape_str($this->input->post('supplier_id'));
+                    $locationId = $this->db->escape_str($this->input->post('location_id'));
+                    $amount = $this->db->escape_str($this->input->post('amount'));
+                    $type = $this->db->escape_str($this->input->post('type'));
+                    $remark = preg_replace('~\\\n~',"\r\n", $this->db->escape_str($this->input->post('remark')));
 
-				if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-					if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-						foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-							$primeEntryBookId = $primeEntryBook->config_filed_value;
-							$primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                    $data = array(
+                        'reference_no' => $referenceNo,
+                        'date' => $purchaseNoteDate,
+                        'supplier_id' => $supplierId,
+                        'location_id' => $locationId,
+                        'amount' => $amount,
+                        'balance_payment' => $amount,
+                        'type' => $type,
+                        'remark' => $remark,
+                        'actioned_user_id' => $this->user_id,
+                        'added_date' => $this->date,
+                        'action_date' => $this->date,
+                        'last_action_status' => 'added'
+                    );
 
-							if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-								$correctChartOfAccountsFoundInPrimeEntryBooks = false;
-							}
-						}
-					}
-				}
-				
-				if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-					if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-						if (!$purchaseNoteJournalEntries) {
-							//Add journal entry records
-                            
-                            $shouldHaveAPaymentJournalEntry = "Yes";
-                            
-                            if ($type == "receive_free_issues") {
-                                $shouldHaveAPaymentJournalEntry = "No";
+                    $purchaseNoteId = $this->purchase_note_model->add($data);
+
+                    $purchaseNoteJournalEntries = $this->purchase_note_model->getPurchaseNoteJournalEntries($purchaseNoteId);
+
+                    $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+                    $description = "";
+                    if ($type == "product_purchase") {
+                        $description = $this->lang->line('Journal entry for receiving sales items for Purchase Note number : ') . $referenceNo;
+                        $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForPurchaseNoteTransaction();
+                    } else if ($type == "receive_free_issues") {
+                        $description = $this->lang->line('Journal entry for receiving free items for Purchase Note number : ') . $referenceNo;
+                        $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForPurchaseNoteFreeIssuesTransaction();
+                    }
+
+                    if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                }
                             }
+                        }
+                    }
 
-							if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-								foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-									$primeEntryBookId = $primeEntryBook->config_filed_value;
-									$data = array(
-										'prime_entry_book_id' => $primeEntryBookId,
-										'transaction_date' => $purchaseNoteDate,
-										'reference_no' => $referenceNo,
-										'should_have_a_payment_journal_entry' => $shouldHaveAPaymentJournalEntry,
-										'location_id' => $locationId,
-										'payee_payer_type' => "Supplier",
-										'payee_payer_id' => $supplierId,
-										'description' => $description,
-										'post_type' => "Indirect",
-										'actioned_user_id' => $this->user_id,
-										'action_date' => $this->date,
-										'last_action_status' => 'added'
-									);
+                    if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                            if (!$purchaseNoteJournalEntries) {
+                                //Add journal entry records
 
-									$journalEntryId = $this->journal_entries_model->addJournalEntry($data);
+                                $shouldHaveAPaymentJournalEntry = "Yes";
 
-									$data = array(
-										'purchase_note_id' => $purchaseNoteId,
-										'prime_entry_book_id' => $primeEntryBookId,
-										'journal_entry_id' => $journalEntryId,
-										'actioned_user_id' => $this->user_id,
-										'action_date' => $this->date,
-										'last_action_status' => 'added'
-									);
+                                if ($type == "receive_free_issues") {
+                                    $shouldHaveAPaymentJournalEntry = "No";
+                                }
 
-									$this->purchase_note_model->addPurchaseNoteJournalEntry($data);
+                                if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                    foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                        $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                        $data = array(
+                                            'prime_entry_book_id' => $primeEntryBookId,
+                                            'transaction_date' => $purchaseNoteDate,
+                                            'reference_no' => $referenceNo,
+                                            'should_have_a_payment_journal_entry' => $shouldHaveAPaymentJournalEntry,
+                                            'location_id' => $locationId,
+                                            'payee_payer_type' => "Supplier",
+                                            'payee_payer_id' => $supplierId,
+                                            'description' => $description,
+                                            'post_type' => "Indirect",
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'added'
+                                        );
 
-									$primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-									$amount = str_replace(',', '', $amount);
+                                        $journalEntryId = $this->journal_entries_model->addJournalEntry($data);
 
-									foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-										if ($chartOfAccount->debit_or_credit == "debit") {
-											$data = array(
-												'journal_entry_id' => $journalEntryId,
-												'prime_entry_book_id' => $primeEntryBookId,
-												'transaction_date' => $purchaseNoteDate,
-												'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-												'debit_value' => $amount,
-												'actioned_user_id' => $this->user_id,
-												'action_date' => $this->date,
-												'last_action_status' => 'added'
-											);
-										} else if ($chartOfAccount->debit_or_credit == "credit") {
-											$data = array(
-												'journal_entry_id' => $journalEntryId,
-												'prime_entry_book_id' => $primeEntryBookId,
-												'transaction_date' => $purchaseNoteDate,
-												'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-												'credit_value' => $amount,
-												'actioned_user_id' => $this->user_id,
-												'action_date' => $this->date,
-												'last_action_status' => 'added'
-											);
-										}
+                                        $data = array(
+                                            'purchase_note_id' => $purchaseNoteId,
+                                            'prime_entry_book_id' => $primeEntryBookId,
+                                            'journal_entry_id' => $journalEntryId,
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'added'
+                                        );
 
-										$this->journal_entries_model->addGeneralLedgerTransaction($data);
+                                        $this->purchase_note_model->addPurchaseNoteJournalEntry($data);
 
-										//Same time add the data to previous years record table.
-										$this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
-									}
-								}
-							}
-						} else if ($purchaseNoteJournalEntries && sizeof($purchaseNoteJournalEntries) > 0) {
-							//Get general ledger transactions to update new amount
-							foreach($purchaseNoteJournalEntries as $purchaseNoteJournalEntry) {
-								$purchaseNotePrimeEntryBookId = $purchaseNoteJournalEntry->prime_entry_book_id;
-								$purchaseNoteJournalEntryId = $purchaseNoteJournalEntry->journal_entry_id;
+                                        $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                                        $amount = str_replace(',', '', $amount);
 
-								$primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($purchaseNotePrimeEntryBookId);
-								$purchaseNoteGeneralLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryIdAndPrimeEntryBookId($purchaseNoteJournalEntryId, $purchaseNotePrimeEntryBookId);
-								$amount = str_replace(',', '', $amount);
+                                        foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+                                            if ($chartOfAccount->debit_or_credit == "debit") {
+                                                $data = array(
+                                                    'journal_entry_id' => $journalEntryId,
+                                                    'prime_entry_book_id' => $primeEntryBookId,
+                                                    'transaction_date' => $purchaseNoteDate,
+                                                    'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                    'debit_value' => $amount,
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'added'
+                                                );
+                                            } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                                $data = array(
+                                                    'journal_entry_id' => $journalEntryId,
+                                                    'prime_entry_book_id' => $primeEntryBookId,
+                                                    'transaction_date' => $purchaseNoteDate,
+                                                    'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                    'credit_value' => $amount,
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'added'
+                                                );
+                                            }
 
-								foreach($primeEntryBookChartOfAccounts as $primeEntryBookChartOfAccount) {
-									foreach($purchaseNoteGeneralLedgerTransactions as $purchaseNoteGeneralLedgerTransaction) {
-										if ($purchaseNoteGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'debit') {
-											$data = array(
-												'debit_value' => $purchaseNoteGeneralLedgerTransaction->debit_value + $amount,
-												'actioned_user_id' => $this->user_id,
-												'action_date' => $this->date,
-												'last_action_status' => 'edited'
-											);
+                                            $this->journal_entries_model->addGeneralLedgerTransaction($data);
 
-											$this->journal_entries_model->editGeneralLedgerTransaction($purchaseNoteJournalEntryId, $purchaseNoteGeneralLedgerTransaction->chart_of_account_id, $data);
+                                            //Same time add the data to previous years record table.
+                                            $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
+                                        }
+                                    }
+                                }
+                            } else if ($purchaseNoteJournalEntries && sizeof($purchaseNoteJournalEntries) > 0) {
+                                //Get general ledger transactions to update new amount
+                                foreach($purchaseNoteJournalEntries as $purchaseNoteJournalEntry) {
+                                    $purchaseNotePrimeEntryBookId = $purchaseNoteJournalEntry->prime_entry_book_id;
+                                    $purchaseNoteJournalEntryId = $purchaseNoteJournalEntry->journal_entry_id;
 
-											//Same time edit the data in previous years record table.
-											$this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($purchaseNoteJournalEntryId, $purchaseNoteGeneralLedgerTransaction->chart_of_account_id, $data);
-										} else if ($purchaseNoteGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'credit') {
-											$data = array(
-												'credit_value' => $purchaseNoteGeneralLedgerTransaction->credit_value + $amount,
-												'actioned_user_id' => $this->user_id,
-												'action_date' => $this->date,
-												'last_action_status' => 'edited'
-											);
+                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($purchaseNotePrimeEntryBookId);
+                                    $purchaseNoteGeneralLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryIdAndPrimeEntryBookId($purchaseNoteJournalEntryId, $purchaseNotePrimeEntryBookId);
+                                    $amount = str_replace(',', '', $amount);
 
-											$this->journal_entries_model->editGeneralLedgerTransaction($purchaseNoteJournalEntryId, $purchaseNoteGeneralLedgerTransaction->chart_of_account_id, $data);
+                                    foreach($primeEntryBookChartOfAccounts as $primeEntryBookChartOfAccount) {
+                                        foreach($purchaseNoteGeneralLedgerTransactions as $purchaseNoteGeneralLedgerTransaction) {
+                                            if ($purchaseNoteGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'debit') {
+                                                $data = array(
+                                                    'debit_value' => $purchaseNoteGeneralLedgerTransaction->debit_value + $amount,
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'edited'
+                                                );
 
-											//Same time edit the data in previous years record table.
-											$this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($purchaseNoteJournalEntryId, $purchaseNoteGeneralLedgerTransaction->chart_of_account_id, $data);
-										}
-									}
-								}
-							}
-						}
-					} 
-				}else {
-					$result = 'incorrect_prime_entry_book_selected_for_purchase_note_transaction';
-				}
+                                                $this->journal_entries_model->editGeneralLedgerTransaction($purchaseNoteJournalEntryId, $purchaseNoteGeneralLedgerTransaction->chart_of_account_id, $data);
 
-				$result = 'ok';
+                                                //Same time edit the data in previous years record table.
+                                                $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($purchaseNoteJournalEntryId, $purchaseNoteGeneralLedgerTransaction->chart_of_account_id, $data);
+                                            } else if ($purchaseNoteGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'credit') {
+                                                $data = array(
+                                                    'credit_value' => $purchaseNoteGeneralLedgerTransaction->credit_value + $amount,
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'edited'
+                                                );
+
+                                                $this->journal_entries_model->editGeneralLedgerTransaction($purchaseNoteJournalEntryId, $purchaseNoteGeneralLedgerTransaction->chart_of_account_id, $data);
+
+                                                //Same time edit the data in previous years record table.
+                                                $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($purchaseNoteJournalEntryId, $purchaseNoteGeneralLedgerTransaction->chart_of_account_id, $data);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } 
+                    }else {
+                        $result = 'incorrect_prime_entry_book_selected_for_purchase_note_transaction';
+                    }
+
+                    $result = 'ok';
+                } else {
+                    $result = "previous_financial_year_not_closed";
+                }
 			}
 
 			echo json_encode(array('result' => $result));

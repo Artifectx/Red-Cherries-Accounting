@@ -30,7 +30,7 @@ if ($show_footer) { ?>
 
         Red Cherries Accounting Version <?php echo $version_no ?>
         <br>
-        Copyright © 2020 Red Cherries Accounting By Artifectx
+        Copyright © 2021 Red Cherries Accounting By Artifectx
 
 
   </footer>

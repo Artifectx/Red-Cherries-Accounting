@@ -66,6 +66,7 @@ class Supplier_return_note_controller extends CI_Controller {
 		$this->load->model('organizationManagerModule/adminSection/locations_model', '', TRUE);
 		$this->load->model('organizationManagerModule/adminSection/google_analytics_model', '', TRUE);
 		$this->load->model('accountsManagerModule/adminSection/prime_entry_book_model', '', TRUE);
+        $this->load->model('accountsManagerModule/adminSection/financial_year_ends_model', '', TRUE);
 		$this->load->model('accountsManagerModule/bookkeepingSection/journal_entries_model', '', TRUE);
 		$this->load->model('accountsManagerModule/bookkeepingSection/supplier_return_note_model', '', TRUE);
         $this->load->model('accountsManagerModule/bookkeepingSection/make_payment_model', '', TRUE);
@@ -120,73 +121,99 @@ class Supplier_return_note_controller extends CI_Controller {
 										<h4><i class="icon-remove-sign"></i>Error</h4>',
 					'</div>');
 			} else {
-				$referenceNo = $this->db->escape_str($this->input->post('reference_no'));
-				$supplierReturnNoteDate = $this->db->escape_str($this->input->post('supplier_return_note_date'));
-				$supplierId = $this->db->escape_str($this->input->post('supplier_id'));
-				$locationId = $this->db->escape_str($this->input->post('location_id'));
-				$supplierReturnAmount = $this->db->escape_str($this->input->post('supplier_return_amount'));
-				$type = $this->db->escape_str($this->input->post('type'));
-				$remark = preg_replace('~\\\n~',"\r\n", $this->db->escape_str($this->input->post('remark')));
-				
-				$salesProfitMargin = $this->getSalesProfitMargin();
-				$salesCost = $supplierReturnAmount - ($supplierReturnAmount/100) * $salesProfitMargin;
+                
+                $currentDate = date('Y-m-d');
+                $year = date('Y', strtotime($currentDate));
 
-				$data = array(
-					'reference_no' => $referenceNo,
-					'date' => $supplierReturnNoteDate,
-					'supplier_id' => $supplierId,
-					'location_id' => $locationId,
-					'amount' => $supplierReturnAmount,
-                    'balance_payment' => $supplierReturnAmount,
-					'type' => $type,
-					'remark' => $remark,
-					'actioned_user_id' => $this->user_id,
-					'added_date' => $this->date,
-					'action_date' => $this->date,
-					'last_action_status' => 'added'
-				);
+                $financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
+                $financialYearStartDay = $this->system_configurations_model->getFinancialYearStartDayNo();
+                $financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
+                $financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
 
-				$supplierReturnNoteId = $this->supplier_return_note_model->add($data);
-				
-				$correctChartOfAccountsFoundInPrimeEntryBooks = true;
-				$primeEntryBooksToUpdate = '';
-				
-				if ($type == "saleable_return") {
-					$supplierSaleableReturnNoteJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '1');
-					
-					$primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForSupplierSaleableReturnNoteTransaction();
-				} else if ($type == "market_return") {
-					$supplierMarketReturnNoteSalesJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '2');
-					
-					$primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForSupplierMarketReturnNoteTransaction();
-				}
-				
-				if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-					if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-						foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-							$primeEntryBookId = $primeEntryBook->config_filed_value;
-							$primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                $financialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 
-							if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-								$correctChartOfAccountsFoundInPrimeEntryBooks = false;
-							}
-						}
-					}
-				}
-				
-				if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-					if ($type == "saleable_return") {
-						$description = $this->lang->line('Journal entry for saleable return for Supplier Return Note number : ') . $referenceNo;
-						$this->postJournalEntries($primeEntryBooksToUpdate, $supplierReturnNoteId, $supplierSaleableReturnNoteJournalEntries, '1', $supplierReturnNoteDate, $referenceNo, $locationId, $supplierId, $supplierReturnAmount, '0', $description);
-					} else if ($type == "market_return") {
-						$description = $this->lang->line('Journal entry for market return for Supplier Return Note number : ') . $referenceNo;
-						$this->postJournalEntries($primeEntryBooksToUpdate, $supplierReturnNoteId, $supplierMarketReturnNoteSalesJournalEntries, '2', $supplierReturnNoteDate, $referenceNo, $locationId, $supplierId, $supplierReturnAmount, '0', $description);
-					}
-				}else {
-					$result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
-				}
+                if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($financialYearEndDateToCompare) < strtotime($currentDate)) {
+                    $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                } else {
+                    if ($financialYearStartMonth > 1 || $financialYearStartDay > 1) {
+                        $financialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                    } else {
+                        $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                    }
+                }
+            
+                if ($this->financial_year_ends_model->isPreviousFinancialYearClosed($financialYearStartDate)) {
+                
+                    $referenceNo = $this->db->escape_str($this->input->post('reference_no'));
+                    $supplierReturnNoteDate = $this->db->escape_str($this->input->post('supplier_return_note_date'));
+                    $supplierId = $this->db->escape_str($this->input->post('supplier_id'));
+                    $locationId = $this->db->escape_str($this->input->post('location_id'));
+                    $supplierReturnAmount = $this->db->escape_str($this->input->post('supplier_return_amount'));
+                    $type = $this->db->escape_str($this->input->post('type'));
+                    $remark = preg_replace('~\\\n~',"\r\n", $this->db->escape_str($this->input->post('remark')));
 
-				$result = 'ok';
+                    $salesProfitMargin = $this->getSalesProfitMargin();
+                    $salesCost = $supplierReturnAmount - ($supplierReturnAmount/100) * $salesProfitMargin;
+
+                    $data = array(
+                        'reference_no' => $referenceNo,
+                        'date' => $supplierReturnNoteDate,
+                        'supplier_id' => $supplierId,
+                        'location_id' => $locationId,
+                        'amount' => $supplierReturnAmount,
+                        'balance_payment' => $supplierReturnAmount,
+                        'type' => $type,
+                        'remark' => $remark,
+                        'actioned_user_id' => $this->user_id,
+                        'added_date' => $this->date,
+                        'action_date' => $this->date,
+                        'last_action_status' => 'added'
+                    );
+
+                    $supplierReturnNoteId = $this->supplier_return_note_model->add($data);
+
+                    $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+                    $primeEntryBooksToUpdate = '';
+
+                    if ($type == "saleable_return") {
+                        $supplierSaleableReturnNoteJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '1');
+
+                        $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForSupplierSaleableReturnNoteTransaction();
+                    } else if ($type == "market_return") {
+                        $supplierMarketReturnNoteSalesJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '2');
+
+                        $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForSupplierMarketReturnNoteTransaction();
+                    }
+
+                    if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                }
+                            }
+                        }
+                    }
+
+                    if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                        if ($type == "saleable_return") {
+                            $description = $this->lang->line('Journal entry for saleable return for Supplier Return Note number : ') . $referenceNo;
+                            $this->postJournalEntries($primeEntryBooksToUpdate, $supplierReturnNoteId, $supplierSaleableReturnNoteJournalEntries, '1', $supplierReturnNoteDate, $referenceNo, $locationId, $supplierId, $supplierReturnAmount, '0', $description);
+                        } else if ($type == "market_return") {
+                            $description = $this->lang->line('Journal entry for market return for Supplier Return Note number : ') . $referenceNo;
+                            $this->postJournalEntries($primeEntryBooksToUpdate, $supplierReturnNoteId, $supplierMarketReturnNoteSalesJournalEntries, '2', $supplierReturnNoteDate, $referenceNo, $locationId, $supplierId, $supplierReturnAmount, '0', $description);
+                        }
+                    }else {
+                        $result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
+                    }
+
+                    $result = 'ok';
+                } else {
+                    $result = "previous_financial_year_not_closed";
+                }
 			}
 
 			echo json_encode(array('result' => $result));

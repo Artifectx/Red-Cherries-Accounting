@@ -94,6 +94,17 @@
 									</li>
 									<?php
 								}
+                                
+                                if(isset($ACM_Admin_View_Financial_Year_Ends_Permissions)) {
+									?>
+									<li class='<?php if ($li_class_financial_year_ends) echo $li_class_financial_year_ends; else ''; ?>'>
+										<a href='<?php echo base_url(); ?>accountsManagerModule/adminSection/financial_year_ends_controller'>
+											<i class='icon-caret-right'></i>
+											<span><?php echo $this->lang->line('Financial Year Ends') ?></span>
+										</a>
+									</li>
+									<?php
+								}
 
 								if(isset($ACM_Admin_View_System_Configurations_Permissions)) {
 									?>

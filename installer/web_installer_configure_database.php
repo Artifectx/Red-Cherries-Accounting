@@ -56,7 +56,7 @@
 			</fieldset>
 		</form>
 		<div class="copy_right">
-			Copyright © 2020 Red Cherries Accounting Version <?php echo $_GET['version']; ?> By Artifectx
+			Copyright © 2021 Red Cherries Accounting Version <?php echo $_GET['version']; ?> By Artifectx
 		</div>
 	</body>
 </html>

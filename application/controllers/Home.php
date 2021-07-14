@@ -20,7 +20,7 @@
  */
 
 defined('BASEPATH') OR exit('No direct script access allowed');
-define("Version", "1.0 Beta 2");
+define("Version", "1.0 Beta 3");
 
 class Home extends CI_Controller {
 

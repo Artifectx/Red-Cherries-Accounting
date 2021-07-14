@@ -337,6 +337,26 @@ class Journal_entries_model extends CI_Model {
 			return false;
 		}
 	}
+    
+    public function getPreviousYearsGeneralLedgerTransactionsByJournalEntryId($id, $chartOfAccountId=null, $transactionComplete=null) {
+		$this->db->where('journal_entry_id', $id);
+		
+		if ($chartOfAccountId !='') {
+			$this->db->where('chart_of_account_id', $chartOfAccountId);
+		}
+		
+		if ($transactionComplete !='') {
+			$this->db->where('transaction_complete', $transactionComplete);
+		}
+		
+		$this->db->limit(100000);
+		$query = $this->db->get('acm_bookkeeping_gl_transactions_for_previous_years');
+		if ($query->num_rows() > 0) {
+			return $query->result();
+		} else {
+			return false;
+		}
+	}
 
 	public function getAllGeneralLedgerEntries($defaultSearchFromDate, $defaultSearchToDate, $order_field, $order_type, $fromDate=null, $toDate=null, $primeEntryBookId=null, $chartOfAccountId=null, $locationId=null) {
 		$this->db->order_by('acm_bookkeeping_gl_transactions.' . $order_field, $order_type);
@@ -874,6 +894,16 @@ class Journal_entries_model extends CI_Model {
         $this->db->where('acm_bookkeeping_journal_entries.last_action_status !=','deleted');
 		$query = $this->db->get('acm_bookkeeping_journal_entries');
 		if ($query->num_rows() > 0) {
+			return $query->result();
+		} else {
+			return false;
+		}
+    }
+    
+    public function getTheVeryFirstJournalEntry() {
+        $this->db->limit(1);
+        $query = $this->db->get('acm_bookkeeping_journal_entries');
+		if ($query->num_rows() == 1) {
 			return $query->result();
 		} else {
 			return false;

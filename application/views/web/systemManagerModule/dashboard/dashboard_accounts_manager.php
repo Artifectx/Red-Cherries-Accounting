@@ -380,6 +380,19 @@
 																		</li>
 																		<?php
 																	}
+                                                                    if(isset($ACM_Admin_View_Financial_Year_Ends_Permissions)) {
+																		?>
+																		<li>
+																			<a class="tip"
+																			   href="<?php echo base_url(); ?>accountsManagerModule/adminSection/financial_year_ends_controller"
+																			   title="<?php echo $this->lang->line('Financial Year Ends') ?>">
+																				<i><img src="<?php echo base_url(); ?>assets/images/icons/financial_year_ends.png"
+																						alt=""/></i>
+																				<span><span><?php echo $this->lang->line('Financial Year Ends') ?></span></span>
+																			</a>
+																		</li>
+																		<?php
+																	}
 																	if (isset($ACM_Admin_View_System_Configurations_Permissions)) {
 																		?>
 																		<li>
