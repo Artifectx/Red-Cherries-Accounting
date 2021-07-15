@@ -263,7 +263,9 @@ class Customer_return_note_controller extends CI_Controller {
 
 	public function editCustomerReturnNoteData() {
 		if(isset($this->data['ACM_Bookkeeping_Edit_Customer_Return_Note_Permissions'])) {
+            
 			$salesNoteId = '';
+            
 			if ($this->form_validation->run() == FALSE) {echo "Test";die;
 				$result = validation_errors('<div class="alert alert-danger alert-dismissable">
 										<a class="close" data-dismiss="alert" href="#">&times;</a>
@@ -277,222 +279,231 @@ class Customer_return_note_controller extends CI_Controller {
 				$customerReturnNoteDateChanged = false;
 				$typeChanged = false;
 				$amountChanged = false;
-				$typeChanged = false;
 				$remarkChanged = false;
 
 				//Read New Customer Return Note Data
 				$customerReturnNoteId = $this->db->escape_str($this->input->post('id'));
-				$referenceNo = $this->db->escape_str($this->input->post('reference_no'));
-				$customerReturnNoteDate = $this->db->escape_str($this->input->post('customer_return_note_date'));
-				$deliveryRouteId = $this->db->escape_str($this->input->post('delivery_route_id'));
-				$customerId = $this->db->escape_str($this->input->post('customer_id'));
-				$territoryId = $this->db->escape_str($this->input->post('territory_id'));
-				$locationId = $this->db->escape_str($this->input->post('location_id'));
-				$type = $this->db->escape_str($this->input->post('type'));
-				$amount = $this->db->escape_str($this->input->post('customer_return_amount'));
-				$remark = $this->db->escape_str($this->input->post('remark'));
-				$remark = preg_replace('~\\\n~',"\r\n", $remark);
-				
-				$salesProfitMargin = $this->getSalesProfitMargin();
-				$CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId = $this->system_configurations_model->getCustomerMarketReturnCostEntryProfitMarginCreditChartOfAccount();
-
-				$customerReturnNote = $this->customer_return_note_model->getCustomerReturnNoteById($customerReturnNoteId);
-				$oldAmount = $customerReturnNote[0]->amount;
-				
-                $profitPortionOld = 0;
                 
-				if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
-					$profitPortionOld = ($oldAmount/100) * $salesProfitMargin;
-					$costOldAmount = $oldAmount;
-				} else {
-					$costOldAmount = $oldAmount - ($oldAmount/100) * $salesProfitMargin;
-				}
-				$oldType = $customerReturnNote[0]->type;
+                $customerReturnNote = $this->customer_return_note_model->getCustomerReturnNoteById($customerReturnNoteId);
+                $customerReturnNoteTransactionDate = $customerReturnNote[0]->date;
+                
+                $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($customerReturnNoteTransactionDate);
+                
+                if ($financialYear[0]->year_end_process_status != "Closed") {
+                
+                    $referenceNo = $this->db->escape_str($this->input->post('reference_no'));
+                    $customerReturnNoteDate = $this->db->escape_str($this->input->post('customer_return_note_date'));
+                    $deliveryRouteId = $this->db->escape_str($this->input->post('delivery_route_id'));
+                    $customerId = $this->db->escape_str($this->input->post('customer_id'));
+                    $territoryId = $this->db->escape_str($this->input->post('territory_id'));
+                    $locationId = $this->db->escape_str($this->input->post('location_id'));
+                    $type = $this->db->escape_str($this->input->post('type'));
+                    $amount = $this->db->escape_str($this->input->post('customer_return_amount'));
+                    $remark = $this->db->escape_str($this->input->post('remark'));
+                    $remark = preg_replace('~\\\n~',"\r\n", $remark);
 
-				if ($customerReturnNote[0]->reference_no != $referenceNo) {$referenceNoChanged = true;}
-				if ($customerReturnNote[0]->customer_id != $customerId) {$customerChanged = true;}
-				if ($customerReturnNote[0]->territory_id != $territoryId) {$territoryChanged = true;}
-				if ($customerReturnNote[0]->location_id != $locationId) {$locationChanged = true;}
-				if ($customerReturnNote[0]->date != $customerReturnNoteDate) {$customerReturnNoteDateChanged = true;}
-				if ($customerReturnNote[0]->amount != $amount) {$amountChanged = true;}
-				if ($customerReturnNote[0]->type != $type) {$typeChanged = true;}
-				if ($customerReturnNote[0]->remark != $remark) {$remarkChanged = true;}
+                    $salesProfitMargin = $this->getSalesProfitMargin();
+                    $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId = $this->system_configurations_model->getCustomerMarketReturnCostEntryProfitMarginCreditChartOfAccount();
 
-				if ($referenceNoChanged || $customerChanged || $territoryChanged || $locationChanged || $customerReturnNoteDateChanged || $typeChanged || $amountChanged || $remarkChanged) {
+                    $oldAmount = $customerReturnNote[0]->amount;
 
-					$customerReturnNoteDataHistory = array(
-						'customer_return_note_id' => $customerReturnNote[0]->customer_return_note_id,
-						'reference_no' => $customerReturnNote[0]->reference_no,
-						'delivery_route_id' => $customerReturnNote[0]->delivery_route_id,
-						'customer_id' => $customerReturnNote[0]->customer_id,
-						'territory_id' => $customerReturnNote[0]->territory_id,
-						'location_id' => $customerReturnNote[0]->location_id,
-						'date' => $customerReturnNote[0]->date,
-						'amount' => $customerReturnNote[0]->amount,
-                        'cash_payment_amount' => $customerReturnNote[0]->cash_payment_amount,
-                        'cheque_payment_amount' => $customerReturnNote[0]->cheque_payment_amount,
-                        'credit_card_payment_amount' => $customerReturnNote[0]->credit_card_payment_amount,
-                        'balance_payment' => $customerReturnNote[0]->balance_payment,
-                        'sales_note_claimed' => $customerReturnNote[0]->sales_note_claimed,
-						'type' => $customerReturnNote[0]->type,
-						'remark' => $customerReturnNote[0]->remark,
-						'actioned_user_id' => $customerReturnNote[0]->actioned_user_id,
-						'added_date' => $customerReturnNote[0]->added_date,
-						'action_date' => $customerReturnNote[0]->action_date,
-						'last_action_status' => $customerReturnNote[0]->last_action_status,
-					);
+                    $profitPortionOld = 0;
 
-					$this->customer_return_note_model->addCustomerReturnNoteDataToHistory($customerReturnNoteDataHistory);
+                    if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
+                        $profitPortionOld = ($oldAmount/100) * $salesProfitMargin;
+                        $costOldAmount = $oldAmount;
+                    } else {
+                        $costOldAmount = $oldAmount - ($oldAmount/100) * $salesProfitMargin;
+                    }
+                    $oldType = $customerReturnNote[0]->type;
 
-                    $balancePayment = $customerReturnNote[0]->balance_payment;
-                    $customerReturnNoteAmountChange = $amount - $customerReturnNote[0]->amount;
-                    $balancePayment = $balancePayment + $customerReturnNoteAmountChange;
-                    
-					$customerReturnNoteDatanew = array(
-						'reference_no' => $referenceNo,
-						'delivery_route_id' => $deliveryRouteId,
-						'customer_id' => $customerId,
-						'territory_id' => $territoryId,
-						'location_id' => $locationId,
-						'date' => $customerReturnNoteDate,
-						'amount' => $amount,
-                        'balance_payment' => $balancePayment,
-						'type' => $type,
-						'remark' => $remark,
-						'actioned_user_id' => $this->user_id,
-						'action_date' => $this->date,
-						'last_action_status' => 'edited'
-					);
+                    if ($customerReturnNote[0]->reference_no != $referenceNo) {$referenceNoChanged = true;}
+                    if ($customerReturnNote[0]->customer_id != $customerId) {$customerChanged = true;}
+                    if ($customerReturnNote[0]->territory_id != $territoryId) {$territoryChanged = true;}
+                    if ($customerReturnNote[0]->location_id != $locationId) {$locationChanged = true;}
+                    if ($customerReturnNote[0]->date != $customerReturnNoteDate) {$customerReturnNoteDateChanged = true;}
+                    if ($customerReturnNote[0]->amount != $amount) {$amountChanged = true;}
+                    if ($customerReturnNote[0]->type != $type) {$typeChanged = true;}
+                    if ($customerReturnNote[0]->remark != $remark) {$remarkChanged = true;}
 
-					$this->customer_return_note_model->editCustomerReturnNoteData($customerReturnNoteId, $customerReturnNoteDatanew);
-					
-					if (!$typeChanged) {
-						if ($type == "saleable_return") {
-							$customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
-							$customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
+                    if ($referenceNoChanged || $customerChanged || $territoryChanged || $locationChanged || $customerReturnNoteDateChanged || $typeChanged || $amountChanged || $remarkChanged) {
 
-							$primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteSalesEntryTransaction();
-							$primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteCostEntryTransaction();
+                        $customerReturnNoteDataHistory = array(
+                            'customer_return_note_id' => $customerReturnNote[0]->customer_return_note_id,
+                            'reference_no' => $customerReturnNote[0]->reference_no,
+                            'delivery_route_id' => $customerReturnNote[0]->delivery_route_id,
+                            'customer_id' => $customerReturnNote[0]->customer_id,
+                            'territory_id' => $customerReturnNote[0]->territory_id,
+                            'location_id' => $customerReturnNote[0]->location_id,
+                            'date' => $customerReturnNote[0]->date,
+                            'amount' => $customerReturnNote[0]->amount,
+                            'cash_payment_amount' => $customerReturnNote[0]->cash_payment_amount,
+                            'cheque_payment_amount' => $customerReturnNote[0]->cheque_payment_amount,
+                            'credit_card_payment_amount' => $customerReturnNote[0]->credit_card_payment_amount,
+                            'balance_payment' => $customerReturnNote[0]->balance_payment,
+                            'sales_note_claimed' => $customerReturnNote[0]->sales_note_claimed,
+                            'type' => $customerReturnNote[0]->type,
+                            'remark' => $customerReturnNote[0]->remark,
+                            'actioned_user_id' => $customerReturnNote[0]->actioned_user_id,
+                            'added_date' => $customerReturnNote[0]->added_date,
+                            'action_date' => $customerReturnNote[0]->action_date,
+                            'last_action_status' => $customerReturnNote[0]->last_action_status,
+                        );
 
-							$description = $this->lang->line('Journal entry for saleable return sales entry for Customer Return Note number : ') . $referenceNo;
-							$this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $customerReturnNoteId, $customerSaleableReturnNoteSalesEntryJournalEntries, '1', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $amount, $oldAmount, $description);
+                        $this->customer_return_note_model->addCustomerReturnNoteDataToHistory($customerReturnNoteDataHistory);
 
-							$costAmount = $amount - ($amount/100) * $salesProfitMargin;
+                        $balancePayment = $customerReturnNote[0]->balance_payment;
+                        $customerReturnNoteAmountChange = $amount - $customerReturnNote[0]->amount;
+                        $balancePayment = $balancePayment + $customerReturnNoteAmountChange;
 
-							$description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $referenceNo;
-							$this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $salesNoteId, $customerSaleableReturnNoteCostEntryJournalEntries, '2', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $costAmount, $costOldAmount, $description);
-						} else if ($type == "market_return") {
-							$customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '3');
-							$customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '4');
+                        $customerReturnNoteDatanew = array(
+                            'reference_no' => $referenceNo,
+                            'delivery_route_id' => $deliveryRouteId,
+                            'customer_id' => $customerId,
+                            'territory_id' => $territoryId,
+                            'location_id' => $locationId,
+                            'date' => $customerReturnNoteDate,
+                            'amount' => $amount,
+                            'balance_payment' => $balancePayment,
+                            'type' => $type,
+                            'remark' => $remark,
+                            'actioned_user_id' => $this->user_id,
+                            'action_date' => $this->date,
+                            'last_action_status' => 'edited'
+                        );
 
-							$primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteSalesEntryTransaction();
-							$primeEntryBooksToUpdateForCustomerMarketReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteCostEntryTransaction();
+                        $this->customer_return_note_model->editCustomerReturnNoteData($customerReturnNoteId, $customerReturnNoteDatanew);
 
-							$description = $this->lang->line('Journal entry for market return sales entry for Customer Return Note number : ') . $referenceNo;
-							$this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $customerReturnNoteId, $customerMarketReturnNoteSalesEntryJournalEntries, '3', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $amount, $oldAmount, $description);
+                        if (!$typeChanged) {
+                            if ($type == "saleable_return") {
+                                $customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
+                                $customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
 
-                            $profitPortion = 0;
-                            
-							if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
-								$profitPortion = ($amount/100) * $salesProfitMargin;
-								$costAmount = $amount;
-							} else {
-								$costAmount = $amount - ($amount/100) * $salesProfitMargin;
-							}
+                                $primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteSalesEntryTransaction();
+                                $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteCostEntryTransaction();
 
-							$description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $referenceNo;
-							$this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $salesNoteId, $customerMarketReturnNoteCostEntryJournalEntries, '4', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $costAmount, $costOldAmount, $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, $profitPortionOld);
-						}
-					} else {
-						if ($oldType == "saleable_return") {
-							$customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
-							$customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
+                                $description = $this->lang->line('Journal entry for saleable return sales entry for Customer Return Note number : ') . $referenceNo;
+                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $customerReturnNoteId, $customerSaleableReturnNoteSalesEntryJournalEntries, '1', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $amount, $oldAmount, $description);
 
-							$status = "deleted";
-							if ($customerSaleableReturnNoteSalesEntryJournalEntries && sizeof($customerSaleableReturnNoteSalesEntryJournalEntries) > 0) {
-								//Delete all journal entries of Customer Return Note
-								foreach($customerSaleableReturnNoteSalesEntryJournalEntries as $customerSaleableReturnNoteSalesEntryJournalEntry) {
-									$customerSaleableReturnNoteSalesEntryJournalEntryId = $customerSaleableReturnNoteSalesEntryJournalEntry->journal_entry_id;
-									$this->journal_entries_model->deleteJournalEntry($customerSaleableReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
-									$this->journal_entries_model->deleteGeneralLedgerTransactions($customerSaleableReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
-								}
-							}
+                                $costAmount = $amount - ($amount/100) * $salesProfitMargin;
 
-							if ($customerSaleableReturnNoteCostEntryJournalEntries && sizeof($customerSaleableReturnNoteCostEntryJournalEntries) > 0) {
-								//Delete all journal entries of Customer Return Note
-								foreach($customerSaleableReturnNoteCostEntryJournalEntries as $customerSaleableReturnNoteCostEntryJournalEntry) {
-									$customerSaleableReturnNoteCostEntryJournalEntryId = $customerSaleableReturnNoteCostEntryJournalEntry->journal_entry_id;
-									$this->journal_entries_model->deleteJournalEntry($customerSaleableReturnNoteCostEntryJournalEntryId, $status, $this->user_id);
-									$this->journal_entries_model->deleteGeneralLedgerTransactions($customerSaleableReturnNoteCostEntryJournalEntryId, $status, $this->user_id);
-								}
-							}
-							
-							$customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '3');
-							$customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '4');
+                                $description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $referenceNo;
+                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $salesNoteId, $customerSaleableReturnNoteCostEntryJournalEntries, '2', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $costAmount, $costOldAmount, $description);
+                            } else if ($type == "market_return") {
+                                $customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '3');
+                                $customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '4');
 
-							$primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteSalesEntryTransaction();
-							$primeEntryBooksToUpdateForCustomerMarketReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteCostEntryTransaction();
+                                $primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteSalesEntryTransaction();
+                                $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteCostEntryTransaction();
 
-							$description = $this->lang->line('Journal entry for saleable return sales entry for Customer Return Note number : ') . $referenceNo;
-							$this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $customerReturnNoteId, $customerMarketReturnNoteSalesEntryJournalEntries, '3', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $amount, $oldAmount, $description);
+                                $description = $this->lang->line('Journal entry for market return sales entry for Customer Return Note number : ') . $referenceNo;
+                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $customerReturnNoteId, $customerMarketReturnNoteSalesEntryJournalEntries, '3', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $amount, $oldAmount, $description);
 
-							$salesProfitMargin = $this->getSalesProfitMargin();
-							$costAmount = $amount - ($amount/100) * $salesProfitMargin;
+                                $profitPortion = 0;
 
-							$description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $referenceNo;
-							$this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $salesNoteId, $customerMarketReturnNoteCostEntryJournalEntries, '4', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $costAmount, $costOldAmount, $description);
-						} else if ($oldType == "market_return") {
-							$customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
-							$customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
+                                if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
+                                    $profitPortion = ($amount/100) * $salesProfitMargin;
+                                    $costAmount = $amount;
+                                } else {
+                                    $costAmount = $amount - ($amount/100) * $salesProfitMargin;
+                                }
 
-							$status = "deleted";
-							if ($customerMarketReturnNoteSalesEntryJournalEntries && sizeof($customerMarketReturnNoteSalesEntryJournalEntries) > 0) {
-								//Delete all journal entries of Customer Return Note
-								foreach($customerMarketReturnNoteSalesEntryJournalEntries as $customerMarketReturnNoteSalesEntryJournalEntry) {
-									$customerMarketReturnNoteSalesEntryJournalEntryId = $customerMarketReturnNoteSalesEntryJournalEntry->journal_entry_id;
-									$this->journal_entries_model->deleteJournalEntry($customerMarketReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
-									$this->journal_entries_model->deleteGeneralLedgerTransactions($customerMarketReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
-								}
-							}
+                                $description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $referenceNo;
+                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $salesNoteId, $customerMarketReturnNoteCostEntryJournalEntries, '4', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $costAmount, $costOldAmount, $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, $profitPortionOld);
+                            }
+                        } else {
+                            if ($oldType == "saleable_return") {
+                                $customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
+                                $customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
 
-							if ($customerMarketReturnNoteCostEntryJournalEntries && sizeof($customerMarketReturnNoteCostEntryJournalEntries) > 0) {
-								//Delete all journal entries of Customer Return Note
-								foreach($customerMarketReturnNoteCostEntryJournalEntries as $customerMarketReturnNoteCostEntryJournalEntry) {
-									$customerMarketReturnNoteCostEntryJournalEntryId = $customerMarketReturnNoteCostEntryJournalEntry->journal_entry_id;
-									$this->journal_entries_model->deleteJournalEntry($customerMarketReturnNoteCostEntryJournalEntryId, $status, $this->user_id);
-									$this->journal_entries_model->deleteGeneralLedgerTransactions($customerMarketReturnNoteCostEntryJournalEntryId, $status, $this->user_id);
-								}
-							}
-							
-							$customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
-							$customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
+                                $status = "deleted";
+                                if ($customerSaleableReturnNoteSalesEntryJournalEntries && sizeof($customerSaleableReturnNoteSalesEntryJournalEntries) > 0) {
+                                    //Delete all journal entries of Customer Return Note
+                                    foreach($customerSaleableReturnNoteSalesEntryJournalEntries as $customerSaleableReturnNoteSalesEntryJournalEntry) {
+                                        $customerSaleableReturnNoteSalesEntryJournalEntryId = $customerSaleableReturnNoteSalesEntryJournalEntry->journal_entry_id;
+                                        $this->journal_entries_model->deleteJournalEntry($customerSaleableReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                                        $this->journal_entries_model->deleteGeneralLedgerTransactions($customerSaleableReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                                    }
+                                }
 
-							$primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteSalesEntryTransaction();
-							$primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteCostEntryTransaction();
+                                if ($customerSaleableReturnNoteCostEntryJournalEntries && sizeof($customerSaleableReturnNoteCostEntryJournalEntries) > 0) {
+                                    //Delete all journal entries of Customer Return Note
+                                    foreach($customerSaleableReturnNoteCostEntryJournalEntries as $customerSaleableReturnNoteCostEntryJournalEntry) {
+                                        $customerSaleableReturnNoteCostEntryJournalEntryId = $customerSaleableReturnNoteCostEntryJournalEntry->journal_entry_id;
+                                        $this->journal_entries_model->deleteJournalEntry($customerSaleableReturnNoteCostEntryJournalEntryId, $status, $this->user_id);
+                                        $this->journal_entries_model->deleteGeneralLedgerTransactions($customerSaleableReturnNoteCostEntryJournalEntryId, $status, $this->user_id);
+                                    }
+                                }
 
-							$description = $this->lang->line('Journal entry for market return sales entry for Customer Return Note number : ') . $referenceNo;
-							$this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $customerReturnNoteId, $customerSaleableReturnNoteSalesEntryJournalEntries, '1', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $amount, $oldAmount, $description);
+                                $customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '3');
+                                $customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '4');
 
-							$salesProfitMargin = $this->getSalesProfitMargin();
-							
-                            $profitPortion = 0;
-                            
-							if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
-								$profitPortion = ($amount/100) * $salesProfitMargin;
-								$costAmount = $amount;
-							} else {
-								$costAmount = $amount - ($amount/100) * $salesProfitMargin;
-							}
+                                $primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteSalesEntryTransaction();
+                                $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteCostEntryTransaction();
 
-							$description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $referenceNo;
-							$this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $salesNoteId, $customerSaleableReturnNoteCostEntryJournalEntries, '2', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $costAmount, $costOldAmount, $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, $profitPortionOld);
-						}
-					}
+                                $description = $this->lang->line('Journal entry for saleable return sales entry for Customer Return Note number : ') . $referenceNo;
+                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $customerReturnNoteId, $customerMarketReturnNoteSalesEntryJournalEntries, '3', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $amount, $oldAmount, $description);
 
-					$result = 'ok';
-				} else {
-					$result = 'no_changes_to_save';
-				}
+                                $salesProfitMargin = $this->getSalesProfitMargin();
+                                $costAmount = $amount - ($amount/100) * $salesProfitMargin;
+
+                                $description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $referenceNo;
+                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $salesNoteId, $customerMarketReturnNoteCostEntryJournalEntries, '4', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $costAmount, $costOldAmount, $description);
+                            } else if ($oldType == "market_return") {
+                                $customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
+                                $customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
+
+                                $status = "deleted";
+                                if ($customerMarketReturnNoteSalesEntryJournalEntries && sizeof($customerMarketReturnNoteSalesEntryJournalEntries) > 0) {
+                                    //Delete all journal entries of Customer Return Note
+                                    foreach($customerMarketReturnNoteSalesEntryJournalEntries as $customerMarketReturnNoteSalesEntryJournalEntry) {
+                                        $customerMarketReturnNoteSalesEntryJournalEntryId = $customerMarketReturnNoteSalesEntryJournalEntry->journal_entry_id;
+                                        $this->journal_entries_model->deleteJournalEntry($customerMarketReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                                        $this->journal_entries_model->deleteGeneralLedgerTransactions($customerMarketReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                                    }
+                                }
+
+                                if ($customerMarketReturnNoteCostEntryJournalEntries && sizeof($customerMarketReturnNoteCostEntryJournalEntries) > 0) {
+                                    //Delete all journal entries of Customer Return Note
+                                    foreach($customerMarketReturnNoteCostEntryJournalEntries as $customerMarketReturnNoteCostEntryJournalEntry) {
+                                        $customerMarketReturnNoteCostEntryJournalEntryId = $customerMarketReturnNoteCostEntryJournalEntry->journal_entry_id;
+                                        $this->journal_entries_model->deleteJournalEntry($customerMarketReturnNoteCostEntryJournalEntryId, $status, $this->user_id);
+                                        $this->journal_entries_model->deleteGeneralLedgerTransactions($customerMarketReturnNoteCostEntryJournalEntryId, $status, $this->user_id);
+                                    }
+                                }
+
+                                $customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
+                                $customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
+
+                                $primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteSalesEntryTransaction();
+                                $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteCostEntryTransaction();
+
+                                $description = $this->lang->line('Journal entry for market return sales entry for Customer Return Note number : ') . $referenceNo;
+                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $customerReturnNoteId, $customerSaleableReturnNoteSalesEntryJournalEntries, '1', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $amount, $oldAmount, $description);
+
+                                $salesProfitMargin = $this->getSalesProfitMargin();
+
+                                $profitPortion = 0;
+
+                                if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
+                                    $profitPortion = ($amount/100) * $salesProfitMargin;
+                                    $costAmount = $amount;
+                                } else {
+                                    $costAmount = $amount - ($amount/100) * $salesProfitMargin;
+                                }
+
+                                $description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $referenceNo;
+                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $salesNoteId, $customerSaleableReturnNoteCostEntryJournalEntries, '2', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $costAmount, $costOldAmount, $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, $profitPortionOld);
+                            }
+                        }
+
+                        $result = 'ok';
+                    } else {
+                        $result = 'no_changes_to_save';
+                    }
+                } else {
+                    $result = "previous_financial_year_is_closed";
+                }
 			}
 
 			echo json_encode(array('result' => $result, 'salesNoteId' => $salesNoteId));
@@ -502,77 +513,89 @@ class Customer_return_note_controller extends CI_Controller {
 	//Delete Customer Return Note
 	public function deleteCustomerReturnNote() {
 		if(isset($this->data['ACM_Bookkeeping_Delete_Customer_Return_Note_Permissions'])) {
-			$customerReturnNoteId = $this->db->escape_str($this->input->post('id'));
-			$customerReturnNote = $this->customer_return_note_model->getCustomerReturnNoteById($customerReturnNoteId);
-			$type = $customerReturnNote[0]->type;
             
-            $isReferenceTransactionUsedInMakePayments = $this->make_payment_model->isReferenceTransactionUsedInMakePayments('4', $customerReturnNoteId);
-            $isReferenceTransactionUsedInReceivePayments = $this->receive_payment_model->isReferenceTransactionUsedInReceivePayments('4', $customerReturnNoteId);
-			
-            if (!$isReferenceTransactionUsedInMakePayments && !$isReferenceTransactionUsedInReceivePayments) {
+            $html = '';
+			$customerReturnNoteId = $this->db->escape_str($this->input->post('id'));
+            
+			$customerReturnNote = $this->customer_return_note_model->getCustomerReturnNoteById($customerReturnNoteId);
+            $customerReturnNoteTransactionDate = $customerReturnNote[0]->date;
+
+            $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($customerReturnNoteTransactionDate);
+
+            if ($financialYear[0]->year_end_process_status != "Closed") {
                 
-                if ($type == "saleable_return") {
-                    $customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
-                    $customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
+                $type = $customerReturnNote[0]->type;
 
-                    $status = "deleted";
-                    if ($customerSaleableReturnNoteSalesEntryJournalEntries && sizeof($customerSaleableReturnNoteSalesEntryJournalEntries) > 0) {
-                        //Delete all journal entries of Customer Return Note
-                        foreach($customerSaleableReturnNoteSalesEntryJournalEntries as $customerSaleableReturnNoteSalesEntryJournalEntry) {
-                            $customerSaleableReturnNoteSalesEntryJournalEntryId = $customerSaleableReturnNoteSalesEntryJournalEntry->journal_entry_id;
-                            $this->journal_entries_model->deleteJournalEntry($customerSaleableReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->deleteGeneralLedgerTransactions($customerSaleableReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                $isReferenceTransactionUsedInMakePayments = $this->make_payment_model->isReferenceTransactionUsedInMakePayments('4', $customerReturnNoteId);
+                $isReferenceTransactionUsedInReceivePayments = $this->receive_payment_model->isReferenceTransactionUsedInReceivePayments('4', $customerReturnNoteId);
+
+                if (!$isReferenceTransactionUsedInMakePayments && !$isReferenceTransactionUsedInReceivePayments) {
+
+                    if ($type == "saleable_return") {
+                        $customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
+                        $customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
+
+                        $status = "deleted";
+                        if ($customerSaleableReturnNoteSalesEntryJournalEntries && sizeof($customerSaleableReturnNoteSalesEntryJournalEntries) > 0) {
+                            //Delete all journal entries of Customer Return Note
+                            foreach($customerSaleableReturnNoteSalesEntryJournalEntries as $customerSaleableReturnNoteSalesEntryJournalEntry) {
+                                $customerSaleableReturnNoteSalesEntryJournalEntryId = $customerSaleableReturnNoteSalesEntryJournalEntry->journal_entry_id;
+                                $this->journal_entries_model->deleteJournalEntry($customerSaleableReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($customerSaleableReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                            }
+                        }
+
+                        if ($customerSaleableReturnNoteCostEntryJournalEntries && sizeof($customerSaleableReturnNoteCostEntryJournalEntries) > 0) {
+                            //Delete all journal entries of Customer Return Note
+                            foreach($customerSaleableReturnNoteCostEntryJournalEntries as $customerSaleableReturnNoteCostEntryJournalEntry) {
+                                $customerSaleableReturnNoteCostEntryJournalEntryId = $customerSaleableReturnNoteCostEntryJournalEntry->journal_entry_id;
+                                $this->journal_entries_model->deleteJournalEntry($customerSaleableReturnNoteCostEntryJournalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($customerSaleableReturnNoteCostEntryJournalEntryId, $status, $this->user_id);
+                            }
+                        }
+                    } else if ($type == "market_return") {
+                        $customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '3');
+                        $customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '4');
+
+                        $status = "deleted";
+                        if ($customerMarketReturnNoteSalesEntryJournalEntries && sizeof($customerMarketReturnNoteSalesEntryJournalEntries) > 0) {
+                            //Delete all journal entries of Customer Return Note
+                            foreach($customerMarketReturnNoteSalesEntryJournalEntries as $customerMarketReturnNoteSalesEntryJournalEntry) {
+                                $customerMarketReturnNoteSalesEntryJournalEntryId = $customerMarketReturnNoteSalesEntryJournalEntry->journal_entry_id;
+                                $this->journal_entries_model->deleteJournalEntry($customerMarketReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($customerMarketReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                            }
+                        }
+
+                        if ($customerMarketReturnNoteCostEntryJournalEntries && sizeof($customerMarketReturnNoteCostEntryJournalEntries) > 0) {
+                            //Delete all journal entries of Customer Return Note
+                            foreach($customerMarketReturnNoteCostEntryJournalEntries as $customerMarketReturnNoteCostEntryJournalEntry) {
+                                $customerMarketReturnNoteCostEntryJournalEntryId = $customerMarketReturnNoteCostEntryJournalEntry->journal_entry_id;
+                                $this->journal_entries_model->deleteJournalEntry($customerMarketReturnNoteCostEntryJournalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($customerMarketReturnNoteCostEntryJournalEntryId, $status, $this->user_id);
+                            }
                         }
                     }
 
-                    if ($customerSaleableReturnNoteCostEntryJournalEntries && sizeof($customerSaleableReturnNoteCostEntryJournalEntries) > 0) {
-                        //Delete all journal entries of Customer Return Note
-                        foreach($customerSaleableReturnNoteCostEntryJournalEntries as $customerSaleableReturnNoteCostEntryJournalEntry) {
-                            $customerSaleableReturnNoteCostEntryJournalEntryId = $customerSaleableReturnNoteCostEntryJournalEntry->journal_entry_id;
-                            $this->journal_entries_model->deleteJournalEntry($customerSaleableReturnNoteCostEntryJournalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->deleteGeneralLedgerTransactions($customerSaleableReturnNoteCostEntryJournalEntryId, $status, $this->user_id);
-                        }
-                    }
-                } else if ($type == "market_return") {
-                    $customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '3');
-                    $customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '4');
-
-                    $status = "deleted";
-                    if ($customerMarketReturnNoteSalesEntryJournalEntries && sizeof($customerMarketReturnNoteSalesEntryJournalEntries) > 0) {
-                        //Delete all journal entries of Customer Return Note
-                        foreach($customerMarketReturnNoteSalesEntryJournalEntries as $customerMarketReturnNoteSalesEntryJournalEntry) {
-                            $customerMarketReturnNoteSalesEntryJournalEntryId = $customerMarketReturnNoteSalesEntryJournalEntry->journal_entry_id;
-                            $this->journal_entries_model->deleteJournalEntry($customerMarketReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->deleteGeneralLedgerTransactions($customerMarketReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
-                        }
-                    }
-
-                    if ($customerMarketReturnNoteCostEntryJournalEntries && sizeof($customerMarketReturnNoteCostEntryJournalEntries) > 0) {
-                        //Delete all journal entries of Customer Return Note
-                        foreach($customerMarketReturnNoteCostEntryJournalEntries as $customerMarketReturnNoteCostEntryJournalEntry) {
-                            $customerMarketReturnNoteCostEntryJournalEntryId = $customerMarketReturnNoteCostEntryJournalEntry->journal_entry_id;
-                            $this->journal_entries_model->deleteJournalEntry($customerMarketReturnNoteCostEntryJournalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->deleteGeneralLedgerTransactions($customerMarketReturnNoteCostEntryJournalEntryId, $status, $this->user_id);
-                        }
-                    }
-                }
-
-                if ($this->customer_return_note_model->deleteCustomerReturnNote($customerReturnNoteId, $status, $this->user_id)) {
-                    $html = '<div class="alert alert-success alert-dismissable">
-                        <a class="close" href="#" data-dismiss="alert">x </a>
-                        <h4><i class="icon-ok-sign"></i>' . $this->lang->line('success') . '</h4>' .
-                        $this->lang->line('success_deleted') .
-                        '</div>';
-                }
-            } else {
-                $html = '<div class="alert alert-warning alert-dismissable">
+                    if ($this->customer_return_note_model->deleteCustomerReturnNote($customerReturnNoteId, $status, $this->user_id)) {
+                        $html = '<div class="alert alert-success alert-dismissable">
                             <a class="close" href="#" data-dismiss="alert">x </a>
-                            <h4><i class="icon-ok-sign"></i>' . $this->lang->line('warning') . '</h4>' .
-                            $this->lang->line('Customer Return Note already used in make payment and receive payment transactions and cannot be deleted!') .
-                        '</div>';
+                            <h4><i class="icon-ok-sign"></i>' . $this->lang->line('success') . '</h4>' .
+                            $this->lang->line('success_deleted') .
+                            '</div>';
+                    }
+                } else {
+                    $html = '<div class="alert alert-warning alert-dismissable">
+                                <a class="close" href="#" data-dismiss="alert">x </a>
+                                <h4><i class="icon-ok-sign"></i>' . $this->lang->line('warning') . '</h4>' .
+                                $this->lang->line('Customer Return Note already used in make payment and receive payment transactions and cannot be deleted!') .
+                            '</div>';
+                }
+
+                echo json_encode(array("result" => "ok", "html" => $html));
+            } else {
+                echo json_encode(array("result" => "previous_financial_year_is_closed", "html" => $html));
             }
-			
-			echo $html;
 		}
 	}
 

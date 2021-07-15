@@ -381,108 +381,132 @@ class Journal_entries_controller extends CI_Controller {
 				echo $result;
 			} else {
 				$journalEntryId = $this->db->escape_str($this->input->post('journal_entry_id'));
-				$primeEntryBookId = $this->db->escape_str($this->input->post('prime_entry_book_id'));
-				$payeePayerType = $this->db->escape_str($this->input->post('payee_payer_type'));
-				$payeePayerId = $this->db->escape_str($this->input->post('payee_payer_id'));
-				$transactionDate = $this->db->escape_str($this->input->post('transaction_date'));
-				$dueDate = $this->db->escape_str($this->input->post('due_date'));
-				$referenceNo = $this->db->escape_str($this->input->post('reference_no'));
-				$referenceTransactionTypeId = $this->db->escape_str($this->input->post('reference_transaction_type_id'));
-				$referenceTransactionId = $this->db->escape_str($this->input->post('reference_transaction_id'));
-				$referenceJournalEntryId = $this->db->escape_str($this->input->post('reference_journal_entry_id'));
-				$description = trim($this->db->escape_str($this->input->post('description')));
-				$description = preg_replace('~\\\n~',"\r\n", $description);
-				
-				$journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+                
+                $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+                $journalEntryTransactionDate = $journalEntry[0]->transaction_date;
+                
+                $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($journalEntryTransactionDate);
+                
+                if ($financialYear[0]->year_end_process_status != "Closed") {
+                
+                    $primeEntryBookId = $this->db->escape_str($this->input->post('prime_entry_book_id'));
+                    $payeePayerType = $this->db->escape_str($this->input->post('payee_payer_type'));
+                    $payeePayerId = $this->db->escape_str($this->input->post('payee_payer_id'));
+                    $transactionDate = $this->db->escape_str($this->input->post('transaction_date'));
+                    $dueDate = $this->db->escape_str($this->input->post('due_date'));
+                    $referenceNo = $this->db->escape_str($this->input->post('reference_no'));
+                    $referenceTransactionTypeId = $this->db->escape_str($this->input->post('reference_transaction_type_id'));
+                    $referenceTransactionId = $this->db->escape_str($this->input->post('reference_transaction_id'));
+                    $referenceJournalEntryId = $this->db->escape_str($this->input->post('reference_journal_entry_id'));
+                    $description = trim($this->db->escape_str($this->input->post('description')));
+                    $description = preg_replace('~\\\n~',"\r\n", $description);
 
-				//Save journal entry and general ledger transactions to history
-				$this->journal_entries_model->addJournalEntryToHistory($journalEntry[0]);
+                    //Save journal entry and general ledger transactions to history
+                    $this->journal_entries_model->addJournalEntryToHistory($journalEntry[0]);
 
-				$generalLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+                    $generalLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
 
-				foreach ($generalLedgerTransactions as $generalLedgerTransaction) {
-					$this->journal_entries_model->addGeneralLedgerTransactionToHistory($generalLedgerTransaction);
-				}
+                    foreach ($generalLedgerTransactions as $generalLedgerTransaction) {
+                        $this->journal_entries_model->addGeneralLedgerTransactionToHistory($generalLedgerTransaction);
+                    }
 
-				//Update new journal entry and general ledger transactions
-				$journalEntryData = array(
-					'transaction_date' => $transactionDate,
-					'payee_payer_type' => $payeePayerType,
-					'payee_payer_id' => $payeePayerId,
-					'due_date' => $dueDate,
-					'reference_no' => $referenceNo,
-					'reference_transaction_type_id' => $referenceTransactionTypeId,
-					'reference_transaction_id' => $referenceTransactionId,
-					'reference_journal_entry_id' => $referenceJournalEntryId,
-					'location_id' => $this->db->escape_str($this->input->post('location_id')),
-					'description' => $description,
-					'actioned_user_id' => $this->user_id,
-					'action_date' => $this->date,
-					'last_action_status' => 'edited'
-				);
+                    //Update new journal entry and general ledger transactions
+                    $journalEntryData = array(
+                        'transaction_date' => $transactionDate,
+                        'payee_payer_type' => $payeePayerType,
+                        'payee_payer_id' => $payeePayerId,
+                        'due_date' => $dueDate,
+                        'reference_no' => $referenceNo,
+                        'reference_transaction_type_id' => $referenceTransactionTypeId,
+                        'reference_transaction_id' => $referenceTransactionId,
+                        'reference_journal_entry_id' => $referenceJournalEntryId,
+                        'location_id' => $this->db->escape_str($this->input->post('location_id')),
+                        'description' => $description,
+                        'actioned_user_id' => $this->user_id,
+                        'action_date' => $this->date,
+                        'last_action_status' => 'edited'
+                    );
 
-				$this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                    $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
 
-				$debitChartOfAccountIds = explode(",", $this->db->escape_str($this->input->post('debit_chart_of_account_id')));
-				$creditChartOfAccountIds = explode(",", $this->db->escape_str($this->input->post('credit_chart_of_account_id')));
+                    $debitChartOfAccountIds = explode(",", $this->db->escape_str($this->input->post('debit_chart_of_account_id')));
+                    $creditChartOfAccountIds = explode(",", $this->db->escape_str($this->input->post('credit_chart_of_account_id')));
 
-				$debitChartOfAccountValues = explode(",", $this->db->escape_str($this->input->post('debit_chart_of_account_value')));
-				$creditChartOfAccountValues = explode(",", $this->db->escape_str($this->input->post('credit_chart_of_account_value')));
+                    $debitChartOfAccountValues = explode(",", $this->db->escape_str($this->input->post('debit_chart_of_account_value')));
+                    $creditChartOfAccountValues = explode(",", $this->db->escape_str($this->input->post('credit_chart_of_account_value')));
 
-				$debitChartOfAccountValueCount = sizeof($debitChartOfAccountValues);
+                    $debitChartOfAccountValueCount = sizeof($debitChartOfAccountValues);
 
-				for ($i = 0; $i < $debitChartOfAccountValueCount; $i++) {
-					$data = array(
-						'transaction_date' => $transactionDate,
-						'chart_of_account_id' => $debitChartOfAccountIds[$i],
-						'debit_value' => $debitChartOfAccountValues[$i],
-						'actioned_user_id' => $this->user_id,
-						'action_date' => $this->date,
-						'last_action_status' => 'edited'
-					);
+                    for ($i = 0; $i < $debitChartOfAccountValueCount; $i++) {
+                        $data = array(
+                            'transaction_date' => $transactionDate,
+                            'chart_of_account_id' => $debitChartOfAccountIds[$i],
+                            'debit_value' => $debitChartOfAccountValues[$i],
+                            'actioned_user_id' => $this->user_id,
+                            'action_date' => $this->date,
+                            'last_action_status' => 'edited'
+                        );
 
-					$this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $debitChartOfAccountIds[$i], $data);
+                        $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $debitChartOfAccountIds[$i], $data);
 
-					//Same time edit the data in previous years record table.
-					$this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $debitChartOfAccountIds[$i], $data);
-				}
+                        //Same time edit the data in previous years record table.
+                        $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $debitChartOfAccountIds[$i], $data);
+                    }
 
-				$creditChartOfAccountValueCount = sizeof($creditChartOfAccountValues);
+                    $creditChartOfAccountValueCount = sizeof($creditChartOfAccountValues);
 
-				for ($i = 0; $i < $creditChartOfAccountValueCount; $i++) {
-					$data = array(
-						'transaction_date' => $transactionDate,
-						'chart_of_account_id' => $creditChartOfAccountIds[$i],
-						'credit_value' => $creditChartOfAccountValues[$i],
-						'actioned_user_id' => $this->user_id,
-						'action_date' => $this->date,
-						'last_action_status' => 'edited'
-					);
+                    for ($i = 0; $i < $creditChartOfAccountValueCount; $i++) {
+                        $data = array(
+                            'transaction_date' => $transactionDate,
+                            'chart_of_account_id' => $creditChartOfAccountIds[$i],
+                            'credit_value' => $creditChartOfAccountValues[$i],
+                            'actioned_user_id' => $this->user_id,
+                            'action_date' => $this->date,
+                            'last_action_status' => 'edited'
+                        );
 
-					$this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $creditChartOfAccountIds[$i], $data);
+                        $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $creditChartOfAccountIds[$i], $data);
 
-					//Same time edit the data in previous years record table.
-					$this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $creditChartOfAccountIds[$i], $data);
-				}
+                        //Same time edit the data in previous years record table.
+                        $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $creditChartOfAccountIds[$i], $data);
+                    }
 
-				echo "ok";
+                    echo "ok";
+                } else {
+                    echo "previous_financial_year_is_closed";
+                }
 			}
 		}
 	}
 
 	public function delete() {
 		if(isset($this->data['ACM_Bookkeeping_Delete_Journal_Entry_Permissions'])) {
+            
 			$status = 'deleted';
+            $html = '';
+            
 			$id = $this->db->escape_str($this->input->post('id'));
-			if ($this->journal_entries_model->deleteJournalEntry($id, $status, $this->user_id)) {
-				$this->journal_entries_model->deleteGeneralLedgerTransactions($id, $status, $this->user_id);
-				$html = '<div class="alert alert-success alert-dismissable">
-						<a class="close" href="#" data-dismiss="alert">× </a>
-						<h4><i class="icon-ok-sign"></i>' . $this->lang->line('success') . '</h4>' .
-					$this->lang->line('success_deleted') .
-					'</div>';
-			}
-			echo($html);
+            
+            $journalEntry = $this->journal_entries_model->getJournalEntryById($id);
+            $journalEntryTransactionDate = $journalEntry[0]->transaction_date;
+
+            $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($journalEntryTransactionDate);
+
+            if ($financialYear[0]->year_end_process_status != "Closed") {
+                
+                if ($this->journal_entries_model->deleteJournalEntry($id, $status, $this->user_id)) {
+                    $this->journal_entries_model->deleteGeneralLedgerTransactions($id, $status, $this->user_id);
+                    $html = '<div class="alert alert-success alert-dismissable">
+                            <a class="close" href="#" data-dismiss="alert">× </a>
+                            <h4><i class="icon-ok-sign"></i>' . $this->lang->line('success') . '</h4>' .
+                        $this->lang->line('success_deleted') .
+                        '</div>';
+                }
+                
+                echo json_encode(array("result" => "ok", "html" => $html));
+            } else {
+                echo json_encode(array("result" => "previous_financial_year_is_closed", "html" => $html));
+            }
 		}
 	}
 

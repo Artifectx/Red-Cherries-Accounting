@@ -1573,6 +1573,13 @@
 				'<?php echo $this->lang->line('success')?></h4>' +
 				'<?php echo $this->lang->line('success_updated')?>' +
 				'</div>';
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to edit is already closed!')?>' +
+				'</div>';
 
 			//Gather Reference Transaction Details
 			var referenceTransactionData = [];
@@ -1692,7 +1699,7 @@
 						MakePayment.getThirdPartyChequeNumbersData();
 					} else {
 						$(".msg_data").show();
-						$(".msg_data").html(response.result);
+						$(".msg_data").html(msgError);
 						$(".save:input").attr('disabled', false);
 					}
 				}
@@ -1700,6 +1707,13 @@
 		},
 
 		deleteData: function (id) {
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to delete is already closed!')?>' +
+				'</div>';
 
 			var bConfirm = confirm("<?php echo $this->lang->line('Are you sure you want to delete this').$this->lang->line('Make Payment') ?>?");
 			if (bConfirm) {
@@ -1715,18 +1729,24 @@
 						'<?php echo $this->security->get_csrf_token_name(); ?>':
 						'<?php echo $this->security->get_csrf_hash(); ?>'
 					},
-					dataType: 'html',
+					dataType: 'json',
 					success:
 					function (response) {
-                        $(".msg_instant").hide();
-						$(".msg_delete").show();
-						$(".msg_delete").html(response);
-						$(".form").hide();
-						var year = $("#current_year").val();
-						var month = $("#current_month").val();
-						getTableData(year, month, "", "");
+                        if (response.result == 'ok') {
+                            $(".msg_instant").hide();
+                            $(".msg_delete").show();
+                            $(".msg_delete").html(response);
+                            $(".form").hide();
+                            var year = $("#current_year").val();
+                            var month = $("#current_month").val();
+                            getTableData(year, month, "", "");
+                        } else {
+                            $(".msg_instant").hide();
+                            $(".msg_data").show();
+                            $(".msg_data").html(msgError);
+                        }
 					}
-				})
+				});
 			}
 		},
 
@@ -1816,7 +1836,7 @@
 					$('#reference_transaction_type_init').hide();
 					$("#reference_transaction_type_dropdown").html(response);
 				}
-			})
+			});
 		},
 		
 		//get reference transaction list drop down
@@ -1857,7 +1877,7 @@
 						MakePayment.getReferenceJournalEntryListForSelectedTransaction(transactionTypeId, '', peopleId, locationId);
 					}
 				}
-			})
+			});
 		},
 		
 		//get reference journal entry list drop down
@@ -2183,7 +2203,7 @@
 					$("#payee_search_dropdown").find("#people_id").prop({ id: "payee_search_id"});
 					$("#payee_search_id").select2();
 				}
-			})
+			});
 		},
 
 		//get unit conversions drop down
@@ -2206,7 +2226,7 @@
 					$("#location_search_dropdown").find("#people_id").prop({ id: "location_search_id"});
 					$("#location_search_dropdown").find("#people_idError").prop({ id: "location_search_idError"});
 				}
-			})
+			});
 		},
 		
 		getPayeeList: function (payeeType) {
@@ -2253,7 +2273,7 @@
 						$("#people_id_edit").select2();
 					}
 				}
-			})
+			});
 		},
 		
 		//get payment account drop down
@@ -2305,7 +2325,7 @@
 						$("#bank_dropdown_edit").find("#bank_id").prop({ id: "bank_id_edit"});
 					}
 				}
-			})
+			});
 		},
 		
 		getSecondPartyChequeNumbersData: function () {

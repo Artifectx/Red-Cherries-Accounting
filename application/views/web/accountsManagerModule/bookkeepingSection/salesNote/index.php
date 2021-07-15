@@ -2049,6 +2049,13 @@
 				'<?php echo $this->lang->line('success')?></h4>' +
 				'<?php echo $this->lang->line('sales_note_successfully_canceled')?>' +
 				'</div>';
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to edit is already closed!')?>' +
+				'</div>';
 		
 			var salesNoteId = '';
 			if (SalesNoteScreenOperationStatus == "Add") {
@@ -2073,8 +2080,7 @@
 						$("#cancel_sales_note_button_on_sales_note_edit").attr('disabled', true);
 					}
 				},
-				success:
-				function (response) {
+				success : function (response) {
                     
                     $(".msg_instant").hide();
                     
@@ -2126,9 +2132,19 @@
 																	'<?php echo $this->lang->line('Activate Sales Note') ?>' +
 																'</button>');
 						}
-					}
+					} else {
+                        $(".validation").hide();
+						$(".msg_data").show();
+						$(".msg_data").html(msgError);
+                        
+                        if (SalesNoteScreenOperationStatus == "Add") {
+                            $("#cancel_sales_note_button_on_sales_note_save").attr('disabled', false);
+                        } else if (SalesNoteScreenOperationStatus == "View") {
+                            $("#cancel_sales_note_button_on_sales_note_edit").attr('disabled', false);
+                        }
+                    }
 				}
-			})
+			});
 		},
 		
 		activateSalesNote : function () {
@@ -2137,6 +2153,13 @@
 				'<h4><i class="icon-ok-sign"></i>' +
 				'<?php echo $this->lang->line('success')?></h4>' +
 				'<?php echo $this->lang->line('sales_note_successfully_activated')?>' +
+				'</div>';
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to edit is already closed!')?>' +
 				'</div>';
 		
 			var salesNoteId = '';
@@ -2162,8 +2185,7 @@
 						$("#cancel_sales_note_button_on_sales_note_edit").attr('disabled', true);
 					}
 				},
-				success:
-				function (response) {
+				success : function (response) {
                     
                     $(".msg_instant").hide();
                     
@@ -2216,9 +2238,19 @@
 																	'<?php echo $this->lang->line('Cancel Sales Note') ?>' +
 																'</button>');
 						}
-					}
+					} else {
+                        $(".validation").hide();
+						$(".msg_data").show();
+						$(".msg_data").html(msgError);
+                        
+                        if (SalesNoteScreenOperationStatus == "Add") {
+                            $("#cancel_sales_note_button_on_sales_note_save").attr('disabled', false);
+                        } else if (SalesNoteScreenOperationStatus == "View") {
+                            $("#cancel_sales_note_button_on_sales_note_edit").attr('disabled', false);
+                        }
+                    }
 				}
-			})
+			});
 		},
 		
 		cancelData: function () {
@@ -2243,8 +2275,7 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'json',
-				success:
-				function (response) {
+				success : function (response) {
 					if (response.status == 'auto_increment') {
 						$("#reference_no").val(response.result);
 					} else {
@@ -2252,7 +2283,7 @@
 						$("#reference_no_div").after(response.result);
 					}
 				}
-			})
+			});
 		},
 
 		//Save Sales Note Data
@@ -2292,7 +2323,7 @@
 				beforeSend: function () {
 					$("#sales_note_save").attr('disabled', true);
 				},
-				success: function (response) {
+				success : function (response) {
                     
                     $(".msg_instant").hide();
                     
@@ -2333,6 +2364,13 @@
 				'<?php echo $this->lang->line('success')?></h4>' +
 				'<?php echo $this->lang->line('success_saved')?>' +
 				'</div>';
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to edit is already closed!')?>' +
+				'</div>';
 		
 			var customerSaleableReturnAmount = '';
 			var customerMarketReturnAmount = '';
@@ -2368,7 +2406,7 @@
 				beforeSend: function () {
 					$("#sales_note_payment_save").attr('disabled', true);
 				},
-				success: function (response) {
+				success : function (response) {
                     
                     $(".msg_instant").hide();
                     
@@ -2384,7 +2422,7 @@
 						getTableData(year, month, "", "");
 					} else {
 						$(".msg_data").show();
-						$(".msg_data").html(response.result);
+						$(".msg_data").html(msgError);
 						$("#sales_note_payment_save").attr('disabled', false);
 					}
 				}
@@ -2404,6 +2442,13 @@
 				'<h4><i class="icon-info-sign"></i>' +
 				'<?php echo $this->lang->line('warning')?></h4>' +
 				'<?php echo $this->lang->line('no_changes_to_save')?>' +
+				'</div>';
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to edit is already closed!')?>' +
 				'</div>';
 
 			$.ajax({
@@ -2428,7 +2473,7 @@
 				function () {
 					$(".save:input").attr('disabled', true);
 				},
-				success: function (response) {
+				success : function (response) {
                     
                     $(".msg_instant").hide();
                     
@@ -2446,11 +2491,11 @@
 						$(".save:input").attr('disabled', false);
 					} else {
 						$(".msg_data").show();
-						$(".msg_data").html(response.result);
+						$(".msg_data").html(msgError);
 						$(".save:input").attr('disabled', false);
 					}
 				}
-			})
+			});
 		},
 		
 		//Edit Sales Note Payment Data
@@ -2460,6 +2505,13 @@
 				'<h4><i class="icon-ok-sign"></i>' +
 				'<?php echo $this->lang->line('success')?></h4>' +
 				'<?php echo $this->lang->line('success_saved')?>' +
+				'</div>';
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to edit is already closed!')?>' +
 				'</div>';
 		
 			var customerReturnsAvailable = "No";
@@ -2508,11 +2560,11 @@
 						getTableData(year, month, "", "");
 					} else {
 						$(".msg_data").show();
-						$(".msg_data").html(response.result);
+						$(".msg_data").html(msgError);
 						$(".save:input").attr('disabled', false);
 					}
 				}
-			})
+			});
 		},
 		
 		saveReceiveChequePaymentData: function (salesNoteId, receiveChequePaymentId, chequeId, salesNoteJournalEntryId, customerId, locationId, date, 
@@ -2537,6 +2589,13 @@
 				'<h4><i class="icon-info-sign"></i>' +
 				'<?php echo $this->lang->line('warning')?></h4>' +
 				'<?php echo $this->lang->line('no_changes_to_save')?>' +
+				'</div>';
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to edit is already closed!')?>' +
 				'</div>';
 
 			if (SalesNoteIncomeChequeScreenOperationStatus == "Add") {
@@ -2563,8 +2622,7 @@
                         $(".save").attr('disabled', true);
                     },
 					dataType: 'json',
-					success:
-					function (response) {
+					success : function (response) {
 						if (response.result == "ok") {
 							if (SalesNoteScreenOperationStatus == "Add" && SalesNoteIncomeChequeScreenOperationStatus == "Add") {
 								$("#cash_payment").val(response.cashPaymentAmount);
@@ -2594,9 +2652,14 @@
 							$(".modal_msg_data").show();
 							$(".modal_msg_data").html(msg_incorrect_prime_entry_book_selected_for_sales_invoice_transaction);
                             $(".save").attr('disabled', false);
-						}
+						} else {
+                            $(".validation").hide();
+							$(".modal_msg_data").show();
+							$(".modal_msg_data").html(msgError);
+                            $(".save").attr('disabled', false);
+                        }
 					}
-				})
+				});
 			} else if (SalesNoteIncomeChequeScreenOperationStatus == "View") {
 				$.ajax({
 					type: "POST",
@@ -2622,8 +2685,7 @@
                         $(".save").attr('disabled', true);
                     },
 					dataType: 'json',
-					success:
-					function (response) {
+					success : function (response) {
 						if (response.result == "ok") {
 							if (SalesNoteScreenOperationStatus == "Add") {
 								$("#cash_payment").val(response.cashPaymentAmount);
@@ -2658,9 +2720,14 @@
 							$(".modal_msg_data").show();
 							$(".modal_msg_data").html(msg_no_changes_to_save);
                             $(".save").attr('disabled', false);
-						}
+						} else {
+                            $(".validation").hide();
+							$(".modal_msg_data").show();
+							$(".modal_msg_data").html(msgError);
+                            $(".save").attr('disabled', false);
+                        }
 					}
-				})
+				});
 			}
 		},
 		
@@ -2686,6 +2753,13 @@
 				'<?php echo $this->lang->line('warning')?></h4>' +
 				'<?php echo $this->lang->line('no_changes_to_save')?>' +
 				'</div>';
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to edit is already closed!')?>' +
+				'</div>';
 
 			if (SalesNoteCashPaymentScreenOperationStatus == "Add") {
 				$.ajax({
@@ -2705,8 +2779,7 @@
                         $(".save").attr('disabled', true);
                     },
 					dataType: 'json',
-					success:
-					function (response) {
+					success : function (response) {
 						if (response.result == "ok") {
                             if (SalesNoteScreenOperationStatus == "Add" && SalesNoteCashPaymentScreenOperationStatus == "Add") {
                                 $("#cash_payment").val(response.cashPaymentAmount);
@@ -2737,9 +2810,14 @@
 							$(".modal_msg_data").show();
 							$(".modal_msg_data").html(msg_incorrect_prime_entry_book_selected_for_sales_invoice_transaction);
                             $(".save").attr('disabled', false);
-						}
+						} else {
+                            $(".validation").hide();
+							$(".modal_msg_data").show();
+							$(".modal_msg_data").html(msgError);
+                            $(".save").attr('disabled', false);
+                        }
 					}
-				})
+				});
 			} else if (SalesNoteCashPaymentScreenOperationStatus == "View") {
 				$.ajax({
 					type: "POST",
@@ -2759,8 +2837,7 @@
                         $(".save").attr('disabled', true);
                     },
 					dataType: 'json',
-					success:
-					function (response) {
+					success : function (response) {
 						if (response.result == "ok") {
                             $("#cash_payment_edit").val(response.cashPaymentAmount);
                             $("#cheque_payment_edit").val(response.chequePaymentAmount);
@@ -2786,9 +2863,14 @@
 							$(".modal_msg_data").show();
 							$(".modal_msg_data").html(msg_no_changes_to_save);
                             $(".save").attr('disabled', false);
-						}
+						} else {
+                            $(".validation").hide();
+							$(".modal_msg_data").show();
+							$(".modal_msg_data").html(msgError);
+                            $(".save").attr('disabled', false);
+                        }
 					}
-				})
+				});
 			}
 		},
         
@@ -2814,6 +2896,13 @@
 				'<?php echo $this->lang->line('warning')?></h4>' +
 				'<?php echo $this->lang->line('no_changes_to_save')?>' +
 				'</div>';
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to edit is already closed!')?>' +
+				'</div>';
 
 			if (SalesNoteCreditCardPaymentScreenOperationStatus == "Add") {
 				$.ajax({
@@ -2835,8 +2924,7 @@
                         $(".save").attr('disabled', true);
                     },
 					dataType: 'json',
-					success:
-					function (response) {
+					success : function (response) {
 						if (response.result == "ok") {
                             if (SalesNoteScreenOperationStatus == "Add" && SalesNoteCreditCardPaymentScreenOperationStatus == "Add") {
                                 $("#cash_payment").val(response.cashPaymentAmount);
@@ -2869,9 +2957,14 @@
 							$(".modal_msg_data").show();
 							$(".modal_msg_data").html(msg_incorrect_prime_entry_book_selected_for_sales_invoice_transaction);
                             $(".save").attr('disabled', false);
-						}
+						} else {
+                            $(".validation").hide();
+							$(".modal_msg_data").show();
+							$(".modal_msg_data").html(msgError);
+                            $(".save").attr('disabled', false);
+                        }
 					}
-				})
+				});
 			} else if (SalesNoteCreditCardPaymentScreenOperationStatus == "View") {
 				$.ajax({
 					type: "POST",
@@ -2892,8 +2985,7 @@
                         $(".save").attr('disabled', true);
                     },
 					dataType: 'json',
-					success:
-					function (response) {
+					success : function (response) {
 						if (response.result == "ok") {
                             $("#cash_payment_edit").val(response.cashPaymentAmount);
                             $("#cheque_payment_edit").val(response.chequePaymentAmount);
@@ -2920,13 +3012,25 @@
 							$(".modal_msg_data").show();
 							$(".modal_msg_data").html(msg_no_changes_to_save);
                             $(".save").attr('disabled', false);
+						} else {
+							$(".validation").hide();
+							$(".modal_msg_data").show();
+							$(".modal_msg_data").html(msgError);
+                            $(".save").attr('disabled', false);
 						}
 					}
-				})
+				});
 			}
 		},
 
 		deleteData: function (id) {
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to delete is already closed!')?>' +
+				'</div>';
 
 			var bConfirm = confirm("<?php echo $this->lang->line('Are you sure you want to delete this').$this->lang->line('Sales Note') ?>?");
 			if (bConfirm) {
@@ -2942,18 +3046,23 @@
 						'<?php echo $this->security->get_csrf_token_name(); ?>':
 						'<?php echo $this->security->get_csrf_hash(); ?>'
 					},
-					dataType: 'html',
-					success:
-					function (response) {
-                        $(".msg_instant").hide();
-						$(".msg_delete").show();
-						$(".msg_delete").html(response);
-						$(".form").hide();
-						var year = $("#current_year").val();
-						var month = $("#current_month").val();
-						getTableData(year, month, "", "");
+					dataType: 'json',
+					success : function (response) {
+                        if (response.result == 'ok') {
+                            $(".msg_instant").hide();
+                            $(".msg_delete").show();
+                            $(".msg_delete").html(response);
+                            $(".form").hide();
+                            var year = $("#current_year").val();
+                            var month = $("#current_month").val();
+                            getTableData(year, month, "", "");
+                        } else {
+                            $(".msg_instant").hide();
+                            $(".msg_data").show();
+                            $(".msg_data").html(msgError);
+                        }
 					}
-				})
+				});
 			}
 		},
 
@@ -2965,6 +3074,13 @@
 							'<?php echo $this->lang->line('success') ?></h4>' +
 							'<?php echo $this->lang->line('success_deleted') ?>' +
 						'</div>';
+                
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to delete is already closed!')?>' +
+				'</div>';
 
 			var bConfirm = confirm("<?php echo $this->lang->line('Are you sure you want to delete this').$this->lang->line('Cheque Payment') ?>?");
 			if (bConfirm) {
@@ -2978,34 +3094,38 @@
 						'<?php echo $this->security->get_csrf_hash(); ?>'
 					},
 					dataType: 'json',
-					success:
-					function (response) {
-						if (SalesNoteScreenOperationStatus == "Add") {
-							$("#cash_payment").val(response.cashPaymentAmount);
-							$("#cheque_payment").val(response.chequePaymentAmount);
-                            $("#credit_card_payment").val(response.creditCardPaymentAmount);
-                            $("#sales_balance_amount").val(response.creditPaymentAmount);
-							$("#sales_balance_amount_on_payment").val(response.creditPaymentAmount);
-							$("#cash_credit_balance").val(response.creditPaymentAmount);
-							$("#cheque_credit_balance").val(response.creditPaymentAmount);
-                            $("#credit_card_credit_balance").val(response.creditPaymentAmount);
-						} else if (SalesNoteScreenOperationStatus == "View") {
-							$("#cash_payment_edit").val(response.cashPaymentAmount);
-							$("#cheque_payment_edit").val(response.chequePaymentAmount);
-                            $("#credit_card_payment_edit").val(response.creditCardPaymentAmount);
-                            $("#sales_balance_amount_edit").val(response.creditPaymentAmount);
-							$("#sales_balance_amount_on_payment_edit").val(response.creditPaymentAmount);
-							$("#credit_payment_edit").val(response.creditPaymentAmount);
-							$("#cash_credit_balance").val(response.creditPaymentAmount);
-							$("#cheque_credit_balance").val(response.creditPaymentAmount);
-                            $("#credit_card_credit_balance").val(response.creditPaymentAmount);
-						}
+					success : function (response) {
+                        if (response.result == 'ok') {
+                            if (SalesNoteScreenOperationStatus == "Add") {
+                                $("#cash_payment").val(response.cashPaymentAmount);
+                                $("#cheque_payment").val(response.chequePaymentAmount);
+                                $("#credit_card_payment").val(response.creditCardPaymentAmount);
+                                $("#sales_balance_amount").val(response.creditPaymentAmount);
+                                $("#sales_balance_amount_on_payment").val(response.creditPaymentAmount);
+                                $("#cash_credit_balance").val(response.creditPaymentAmount);
+                                $("#cheque_credit_balance").val(response.creditPaymentAmount);
+                                $("#credit_card_credit_balance").val(response.creditPaymentAmount);
+                            } else if (SalesNoteScreenOperationStatus == "View") {
+                                $("#cash_payment_edit").val(response.cashPaymentAmount);
+                                $("#cheque_payment_edit").val(response.chequePaymentAmount);
+                                $("#credit_card_payment_edit").val(response.creditCardPaymentAmount);
+                                $("#sales_balance_amount_edit").val(response.creditPaymentAmount);
+                                $("#sales_balance_amount_on_payment_edit").val(response.creditPaymentAmount);
+                                $("#credit_payment_edit").val(response.creditPaymentAmount);
+                                $("#cash_credit_balance").val(response.creditPaymentAmount);
+                                $("#cheque_credit_balance").val(response.creditPaymentAmount);
+                                $("#credit_card_credit_balance").val(response.creditPaymentAmount);
+                            }
 
-						$(".modal_msg_data").show();
-						$(".modal_msg_data").html(msg);
-						SalesNote.getReceiveChequePaymentList(salesNoteId);
+                            $(".modal_msg_data").show();
+                            $(".modal_msg_data").html(msg);
+                            SalesNote.getReceiveChequePaymentList(salesNoteId);
+                        } else {
+                            $(".modal_msg_data").show();
+                            $(".modal_msg_data").html(msgError);
+                        }
 					}
-				})
+				});
 			}
 		},
 		
@@ -3017,6 +3137,13 @@
 							'<?php echo $this->lang->line('success') ?></h4>' +
 							'<?php echo $this->lang->line('success_deleted') ?>' +
 						'</div>';
+                
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to delete is already closed!')?>' +
+				'</div>';
 
 			var bConfirm = confirm("<?php echo $this->lang->line('Are you sure you want to delete this').$this->lang->line('Cash Payment') ?>?");
 			if (bConfirm) {
@@ -3030,33 +3157,37 @@
 						'<?php echo $this->security->get_csrf_hash(); ?>'
 					},
 					dataType: 'json',
-					success:
-					function (response) {
-						if (SalesNoteScreenOperationStatus == "Add" && SalesNoteCashPaymentScreenOperationStatus == "Add") {
-							$("#cash_payment").val(response.cashPaymentAmount);
-							$("#cheque_payment").val(response.chequePaymentAmount);
-                            $("#credit_card_payment").val(response.creditCardPaymentAmount);
-							$("#sales_balance_amount").val(response.balancePaymentAmount);
-                            $("#sales_balance_amount_on_payment").val(response.balancePaymentAmount);
-							$("#cash_credit_balance").val(response.balancePaymentAmount);
-							$("#cheque_credit_balance").val(response.balancePaymentAmount);
-                            $("#credit_card_credit_balance").val(response.balancePaymentAmount);
-						} else if (SalesNoteScreenOperationStatus == "View") {
-							$("#cash_payment_edit").val(response.cashPaymentAmount);
-							$("#cheque_payment_edit").val(response.chequePaymentAmount);
-                            $("#credit_card_payment_edit").val(response.creditCardPaymentAmount);
-							$("#sales_balance_amount_edit").val(response.balancePaymentAmount);
-                            $("#sales_balance_amount_on_payment_edit").val(response.balancePaymentAmount);
-							$("#cash_credit_balance").val(response.balancePaymentAmount);
-							$("#cheque_credit_balance").val(response.balancePaymentAmount);
-                            $("#credit_card_credit_balance").val(response.balancePaymentAmount);
-						}
+					success : function (response) {
+                        if (response.result == 'ok') {
+                            if (SalesNoteScreenOperationStatus == "Add" && SalesNoteCashPaymentScreenOperationStatus == "Add") {
+                                $("#cash_payment").val(response.cashPaymentAmount);
+                                $("#cheque_payment").val(response.chequePaymentAmount);
+                                $("#credit_card_payment").val(response.creditCardPaymentAmount);
+                                $("#sales_balance_amount").val(response.balancePaymentAmount);
+                                $("#sales_balance_amount_on_payment").val(response.balancePaymentAmount);
+                                $("#cash_credit_balance").val(response.balancePaymentAmount);
+                                $("#cheque_credit_balance").val(response.balancePaymentAmount);
+                                $("#credit_card_credit_balance").val(response.balancePaymentAmount);
+                            } else if (SalesNoteScreenOperationStatus == "View") {
+                                $("#cash_payment_edit").val(response.cashPaymentAmount);
+                                $("#cheque_payment_edit").val(response.chequePaymentAmount);
+                                $("#credit_card_payment_edit").val(response.creditCardPaymentAmount);
+                                $("#sales_balance_amount_edit").val(response.balancePaymentAmount);
+                                $("#sales_balance_amount_on_payment_edit").val(response.balancePaymentAmount);
+                                $("#cash_credit_balance").val(response.balancePaymentAmount);
+                                $("#cheque_credit_balance").val(response.balancePaymentAmount);
+                                $("#credit_card_credit_balance").val(response.balancePaymentAmount);
+                            }
 
-						$(".modal_msg_data").show();
-						$(".modal_msg_data").html(msg);
-						SalesNote.getReceiveCashPaymentList(salesNoteId);
+                            $(".modal_msg_data").show();
+                            $(".modal_msg_data").html(msg);
+                            SalesNote.getReceiveCashPaymentList(salesNoteId);
+                        } else {
+                            $(".modal_msg_data").show();
+                            $(".modal_msg_data").html(msgError);
+                        }
 					}
-				})
+				});
 			}
 		},
         
@@ -3068,6 +3199,13 @@
 							'<?php echo $this->lang->line('success') ?></h4>' +
 							'<?php echo $this->lang->line('success_deleted') ?>' +
 						'</div>';
+                
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to delete is already closed!')?>' +
+				'</div>';
 
 			var bConfirm = confirm("<?php echo $this->lang->line('Are you sure you want to delete this').$this->lang->line('Card Payment') ?>?");
 			if (bConfirm) {
@@ -3081,33 +3219,37 @@
 						'<?php echo $this->security->get_csrf_hash(); ?>'
 					},
 					dataType: 'json',
-					success:
-					function (response) {
-						if (SalesNoteScreenOperationStatus == "Add" && SalesNoteCashPaymentScreenOperationStatus == "Add") {
-							$("#cash_payment").val(response.cashPaymentAmount);
-							$("#cheque_payment").val(response.chequePaymentAmount);
-                            $("#credit_card_payment").val(response.creditCardPaymentAmount);
-							$("#sales_balance_amount").val(response.balancePaymentAmount);
-                            $("#sales_balance_amount_on_payment").val(response.balancePaymentAmount);
-							$("#cash_credit_balance").val(response.balancePaymentAmount);
-							$("#cheque_credit_balance").val(response.balancePaymentAmount);
-                            $("#credit_card_credit_balance").val(response.balancePaymentAmount);
-						} else if (SalesNoteScreenOperationStatus == "View") {
-							$("#cash_payment_edit").val(response.cashPaymentAmount);
-							$("#cheque_payment_edit").val(response.chequePaymentAmount);
-                            $("#credit_card_payment_edit").val(response.creditCardPaymentAmount);
-							$("#sales_balance_amount_edit").val(response.balancePaymentAmount);
-                            $("#sales_balance_amount_on_payment_edit").val(response.balancePaymentAmount);
-							$("#cash_credit_balance").val(response.balancePaymentAmount);
-							$("#cheque_credit_balance").val(response.balancePaymentAmount);
-                            $("#credit_card_credit_balance").val(response.balancePaymentAmount);
-						}
+					success : function (response) {
+                        if (response.result == 'ok') {
+                            if (SalesNoteScreenOperationStatus == "Add" && SalesNoteCashPaymentScreenOperationStatus == "Add") {
+                                $("#cash_payment").val(response.cashPaymentAmount);
+                                $("#cheque_payment").val(response.chequePaymentAmount);
+                                $("#credit_card_payment").val(response.creditCardPaymentAmount);
+                                $("#sales_balance_amount").val(response.balancePaymentAmount);
+                                $("#sales_balance_amount_on_payment").val(response.balancePaymentAmount);
+                                $("#cash_credit_balance").val(response.balancePaymentAmount);
+                                $("#cheque_credit_balance").val(response.balancePaymentAmount);
+                                $("#credit_card_credit_balance").val(response.balancePaymentAmount);
+                            } else if (SalesNoteScreenOperationStatus == "View") {
+                                $("#cash_payment_edit").val(response.cashPaymentAmount);
+                                $("#cheque_payment_edit").val(response.chequePaymentAmount);
+                                $("#credit_card_payment_edit").val(response.creditCardPaymentAmount);
+                                $("#sales_balance_amount_edit").val(response.balancePaymentAmount);
+                                $("#sales_balance_amount_on_payment_edit").val(response.balancePaymentAmount);
+                                $("#cash_credit_balance").val(response.balancePaymentAmount);
+                                $("#cheque_credit_balance").val(response.balancePaymentAmount);
+                                $("#credit_card_credit_balance").val(response.balancePaymentAmount);
+                            }
 
-						$(".modal_msg_data").show();
-						$(".modal_msg_data").html(msg);
-						SalesNote.getReceiveCreditCardPaymentList(salesNoteId);
+                            $(".modal_msg_data").show();
+                            $(".modal_msg_data").html(msg);
+                            SalesNote.getReceiveCreditCardPaymentList(salesNoteId);
+                        } else {
+                            $(".modal_msg_data").show();
+                            $(".modal_msg_data").html(msgError);
+                        }
 					}
-				})
+				});
 			}
 		},
 		
@@ -3121,8 +3263,7 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'json',
-				success:
-				function (response) {
+				success : function (response) {
 					$("#sales_note_details_form").show();
 					$("#search_sales_note_form").hide();
 					$("#add_sales_note_form").hide();
@@ -3157,7 +3298,7 @@
 					
 					$("#customer_id_edit").select2();
 				}
-			})
+			});
 		},
 		
 		getReceiveChequePaymentList: function(salesNoteId) {
@@ -3170,13 +3311,12 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'html',
-				success:
-				function (response) {
+				success : function (response) {
 					$("#chequePaymentDataTable").empty();
 					$("#chequePaymentDataTable").html(response);
 					$(".chequePaymentTable").dataTable();
 				}
-			})
+			});
 		},
 		
 		getReceiveCashPaymentList: function(salesNoteId) {
@@ -3189,13 +3329,12 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'html',
-				success:
-				function (response) {
+				success : function (response) {
 					$("#cashPaymentDataTable").empty();
 					$("#cashPaymentDataTable").html(response);
 					$(".cashPaymentTable").dataTable();
 				}
-			})
+			});
 		},
         
         getReceiveCreditCardPaymentList: function(salesNoteId) {
@@ -3208,13 +3347,12 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'html',
-				success:
-				function (response) {
+				success : function (response) {
 					$("#creditCardPaymentDataTable").empty();
 					$("#creditCardPaymentDataTable").html(response);
 					$(".creditCardPaymentTable").dataTable();
 				}
-			})
+			});
 		},
 		
 		getReceiveChequePaymentData: function (salesNoteId, chequeId) {
@@ -3229,8 +3367,7 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'json',
-				success:
-				function (response) {
+				success : function (response) {
 					if (response.result == "ok") {
 						$("#add_edit_cheque").show();
                         $("#receive_payment_id_in_cheque_payment").val(response.receivePaymentId);
@@ -3266,7 +3403,7 @@
                         }
 					}
 				}
-			})
+			});
 		},
 		
 		getCashPaymentData: function (salesNoteId, cashPaymentId) {
@@ -3281,8 +3418,7 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'json',
-				success:
-				function (response) {
+				success : function (response) {
 					if (response.result == "ok") {
 						$("#add_edit_cash_payment").show();
                         $("#receive_payment_id_in_cash_payment").val(response.receivePaymentId);
@@ -3297,7 +3433,7 @@
                         }
 					}
 				}
-			})
+			});
 		},
         
         getCreditCardPaymentData: function (salesNoteId, creditCardPaymentId) {
@@ -3312,8 +3448,7 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'json',
-				success:
-				function (response) {
+				success : function (response) {
 					if (response.result == "ok") {
 						$("#add_edit_credit_card_payment").show();
                         $("#receive_payment_id_in_credit_card_payment").val(response.receivePaymentId);
@@ -3332,7 +3467,7 @@
                         }
 					}
 				}
-			})
+			});
 		},
 		
 		//get customer drop down
@@ -3353,15 +3488,14 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'html',
-				success:
-				function (response) {
+				success : function (response) {
 					$('#customer_init').hide();
 					$("#customer_dropdown").html(response);
 					$("#customer_dropdown").find("#people_id").prop({ id: "customer_id"});
 					$("#customer_dropdown").find("#people_idError").prop({ id: "customer_idError"});
 					$("#customer_id").select2();
 				}
-			})
+			});
 		},
 		
 		//get customer search drop down
@@ -3375,14 +3509,13 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'html',
-				success:
-				function (response) {
+				success : function (response) {
 					$('#customer_search_init').hide();
 					$("#customer_search_dropdown").html(response);
 					$("#customer_search_dropdown").find("#people_id").prop({ id: "customer_search_id"});
 					$("#customer_search_id").select2();
 				}
-			})
+			});
 		},
 		
 		//get territories drop down
@@ -3395,8 +3528,7 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'html',
-				success:
-				function (response) {
+				success : function (response) {
 					$('#teritory_init').hide();
 					$("#teritory_dropdown").html(response);
 					
@@ -3405,7 +3537,7 @@
 					$("#teritory_search_dropdown").find("#territory").prop({ id: "territory_search_id"});
 					$("#teritory_search_dropdown").find("#territoryError").prop({ id: "territory_search_idError"});
 				}
-			})
+			});
 		},
 		
 		//get unit conversions drop down
@@ -3418,12 +3550,11 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'html',
-				success:
-				function (response) {
+				success : function (response) {
 					$('#location_init').hide();
 					$("#location_dropdown").html(response);
 				}
-			})
+			});
 		},
         
         //get bank drop down
@@ -3436,13 +3567,12 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'html',
-				success:
-				function (response) {
+				success : function (response) {
                     $('#bank_init').hide();
                     $("#bank_dropdown").empty();
                     $("#bank_dropdown").html(response);
 				}
-			})
+			});
 		},
         
         //get payment account drop down
@@ -3455,8 +3585,7 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'json',
-				success:
-				function (response) {
+				success : function (response) {
                     $('#cheque_deposit_account_init').hide();
                     $("#cheque_deposit_account_dropdown").empty();
                     $("#cheque_deposit_account_dropdown").html(response.chequeDepositAccountList);
@@ -3475,8 +3604,7 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'json',
-				success:
-				function (response) {
+				success : function (response) {
 					$("#cheque_deposit_account_dropdown_edit").empty();
 					$("#cheque_deposit_account_dropdown_edit").html(response.chequeDepositAccountList);
 				}
@@ -3493,12 +3621,11 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'html',
-				success:
-					function (response) {
-						$('#cheque_status_init').hide();
-						$("#cheque_status_dropdown").html(response);
-					}
-			})
+				success : function (response) {
+                    $('#cheque_status_init').hide();
+                    $("#cheque_status_dropdown").html(response);
+                }
+			});
 		},
         
         //get card payment account drop down
@@ -3511,8 +3638,7 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'json',
-				success:
-				function (response) {
+				success : function (response) {
                     $('#payment_account_init').hide();
                     $("#payment_account_dropdown").empty();
                     $("#payment_account_dropdown").html(response.paymentAccountList);
@@ -3532,8 +3658,7 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'json',
-				success:
-				function (response) {
+				success : function (response) {
                     $('#payment_account_init').hide();
                     $("#payment_account_dropdown").empty();
                     $("#payment_account_dropdown").html(response.paymentAccountList);
@@ -3700,8 +3825,7 @@
 				<?php echo $this->security->get_csrf_token_name(); ?>:'<?php echo $this->security->get_csrf_hash(); ?>'
 			},
 			dataType: 'json',
-				success:
-			function (response) {
+			success : function (response) {
 				$("#dataTable").html(response.html);
 				$(".loader").hide();
 				
@@ -3717,7 +3841,7 @@
 					"iDisplayLength":<?php echo $default_row_count_for_table; ?>
 				});
 			}
-		})
+		});
 	}
 
 	function clearForm(){

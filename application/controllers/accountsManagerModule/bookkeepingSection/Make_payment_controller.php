@@ -2526,67 +2526,2862 @@ class Make_payment_controller extends CI_Controller {
 
 				//Read New Make Payment Data
 				$makePaymentId = $this->db->escape_str($this->input->post('id'));
-				$makePaymentReferenceNo = $this->db->escape_str($this->input->post('reference_no'));
-				$makePaymentDate = $this->db->escape_str($this->input->post('make_payment_date'));
-				$remark = $this->db->escape_str($this->input->post('remark'));
-				$remark = preg_replace('~\\\n~',"\r\n", $remark);
-				$referenceTransactionData = $this->db->escape_str($this->input->post('reference_transaction_data'));
-				$paymentMethodData = $this->db->escape_str($this->input->post('payment_method_data'));
-				$referenceTransactionCount = $this->db->escape_str($this->input->post('reference_transaction_count'));
-				$paymentMethodCount = $this->db->escape_str($this->input->post('payment_method_count'));
-
-				$makePayment = $this->make_payment_model->getMakePaymentById($makePaymentId);
-				
-                $payeeType = $makePayment[0]->payee_type;
-                $payeeId = $makePayment[0]->payee_id;
-                $locationId = $makePayment[0]->location_id;
                 
-				if ($makePayment[0]->reference_no != $makePaymentReferenceNo) {$referenceNoChanged = true;}
-				if ($makePayment[0]->date != $makePaymentDate) {$makePaymentDateChanged = true;}
-				if ($makePayment[0]->remark != $remark) {$remarkChanged = true;}
+                $makePayment = $this->make_payment_model->getMakePaymentById($makePaymentId);
+                $makePaymentTransactionDate = $makePayment[0]->date;
+                
+                $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($makePaymentTransactionDate);
+                
+                if ($financialYear[0]->year_end_process_status != "Closed") {
+                
+                    $makePaymentReferenceNo = $this->db->escape_str($this->input->post('reference_no'));
+                    $makePaymentDate = $this->db->escape_str($this->input->post('make_payment_date'));
+                    $remark = $this->db->escape_str($this->input->post('remark'));
+                    $remark = preg_replace('~\\\n~',"\r\n", $remark);
+                    $referenceTransactionData = $this->db->escape_str($this->input->post('reference_transaction_data'));
+                    $paymentMethodData = $this->db->escape_str($this->input->post('payment_method_data'));
+                    $referenceTransactionCount = $this->db->escape_str($this->input->post('reference_transaction_count'));
+                    $paymentMethodCount = $this->db->escape_str($this->input->post('payment_method_count'));
 
-				if ($referenceNoChanged || $makePaymentDateChanged || $remarkChanged) {
 
-					$makePaymentDataHistory = array(
-						'make_payment_id' => $makePayment[0]->make_payment_id,
-						'reference_no' => $makePayment[0]->reference_no,
-						'date' => $makePayment[0]->date,
-						'payee_type' => $makePayment[0]->payee_type,
-						'payee_id' => $makePayment[0]->payee_id,
-						'location_id' => $makePayment[0]->location_id,
-						'remark' => $makePayment[0]->remark,
-						'actioned_user_id' => $makePayment[0]->actioned_user_id,
-						'added_date' => $makePayment[0]->added_date,
-						'action_date' => $makePayment[0]->action_date,
-						'last_action_status' => $makePayment[0]->last_action_status,
-					);
 
-					$this->make_payment_model->addMakePaymentDataToHistory($makePaymentDataHistory);
+                    $payeeType = $makePayment[0]->payee_type;
+                    $payeeId = $makePayment[0]->payee_id;
+                    $locationId = $makePayment[0]->location_id;
 
-					$makePaymentDatanew = array(
-						'reference_no' => $makePaymentReferenceNo,
-						'date' => $makePaymentDate,
-						'remark' => $remark,
-						'actioned_user_id' => $this->user_id,
-						'action_date' => $this->date,
-						'last_action_status' => 'edited'
-					);
+                    if ($makePayment[0]->reference_no != $makePaymentReferenceNo) {$referenceNoChanged = true;}
+                    if ($makePayment[0]->date != $makePaymentDate) {$makePaymentDateChanged = true;}
+                    if ($makePayment[0]->remark != $remark) {$remarkChanged = true;}
 
-					$this->make_payment_model->editMakePaymentData($makePaymentId, $makePaymentDatanew);
-				}
+                    if ($referenceNoChanged || $makePaymentDateChanged || $remarkChanged) {
 
-				$paymentReferenceList = $this->make_payment_model->getMakePaymentReferenceTransactionList($makePaymentId);
+                        $makePaymentDataHistory = array(
+                            'make_payment_id' => $makePayment[0]->make_payment_id,
+                            'reference_no' => $makePayment[0]->reference_no,
+                            'date' => $makePayment[0]->date,
+                            'payee_type' => $makePayment[0]->payee_type,
+                            'payee_id' => $makePayment[0]->payee_id,
+                            'location_id' => $makePayment[0]->location_id,
+                            'remark' => $makePayment[0]->remark,
+                            'actioned_user_id' => $makePayment[0]->actioned_user_id,
+                            'added_date' => $makePayment[0]->added_date,
+                            'action_date' => $makePayment[0]->action_date,
+                            'last_action_status' => $makePayment[0]->last_action_status,
+                        );
+
+                        $this->make_payment_model->addMakePaymentDataToHistory($makePaymentDataHistory);
+
+                        $makePaymentDatanew = array(
+                            'reference_no' => $makePaymentReferenceNo,
+                            'date' => $makePaymentDate,
+                            'remark' => $remark,
+                            'actioned_user_id' => $this->user_id,
+                            'action_date' => $this->date,
+                            'last_action_status' => 'edited'
+                        );
+
+                        $this->make_payment_model->editMakePaymentData($makePaymentId, $makePaymentDatanew);
+                    }
+
+                    $paymentReferenceList = $this->make_payment_model->getMakePaymentReferenceTransactionList($makePaymentId);
+                    $paymentMethodList = $this->make_payment_model->getMakePaymentMethodList($makePaymentId);
+                    $refundClaimAmountTotal = $this->make_payment_model->getMakePaymentClaimAmountTotal($makePaymentId);
+
+                    if ($paymentMethodList && sizeof($paymentMethodList) > 0) {
+
+                        foreach ($paymentMethodList as $paymentMethodRecord) {
+
+                            $paymentMethod = $paymentMethodRecord->payment_method;
+                            $cashPaymentId = $paymentMethodRecord->cash_payment_id;
+                            $chequeId = $paymentMethodRecord->cheque_id;
+
+                            $cashAmount = 0;
+                            $chequeAmount = 0;
+                            $status = "deleted";
+
+                            if ($paymentMethod == "Cash Payment") {
+                                $cashPayment = $this->payments_model->getCashPaymentById($cashPaymentId);
+                                $cashAmount = $cashPayment[0]->amount;
+                                $this->payments_model->deleteCashPayment($cashPaymentId, $status, $this->user_id);
+                            } else if ($paymentMethod == "Cheque Payment") {
+                                $expenseCheque = $this->payments_model->getExpenseChequeById($chequeId);
+                                $chequeAmount = $expenseCheque[0]->amount;
+                                $chequeNumber = $expenseCheque[0]->cheque_number;
+                                $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $expenseCheque[0]->cheque_payment_prime_entry_book_id;
+
+                                $makePaymentInSecondOrThirdPartyJournalEntries = $this->journal_entries_model->getJournalEntryByPrimeEntryBookIdAndReferenceNo($makePaymentInSecondOrThirdPartyPrimeEntryBookId, $chequeNumber);
+
+                                if ($makePaymentInSecondOrThirdPartyJournalEntries && sizeof($makePaymentInSecondOrThirdPartyJournalEntries) > 0) {
+                                    foreach($makePaymentInSecondOrThirdPartyJournalEntries as $makePaymentInSecondOrThirdPartyJournalEntry) {
+                                        $journalEntryId = $makePaymentInSecondOrThirdPartyJournalEntry->journal_entry_id;
+
+                                        $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+
+                                        if ($glTransactions && sizeof($glTransactions) > 0) {
+                                            foreach($glTransactions as $glTransaction) {
+                                                $chartOfAccountId = $glTransaction->chart_of_account_id;
+
+                                                $generalLedgerTransaction = array(
+                                                    'transaction_complete' => "No",
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'deleted'
+                                                );
+
+                                                $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $generalLedgerTransaction);
+                                            }
+                                        }
+
+                                        $journalEntry = array(
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'deleted'
+                                        );
+
+                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntry);
+                                    }
+                                }
+
+                                $this->payments_model->deleteExpenseCheque($chequeId, $status, $this->user_id);
+                            } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
+                                $expenseCheque = $this->payments_model->getExpenseChequeById($chequeId);
+                                $chequeAmount = $expenseCheque[0]->amount;
+                                $chequeNumber = $expenseCheque[0]->cheque_number;
+                                $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $expenseCheque[0]->cheque_payment_prime_entry_book_id;
+
+                                $makePaymentInSecondOrThirdPartyJournalEntries = $this->journal_entries_model->getJournalEntryByPrimeEntryBookIdAndReferenceNo($makePaymentInSecondOrThirdPartyPrimeEntryBookId, $chequeNumber);
+
+                                if ($makePaymentInSecondOrThirdPartyJournalEntries && sizeof($makePaymentInSecondOrThirdPartyJournalEntries) > 0) {
+                                    foreach($makePaymentInSecondOrThirdPartyJournalEntries as $makePaymentInSecondOrThirdPartyJournalEntry) {
+                                        $journalEntryId = $makePaymentInSecondOrThirdPartyJournalEntry->journal_entry_id;
+
+                                        $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+
+                                        if ($glTransactions && sizeof($glTransactions) > 0) {
+                                            foreach($glTransactions as $glTransaction) {
+                                                $chartOfAccountId = $glTransaction->chart_of_account_id;
+
+                                                $generalLedgerTransaction = array(
+                                                    'transaction_complete' => "No",
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'deleted'
+                                                );
+
+                                                $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $generalLedgerTransaction);
+                                            }
+                                        }
+
+                                        $journalEntry = array(
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'deleted'
+                                        );
+
+                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntry);
+                                    }
+                                }
+
+                                $this->payments_model->deleteExpenseCheque($chequeId, $status, $this->user_id);
+
+                                //Mark coresponding income cheque (if available) is In Hand
+                                $incomeCheque = $this->payments_model->getIncomeChequeByChequeNumber($chequeNumber);
+                                $chequeId = $incomeCheque[0]->cheque_id;
+
+                                if ($incomeCheque && sizeof($incomeCheque) > 0) {
+                                    $incomeChequeData = array(
+                                        'status' => "In_Hand",
+                                        'actioned_user_id' => $this->user_id,
+                                        'action_date' => $this->date,
+                                        'last_action_status' => 'edited'
+                                    );
+
+                                    $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
+                                }
+                            }
+
+                            //Reverse current reference transactions changes from the receive payment
+                            if ($paymentReferenceList && sizeof($paymentReferenceList) > 0) {
+
+                                foreach ($paymentReferenceList as $paymentReference) {
+
+                                    $referenceTransactionTypeId = $paymentReference->reference_transaction_type_id;
+                                    $referenceTransactionId = $paymentReference->reference_transaction_id;
+                                    $referenceTransactionNote = $paymentReference->reference_transaction_note;
+                                    $referenceTransactionClaimAmount = $paymentReference->claim_amount;
+
+                                    if ($referenceTransactionTypeId == '1') {
+                                        //Purchase Note
+                                        $successfulTransaction = false;
+
+                                        $purchaseNoteId = $referenceTransactionId;
+                                        $purchaseNote = $this->purchase_note_model->getPurchaseNoteById($purchaseNoteId);
+
+                                        $currentCashPayment = $purchaseNote[0]->cash_payment_amount;
+                                        $currentChequePayment = $purchaseNote[0]->cheque_payment_amount;
+                                        $currentBalancePayment = $purchaseNote[0]->balance_payment;
+                                        $claimAmountTotal = $purchaseNote[0]->supplier_return_note_claimed;
+
+                                        if ($refundClaimAmountTotal >= $claimAmountTotal) {
+                                            $refundClaimAmountTotal = $refundClaimAmountTotal - $claimAmountTotal;
+                                            $currentBalancePayment = $currentBalancePayment + $claimAmountTotal;
+                                            $claimAmountTotal = 0;
+                                        } else {
+                                            $claimAmountTotal = $claimAmountTotal - $refundClaimAmountTotal;
+                                            $currentBalancePayment = $currentBalancePayment + $refundClaimAmountTotal;
+                                            $refundClaimAmountTotal = 0;
+                                        }
+
+                                        if ($currentCashPayment >= $cashAmount) {
+                                            $currentCashPayment = $currentCashPayment - $cashAmount;
+                                            $currentBalancePayment = $currentBalancePayment + $cashAmount;
+                                            $cashAmount = 0;
+                                            $successfulTransaction = true;
+                                        } else if ($currentCashPayment < $cashAmount) {
+                                            $cashAmount = $cashAmount - $currentCashPayment;
+                                            $currentBalancePayment = $currentBalancePayment + $currentCashPayment;
+                                            $currentCashPayment = 0;
+                                            $successfulTransaction = true;
+                                        }
+
+                                        if ($currentChequePayment >= $chequeAmount) {
+                                            $currentChequePayment = $currentChequePayment - $chequeAmount;
+                                            $currentBalancePayment = $currentBalancePayment + $chequeAmount;
+                                            $chequeAmount = 0;
+                                            $successfulTransaction = true;
+                                        } else if ($currentChequePayment < $chequeAmount) {
+                                            $chequeAmount = $chequeAmount - $currentChequePayment;
+                                            $currentBalancePayment = $currentBalancePayment + $currentChequePayment;
+                                            $currentChequePayment = 0;
+                                            $successfulTransaction = true;
+                                        }
+
+                                        if ($successfulTransaction) {
+
+                                            $purchaseNoteData = array(
+                                                'cash_payment_amount' => $currentCashPayment,
+                                                'cheque_payment_amount' => $currentChequePayment,
+                                                'balance_payment' => $currentBalancePayment,
+                                                'supplier_return_note_claimed' => $claimAmountTotal,
+                                                'status' => "Open",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'edited'
+                                            );
+
+                                            $this->purchase_note_model->editPurchaseNoteData($referenceTransactionId, $purchaseNoteData);
+                                        }
+                                    } else if ($referenceTransactionTypeId == '2') {
+                                        //Sales Note
+                                        $salesNoteId = $referenceTransactionId;
+                                        $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
+
+                                        $status = $salesNote[0]->status;
+                                        //$amount = $salesNote[0]->sales_amount;
+                                        $currentBalancePayment = $salesNote[0]->balance_payment;
+
+                                        if ($status == "Claimed" && $currentBalancePayment == "0.00") {
+                                            $salesNoteData = array(
+                                                'balance_payment' => $referenceTransactionClaimAmount,
+                                                'status' => "Open",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'edited'
+                                            );
+
+                                            $this->sales_note_model->editSalesNoteData($referenceTransactionId, $salesNoteData);
+                                        }
+
+                                        $salesNoteSalesEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId);
+
+                                        if ($salesNoteSalesEntryJournalEntries && sizeof($salesNoteSalesEntryJournalEntries) > 0) {
+                                            //Delete sales note claim journal entries
+                                            foreach($salesNoteSalesEntryJournalEntries as $journalEntry) {
+                                                $journalEntryId = $journalEntry->journal_entry_id;
+
+                                                $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
+
+                                                if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
+                                                    foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
+                                                        $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
+                                                        $this->journal_entries_model->deleteJournalEntry($claimReferenceJournalEntryId, 'deleted', $this->user_id);
+                                                        $this->journal_entries_model->deleteGeneralLedgerTransactions($claimReferenceJournalEntryId, 'deleted', $this->user_id);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else if ($referenceTransactionTypeId == '3') {
+                                        //Supplier Return Note
+                                        $supplierReturnNoteId = $referenceTransactionId;
+                                        $supplierReturnNote = $this->supplier_return_note_model->getSupplierReturnNoteById($supplierReturnNoteId);
+
+                                        $status = $supplierReturnNote[0]->status;
+                                        //$amount = $supplierReturnNote[0]->amount;
+                                        $currentBalancePayment = $supplierReturnNote[0]->balance_payment;
+                                        $supplierReturnType = $supplierReturnNote[0]->type;
+
+                                        if ($status == "Claimed" && $currentBalancePayment == "0.00") {
+                                            $supplierReturnNoteData = array(
+                                                'balance_payment' => $referenceTransactionClaimAmount,
+                                                'status' => "Open",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'edited'
+                                            );
+
+                                            $this->supplier_return_note_model->editSupplierReturnNoteData($referenceTransactionId, $supplierReturnNoteData);
+                                        }
+
+                                        if ($supplierReturnType == 'saleable_return') {
+                                            $supplierReturnNoteSalesEntryJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '1');
+                                        } else if ($supplierReturnType == 'market_return') {
+                                            $supplierReturnNoteSalesEntryJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '2');
+                                        }
+
+                                        if ($supplierReturnNoteSalesEntryJournalEntries && sizeof($supplierReturnNoteSalesEntryJournalEntries) > 0) {
+                                            //Delete supplier return claim journal entries
+                                            foreach($supplierReturnNoteSalesEntryJournalEntries as $journalEntry) {
+                                                $journalEntryId = $journalEntry->journal_entry_id;
+
+                                                $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
+
+                                                if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
+                                                    foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
+                                                        $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
+                                                        $this->journal_entries_model->deleteJournalEntry($claimReferenceJournalEntryId, 'deleted', $this->user_id);
+                                                        $this->journal_entries_model->deleteGeneralLedgerTransactions($claimReferenceJournalEntryId, 'deleted', $this->user_id);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else if ($referenceTransactionTypeId == '4') {
+                                        //Customer Return Note
+                                        $successfulTransaction = false;
+
+                                        $customerReturnNoteId = $referenceTransactionId;
+                                        $customerReturnNote = $this->customer_return_note_model->getCustomerReturnNoteById($customerReturnNoteId);
+
+                                        $currentCashPayment = $customerReturnNote[0]->cash_payment_amount;
+                                        $currentChequePayment = $customerReturnNote[0]->cheque_payment_amount;
+                                        $currentBalancePayment = $customerReturnNote[0]->balance_payment;
+                                        $claimAmountTotal = $customerReturnNote[0]->sales_note_claimed;
+
+                                        if ($refundClaimAmountTotal >= $claimAmountTotal) {
+                                            $refundClaimAmountTotal = $refundClaimAmountTotal - $claimAmountTotal;
+                                            $currentBalancePayment = $currentBalancePayment + $claimAmountTotal;
+                                            $claimAmountTotal = 0;
+                                        } else {
+                                            $claimAmountTotal = $claimAmountTotal - $refundClaimAmountTotal;
+                                            $currentBalancePayment = $currentBalancePayment + $refundClaimAmountTotal;
+                                            $refundClaimAmountTotal = 0;
+                                        }
+
+                                        if ($currentCashPayment >= $cashAmount) {
+                                            $currentCashPayment = $currentCashPayment - $cashAmount;
+                                            $currentBalancePayment = $currentBalancePayment + $cashAmount;
+                                            $cashAmount = 0;
+                                            $successfulTransaction = true;
+                                        } else if ($currentCashPayment < $cashAmount) {
+                                            $cashAmount = $cashAmount - $currentCashPayment;
+                                            $currentBalancePayment = $currentBalancePayment + $currentCashPayment;
+                                            $currentCashPayment = 0;
+                                            $successfulTransaction = true;
+                                        }
+
+                                        if ($currentChequePayment >= $chequeAmount) {
+                                            $currentChequePayment = $currentChequePayment - $chequeAmount;
+                                            $currentBalancePayment = $currentBalancePayment + $chequeAmount;
+                                            $chequeAmount = 0;
+                                            $successfulTransaction = true;
+                                        } else if ($currentChequePayment < $chequeAmount) {
+                                            $chequeAmount = $chequeAmount - $currentChequePayment;
+                                            $currentBalancePayment = $currentBalancePayment + $currentChequePayment;
+                                            $currentChequePayment = 0;
+                                            $successfulTransaction = true;
+                                        }
+
+                                        if ($successfulTransaction) {
+
+                                            $customerReturnNoteData = array(
+                                                'cash_payment_amount' => $currentCashPayment,
+                                                'cheque_payment_amount' => $currentChequePayment,
+                                                'balance_payment' => $currentBalancePayment,
+                                                'sales_note_claimed' => $claimAmountTotal,
+                                                'status' => "Open",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'edited'
+                                            );
+
+                                            $this->customer_return_note_model->editCustomerReturnNoteData($referenceTransactionId, $customerReturnNoteData);
+                                        }
+                                    } else if ($referenceTransactionTypeId == '5') {
+
+                                        if ($referenceTransactionNote != "Deduction") {
+
+                                            $journalEntryId = $paymentReference->reference_journal_entry_id;
+                                            $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+
+                                            $balanceAmount = $journalEntry[0]->balance_amount;
+
+                                            $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+
+                                            $transactionAmount = 0;
+                                            if ($glTransactions && sizeof($glTransactions) > 0) {
+                                                if ($glTransactions[0]->debit_value > 0) {
+                                                    $transactionAmount = $glTransactions[0]->debit_value;
+                                                } else if ($glTransactions[0]->credit_value > 0) {
+                                                    $transactionAmount = $glTransactions[0]->credit_value;
+                                                }
+                                            }
+
+                                            if ($cashAmount > 0) {
+                                                if (($transactionAmount - $balanceAmount) >= $cashAmount) {
+
+                                                    $balanceAmount = $balanceAmount + $cashAmount;
+                                                    $cashAmount = 0;
+
+                                                    $journalEntryData = array(
+                                                        'balance_amount' => $balanceAmount,
+                                                        'status' => "Open",
+                                                        'actioned_user_id' => $this->user_id,
+                                                        'action_date' => $this->date,
+                                                        'last_action_status' => 'edited'
+                                                    );
+
+                                                    $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                                } else if (($transactionAmount - $balanceAmount) < $cashAmount) {
+                                                    $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
+                                                    $cashAmount = $cashAmount - ($transactionAmount - $balanceAmount);
+
+                                                    $journalEntryData = array(
+                                                        'balance_amount' => $balanceAmount,
+                                                        'status' => "Open",
+                                                        'actioned_user_id' => $this->user_id,
+                                                        'action_date' => $this->date,
+                                                        'last_action_status' => 'edited'
+                                                    );
+
+                                                    $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                                }
+                                            }
+
+                                            if ($chequeAmount > 0) {
+                                                if (($transactionAmount - $balanceAmount) >= $chequeAmount) {
+
+                                                    $balanceAmount = $balanceAmount + $chequeAmount;
+                                                    $chequeAmount = 0;
+
+                                                    $journalEntryData = array(
+                                                        'balance_amount' => $balanceAmount,
+                                                        'status' => "Open",
+                                                        'actioned_user_id' => $this->user_id,
+                                                        'action_date' => $this->date,
+                                                        'last_action_status' => 'edited'
+                                                    );
+
+                                                    $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                                } else if (($transactionAmount - $balanceAmount) < $chequeAmount) {
+                                                    $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
+                                                    $chequeAmount = $chequeAmount - ($transactionAmount - $balanceAmount);
+
+                                                    $journalEntryData = array(
+                                                        'balance_amount' => $balanceAmount,
+                                                        'status' => "Open",
+                                                        'actioned_user_id' => $this->user_id,
+                                                        'action_date' => $this->date,
+                                                        'last_action_status' => 'edited'
+                                                    );
+
+                                                    $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                                }
+                                            }
+                                        } else {
+                                            $journalEntryData = array(
+                                                'status' => "Open",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'edited'
+                                            );
+
+                                            $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                        }
+                                    }
+
+                                    $makePaymentReferenceTransactionDataHistory = array(
+                                        'make_payment_reference_transaction_id' => $paymentReference->make_payment_reference_transaction_id,
+                                        'make_payment_id' => $paymentReference->make_payment_id,
+                                        'reference_transaction_type_id' => $paymentReference->reference_transaction_type_id,
+                                        'reference_transaction_id' => $paymentReference->reference_transaction_id,
+                                        'reference_journal_entry_id' => $paymentReference->reference_journal_entry_id,
+                                        'claim_amount' => $paymentReference->claim_amount,
+                                        'actioned_user_id' => $paymentReference->actioned_user_id,
+                                        'action_date' => $paymentReference->action_date,
+                                        'last_action_status' => $paymentReference->last_action_status,
+                                    );
+
+                                    $this->make_payment_model->addMakePaymentReferenceTransactionToHistory($makePaymentReferenceTransactionDataHistory);
+                                }
+                            }
+
+                            $this->make_payment_model->deleteMakePaymentReferenceTransactions($makePaymentId);
+
+                            $makePaymentMethodDataHistory = array(
+                                'make_payment_method_id' => $paymentMethodRecord->make_payment_method_id,
+                                'make_payment_id' => $paymentMethodRecord->make_payment_id,
+                                'payment_method' => $paymentMethodRecord->payment_method,
+                                'cash_payment_id' => $paymentMethodRecord->cash_payment_id,
+                                'payment_account_id' => $paymentMethodRecord->payment_account_id,
+                                'cheque_type' => $paymentMethodRecord->cheque_type,
+                                'cheque_id' => $paymentMethodRecord->cheque_id,
+                                'actioned_user_id' => $paymentMethodRecord->actioned_user_id,
+                                'action_date' => $paymentMethodRecord->action_date,
+                                'last_action_status' => $paymentMethodRecord->last_action_status,
+                            );
+
+                            $this->make_payment_model->addMakePaymentMethodRecordToHistory($makePaymentMethodDataHistory);
+                        }
+                    }
+
+                    $this->make_payment_model->deleteMakePaymentMethodRecords($makePaymentId);
+
+                    $makePaymentJournalEntries = $this->make_payment_model->getMakePaymentJournalEntries($makePaymentId);
+
+                    if ($makePaymentJournalEntries && sizeof($makePaymentJournalEntries) > 0) {
+                        //Delete all journal entries of Make Payment
+                        foreach($makePaymentJournalEntries as $makePaymentJournalEntry) {
+                            $makePaymentJournalEntryId = $makePaymentJournalEntry->make_payment_journal_entry_id;
+                            $journalEntryId = $makePaymentJournalEntry->journal_entry_id;
+                            $this->make_payment_model->deleteMakePaymentJournalEntry($makePaymentJournalEntryId, "deleted", $this->user_id);
+                            $this->journal_entries_model->deleteJournalEntry($journalEntryId, "deleted", $this->user_id);
+                            $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, "deleted", $this->user_id);
+                        }
+                    }
+
+                    $makePaymentClaimAmountTotal = '0.00';
+                    $salesNoteAmountTotal = '0.00';
+                    $supplierReturnNoteAmountTotal = '0.00';
+                    $otherReferenceTransactionDeductionAmountTotal = '0.00';
+
+                    $claimTransactionList = array();
+
+                    if ($referenceTransactionData && sizeof($referenceTransactionData) > 0) {
+
+                        for($x = 0; $x < $referenceTransactionCount; $x++) {
+
+                            if (isset($referenceTransactionData[$x])) {
+                                $rowCount = sizeof($referenceTransactionData[$x][0]);
+
+                                for($y = 1; $y <= $rowCount; $y++) {
+
+                                    $claimAmount = 0;
+                                    $referenceTransactionNote = '';
+
+                                    if ($referenceTransactionData[$x][0][$y] == '2') {
+                                        //Sales Note
+                                        $journalEntryId = $referenceTransactionData[$x][2][$y];
+                                        $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+                                        $salesNoteReferenceNo = $journalEntry[0]->reference_no;
+                                        $salesNote = $this->sales_note_model->getSalesNoteByReferenceNo($salesNoteReferenceNo);
+
+                                        if ($salesNote && sizeof($salesNote) > 0) {
+
+                                            $referenceNo = $salesNote[0]->reference_no;
+                                            $salesNoteAmount = $salesNote[0]->balance_payment;
+                                            $claimAmount = $salesNoteAmount;
+
+                                            $data = array(
+                                                'balance_payment' => '0.00',
+                                                'status' => "Claimed",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'added'
+                                            );
+
+                                            $this->sales_note_model->editSalesNoteData($salesNote[0]->sales_note_id, $data);
+
+                                            $salesNoteAmountTotal = $salesNoteAmountTotal + $salesNoteAmount;
+
+                                            $claimTransaction = array('0' => $journalEntryId, '1' => $claimAmount, '2' => $referenceNo);
+                                            $claimTransactionList[] = $claimTransaction;
+                                        }
+                                    } else if ($referenceTransactionData[$x][0][$y] == '3') {
+                                        //Supplier Return Note
+                                        $journalEntryId = $referenceTransactionData[$x][2][$y];
+                                        $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+                                        $supplierReturnNoteReferenceNo = $journalEntry[0]->reference_no;
+                                        $supplierReturnNote = $this->supplier_return_note_model->getSupplierReturnNoteByReferenceNo($supplierReturnNoteReferenceNo);
+
+                                        if ($supplierReturnNote && sizeof($supplierReturnNote) > 0) {
+
+                                            $referenceNo = $supplierReturnNote[0]->reference_no;
+                                            $supplierReturnNoteAmount = $supplierReturnNote[0]->balance_payment;
+                                            $claimAmount = $supplierReturnNoteAmount;
+
+                                            $data = array(
+                                                'balance_payment' => '0.00',
+                                                'status' => "Claimed",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'added'
+                                            );
+
+                                            $this->supplier_return_note_model->editSupplierReturnNoteData($supplierReturnNote[0]->supplier_return_note_id, $data);
+
+                                            $supplierReturnNoteAmountTotal = $supplierReturnNoteAmountTotal + $supplierReturnNoteAmount;
+
+                                            $claimTransaction = array('0' => $journalEntryId, '1' => $claimAmount, '2' => $referenceNo);
+                                            $claimTransactionList[] = $claimTransaction;
+                                        }
+                                    } else if ($referenceTransactionData[$x][0][$y] == '5') {
+                                        if ($referenceTransactionData[$x][3][$y] == "Deduction") {
+                                            $journalEntryId = $referenceTransactionData[$x][2][$y];
+                                            $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+
+                                            $transactionAmount = 0;
+                                            if ($glTransactions && sizeof($glTransactions) > 0) {
+                                                if ($glTransactions[0]->debit_value > 0) {
+                                                    $transactionAmount = $glTransactions[0]->debit_value;
+                                                } else if ($glTransactions[0]->credit_value > 0) {
+                                                    $transactionAmount = $glTransactions[0]->credit_value;
+                                                }
+                                            }
+
+                                            $claimAmount = $transactionAmount;
+
+                                            $data = array(
+                                                'status' => "Closed",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'added'
+                                            );
+
+                                            $this->journal_entries_model->editJournalEntry($journalEntryId, $data);
+
+                                            $otherReferenceTransactionDeductionAmountTotal = $otherReferenceTransactionDeductionAmountTotal + $transactionAmount;
+
+                                            $claimTransaction = array('0' => $journalEntryId, '1' => $claimAmount, '2' => '');
+                                            $claimTransactionList[] = $claimTransaction;
+
+                                            $referenceTransactionNote = "Deduction";
+                                        }
+                                    }
+
+                                    $data = array(
+                                        'make_payment_id' => $makePaymentId,
+                                        'reference_transaction_type_id' => $referenceTransactionData[$x][0][$y],
+                                        'reference_transaction_id' => $referenceTransactionData[$x][1][$y],
+                                        'reference_transaction_note' => $referenceTransactionNote,
+                                        'reference_journal_entry_id' => $referenceTransactionData[$x][2][$y],
+                                        'claim_amount' => $claimAmount,
+                                        'actioned_user_id' => $this->user_id,
+                                        'action_date' => $this->date,
+                                        'last_action_status' => 'added'
+                                    );
+
+                                    $this->make_payment_model->addMakePaymentReferenceTransaction($data);
+                                }
+                            }
+                        }
+                    }
+
+                    $makePaymentClaimAmountTotal = $salesNoteAmountTotal + $supplierReturnNoteAmountTotal + $otherReferenceTransactionDeductionAmountTotal;
+                    $pendingClaimAmountTotalForPurchaseNotes = $supplierReturnNoteAmountTotal + $otherReferenceTransactionDeductionAmountTotal;
+                    $pendingClaimAmountTotalForCustomerReturnNotes = $salesNoteAmountTotal + $otherReferenceTransactionDeductionAmountTotal;
+
+                    if ($paymentMethodData && sizeof($paymentMethodData) > 0) {
+
+                        $totalPaid = 0;
+
+                        for($x = 0; $x < $paymentMethodCount; $x++) {
+
+                            if (isset($paymentMethodData[$x])) {
+                                $rowCount = sizeof($paymentMethodData[$x][0]);
+
+                                $remainingPaymentAmount = 0;
+
+                                for($y = 1; $y <= $rowCount; $y++) {
+
+                                    $paymentMethod = $paymentMethodData[$x][0][$y];
+                                    $paymentAccountId = $paymentMethodData[$x][1][$y];
+                                    $chequeId = $paymentMethodData[$x][2][$y];
+                                    $bankId = $paymentMethodData[$x][3][$y];
+                                    $chequeNumber = $paymentMethodData[$x][4][$y];
+                                    $chequeDate = $paymentMethodData[$x][5][$y];
+                                    $amount = $paymentMethodData[$x][6][$y];
+
+                                    $remainingPaymentAmount = $amount;
+
+                                    $paymentId = 0;
+                                    $chequeType = '';
+
+                                    $referenceTransactionTypeId = '';
+                                    $referenceTransactionId = '';
+                                    $referenceJournalEntryId = '';
+
+                                    if ($referenceTransactionData && sizeof($referenceTransactionData) > 0) {
+
+                                        for($p = 0; $p < $referenceTransactionCount; $p++) {
+
+                                            if (isset($referenceTransactionData[$p])) {
+                                                $rowCountInner = sizeof($referenceTransactionData[$p][0]);
+
+                                                for($q = 1; $q <= $rowCountInner; $q++) {
+
+                                                    $today = date("Y-m-d");
+
+                                                    if ($referenceTransactionData[$p][0][$q] == '1') {
+                                                        //Purchase Note
+                                                        $journalEntryId = $referenceTransactionData[$p][2][$q];
+                                                        $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+
+                                                        $purchaseNoteReferenceNo = $journalEntry[0]->reference_no;
+                                                        $purchaseNote = $this->purchase_note_model->getPurchaseNoteByReferenceNo($purchaseNoteReferenceNo, '');
+
+                                                        if ($purchaseNote && sizeof($purchaseNote) > 0) {
+
+                                                            $purchaseNoteId = $purchaseNote[0]->purchase_note_id;
+
+                                                            $referenceTransactionTypeId = '1';
+                                                            $referenceTransactionId = $purchaseNoteId;
+                                                            $referenceJournalEntryId = $journalEntryId;
+
+                                                            $totalAmount = $purchaseNote[0]->amount;
+                                                            $paidCashAmount = $purchaseNote[0]->cash_payment_amount;
+                                                            $paidChequeAmount = $purchaseNote[0]->cheque_payment_amount;
+                                                            $paidCreditCardAmount = $purchaseNote[0]->credit_card_payment_amount;
+                                                            $supplierReturnAmountClaimed = $purchaseNote[0]->supplier_return_note_claimed;
+                                                            $totalPaid = $paidCashAmount + $paidChequeAmount + $paidCreditCardAmount + $supplierReturnAmountClaimed;
+
+                                                            $currentBalancePayment = $totalAmount - $totalPaid;
+
+                                                            if (round($currentBalancePayment) > 0) {
+
+                                                                $amountToClaimFromPayment = 0;
+                                                                $amountToClaimFromPurchaseNoteAmount = 0;
+
+                                                                if ($pendingClaimAmountTotalForPurchaseNotes > 0) {
+
+                                                                    if ($currentBalancePayment >= $pendingClaimAmountTotalForPurchaseNotes) {
+                                                                        $amountToClaimFromPayment = $currentBalancePayment - $pendingClaimAmountTotalForPurchaseNotes;
+
+                                                                        if ($amountToClaimFromPayment > $remainingPaymentAmount) {
+                                                                            $amountToClaimFromPayment = $remainingPaymentAmount;
+                                                                        }
+
+                                                                        $amountToClaimFromPurchaseNoteAmount = $pendingClaimAmountTotalForPurchaseNotes;
+                                                                        $newBalancePayment = $totalAmount - ($totalPaid + $amountToClaimFromPayment + $pendingClaimAmountTotalForPurchaseNotes);
+                                                                        $remainingPaymentAmount = $remainingPaymentAmount - $amountToClaimFromPayment;
+                                                                        $pendingClaimAmountTotalForPurchaseNotes = 0;
+                                                                    } else {
+                                                                        $amountToClaimFromPurchaseNoteAmount = $currentBalancePayment;
+                                                                        $newBalancePayment = $totalAmount - ($totalPaid + $amountToClaimFromPurchaseNoteAmount);
+                                                                        $pendingClaimAmountTotalForPurchaseNotes = $pendingClaimAmountTotalForPurchaseNotes - $amountToClaimFromPurchaseNoteAmount;
+                                                                    }
+                                                                } else {
+                                                                    $newBalancePayment = $totalAmount - ($totalPaid + $remainingPaymentAmount);
+                                                                }
+
+                                                                $paidAmount = 0;
+
+                                                                if ($newBalancePayment < 0) {
+                                                                    $newBalancePayment = 0;
+                                                                }
+
+                                                                $status = "Open";
+                                                                $paymentMethodFullyConsumed = false;
+
+                                                                if ($newBalancePayment == 0) {
+                                                                    $status = "Claimed";
+                                                                } else {
+                                                                    $paymentMethodFullyConsumed = true;
+                                                                }
+
+                                                                if ($amountToClaimFromPurchaseNoteAmount > 0) {
+                                                                    if ($paymentMethod == 'Cash Payment') {
+                                                                        $paidAmount = $amountToClaimFromPayment;
+
+                                                                        $data = array(
+                                                                            'cash_payment_amount' => $paidCashAmount + $amountToClaimFromPayment,
+                                                                            'balance_payment' => $newBalancePayment,
+                                                                            'supplier_return_note_claimed' => $amountToClaimFromPurchaseNoteAmount + $supplierReturnAmountClaimed,
+                                                                            'status' => $status,
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'edited'
+                                                                        );
+
+                                                                        $cashPaymentData = array(
+                                                                            'transaction_type' => 'Purchase Note',
+                                                                            'transaction_id' => $purchaseNoteId,
+                                                                            'date' => $makePaymentDate,
+                                                                            'amount' => $amountToClaimFromPayment,
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'edited'
+                                                                        );
+
+                                                                        $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
+                                                                    } else if ($paymentMethod == 'Cheque Payment') {
+
+                                                                        $chequeType = "Expense Cheque";
+                                                                        $paidAmount = $amountToClaimFromPayment;
+
+                                                                        $data = array(
+                                                                            'cheque_payment_amount' => $paidChequeAmount + $amountToClaimFromPayment,
+                                                                            'balance_payment' => $newBalancePayment,
+                                                                            'supplier_return_note_claimed' => $amountToClaimFromPurchaseNoteAmount + $supplierReturnAmountClaimed,
+                                                                            'status' => $status,
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'edited'
+                                                                        );
+
+                                                                        $expenseChequeData = array(
+                                                                            'transaction_type' => 'Purchase Note',
+                                                                            'transaction_id' => $purchaseNoteId,
+                                                                            'date' => $makePaymentDate,
+                                                                            'payee_id' => $payeeId,
+                                                                            'location_id' => $locationId,
+                                                                            'reference_no' => $purchaseNoteReferenceNo,
+                                                                            'cheque_number' => $chequeNumber,
+                                                                            'bank' => $bankId,
+                                                                            'cheque_date' => $chequeDate,
+                                                                            'amount' => $amountToClaimFromPayment,
+                                                                            'cheque_payment_prime_entry_book_id' => $paymentAccountId,
+                                                                            'status' => "Open",
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'added'
+                                                                        );
+
+                                                                        $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
+                                                                    } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
+
+                                                                        $chequeType = "Expense Cheque";
+                                                                        $paidAmount = $amountToClaimFromPayment;
+
+                                                                        $data = array(
+                                                                            'cheque_payment_amount' => $paidChequeAmount + $amountToClaimFromPayment,
+                                                                            'balance_payment' => $newBalancePayment,
+                                                                            'supplier_return_note_claimed' => $amountToClaimFromPurchaseNoteAmount + $supplierReturnAmountClaimed,
+                                                                            'status' => $status,
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'edited'
+                                                                        );
+
+                                                                        //Mark second party/third party cheque as paid
+
+                                                                        $incomeChequeData = array(
+                                                                            'status' => "Paid",
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'edited'
+                                                                        );
+
+                                                                        $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
+
+                                                                        $makePaymentInSecondOrThirdPartyPrimeEntryBook = $this->system_configurations_model->getMakePaymentSecondOrThirdPartyChequeAccountsPrimeEntryBooks();
+
+                                                                        $makePaymentInSecondOrThirdPartyPrimeEntryBookId = '';
+                                                                        $primeEntryBooksToUpdate = '';
+                                                                        if ($makePaymentInSecondOrThirdPartyPrimeEntryBook && sizeof($makePaymentInSecondOrThirdPartyPrimeEntryBook) > 0) {
+                                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $makePaymentInSecondOrThirdPartyPrimeEntryBook[0]->config_filed_value;
+                                                                            $primeEntryBooksToUpdate = $this->prime_entry_book_model->getPrimeEntryBookById($makePaymentInSecondOrThirdPartyPrimeEntryBookId);
+                                                                        }
+
+                                                                        //Add a new expense cheque using party/third party cheque
+                                                                        $expenseChequeData = array(
+                                                                            'transaction_type' => 'Purchase Note',
+                                                                            'transaction_id' => $purchaseNoteId,
+                                                                            'date' => $makePaymentDate,
+                                                                            'payee_id' => $payeeId,
+                                                                            'location_id' => $locationId,
+                                                                            'reference_no' => $purchaseNoteReferenceNo,
+                                                                            'cheque_number' => $chequeNumber,
+                                                                            'bank' => $bankId,
+                                                                            'cheque_date' => $chequeDate,
+                                                                            'amount' => $amountToClaimFromPayment,
+                                                                            'cheque_payment_prime_entry_book_id' => $makePaymentInSecondOrThirdPartyPrimeEntryBookId,
+                                                                            'status' => "Open",
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'added'
+                                                                        );
+
+                                                                        $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
+
+                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+                                                                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                                $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
+                                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                                }
+                                                                            }
+                                                                        } else {
+                                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                        }
+
+                                                                        if ($correctChartOfAccountsFoundInPrimeEntryBooks) {
+                                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                                $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
+
+                                                                                $journalEntry = array(
+                                                                                    'prime_entry_book_id' => $primeEntryBookId,
+                                                                                    'transaction_date' => $today,
+                                                                                    'reference_no' => $chequeNumber,
+                                                                                    'should_have_a_payment_journal_entry' => "No",
+                                                                                    'location_id' => $locationId,
+                                                                                    'payee_payer_type' => $payeeType,
+                                                                                    'payee_payer_id' => $payeeId,
+                                                                                    'description' => $this->lang->line('Journal entry for second or third party cheque payment for Cheque number : ') . $chequeNumber,
+                                                                                    'post_type' => "Indirect",
+                                                                                    'actioned_user_id' => $this->user_id,
+                                                                                    'action_date' => $this->date,
+                                                                                    'last_action_status' => 'added'
+                                                                                );
+
+                                                                                $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
+
+                                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                                                                                $amount = str_replace(',', '', $amount);
+
+                                                                                foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+
+                                                                                    $transactionStatus = "No";
+
+                                                                                    if ($chartOfAccount->debit_or_credit == "debit") {
+                                                                                        $generalLedgerTransaction = array(
+                                                                                            'journal_entry_id' => $journalEntryId,
+                                                                                            'prime_entry_book_id' => $primeEntryBookId,
+                                                                                            'transaction_date' => $today,
+                                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                            'debit_value' => $amountToClaimFromPayment,
+                                                                                            'transaction_complete' => $transactionStatus,
+                                                                                            'actioned_user_id' => $this->user_id,
+                                                                                            'action_date' => $this->date,
+                                                                                            'last_action_status' => 'added'
+                                                                                        );
+                                                                                    } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                                                                        $generalLedgerTransaction = array(
+                                                                                            'journal_entry_id' => $journalEntryId,
+                                                                                            'prime_entry_book_id' => $primeEntryBookId,
+                                                                                            'transaction_date' => $today,
+                                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                            'credit_value' => $amountToClaimFromPayment,
+                                                                                            'transaction_complete' => $transactionStatus,
+                                                                                            'actioned_user_id' => $this->user_id,
+                                                                                            'action_date' => $this->date,
+                                                                                            'last_action_status' => 'added'
+                                                                                        );
+                                                                                    }
+
+                                                                                    $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
+
+                                                                                    //Same time add the data to previous years record table.
+                                                                                    $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+
+                                                                    $this->purchase_note_model->editPurchaseNoteData($purchaseNote[0]->purchase_note_id, $data);
+                                                                } else {
+                                                                    if ($currentBalancePayment > $remainingPaymentAmount && $remainingPaymentAmount > 0) {
+
+                                                                        if ($paymentMethod == 'Cash Payment') {
+                                                                            $paidAmount = $remainingPaymentAmount;
+
+                                                                            $data = array(
+                                                                                'cash_payment_amount' => $paidCashAmount + $remainingPaymentAmount,
+                                                                                'balance_payment' => $newBalancePayment,
+                                                                                'status' => $status,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            $cashPaymentData = array(
+                                                                                'transaction_type' => 'Purchase Note',
+                                                                                'transaction_id' => $purchaseNoteId,
+                                                                                'date' => $makePaymentDate,
+                                                                                'amount' => $remainingPaymentAmount,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
+                                                                        } else if ($paymentMethod == 'Cheque Payment') {
+                                                                            $paidAmount = $remainingPaymentAmount;
+
+                                                                            $data = array(
+                                                                                'cheque_payment_amount' => $paidChequeAmount + $remainingPaymentAmount,
+                                                                                'balance_payment' => $newBalancePayment,
+                                                                                'status' => $status,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            $expenseChequeData = array(
+                                                                                'transaction_type' => 'Purchase Note',
+                                                                                'transaction_id' => $purchaseNoteId,
+                                                                                'date' => $makePaymentDate,
+                                                                                'payee_id' => $payeeId,
+                                                                                'location_id' => $locationId,
+                                                                                'reference_no' => $purchaseNoteReferenceNo,
+                                                                                'cheque_number' => $chequeNumber,
+                                                                                'bank' => $bankId,
+                                                                                'cheque_date' => $chequeDate,
+                                                                                'amount' => $remainingPaymentAmount,
+                                                                                'cheque_payment_prime_entry_book_id' => $paymentAccountId,
+                                                                                'status' => "Open",
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'added'
+                                                                            );
+
+                                                                            $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
+                                                                        } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
+
+                                                                            $chequeType = "Expense Cheque";
+                                                                            $paidAmount = $remainingPaymentAmount;
+
+                                                                            $data = array(
+                                                                                'cheque_payment_amount' => $paidChequeAmount + $remainingPaymentAmount,
+                                                                                'balance_payment' => $newBalancePayment,
+                                                                                'status' => $status,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            //Mark second party/third party cheque as paid
+
+                                                                            $incomeChequeData = array(
+                                                                                'status' => "Paid",
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
+
+                                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBook = $this->system_configurations_model->getMakePaymentSecondOrThirdPartyChequeAccountsPrimeEntryBooks();
+
+                                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBookId = '';
+                                                                            $primeEntryBooksToUpdate = '';
+                                                                            if ($makePaymentInSecondOrThirdPartyPrimeEntryBook && sizeof($makePaymentInSecondOrThirdPartyPrimeEntryBook) > 0) {
+                                                                                $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $makePaymentInSecondOrThirdPartyPrimeEntryBook[0]->config_filed_value;
+                                                                                $primeEntryBooksToUpdate = $this->prime_entry_book_model->getPrimeEntryBookById($makePaymentInSecondOrThirdPartyPrimeEntryBookId);
+                                                                            }
+
+                                                                            //Add a new expense cheque using party/third party cheque
+                                                                            $expenseChequeData = array(
+                                                                                'transaction_type' => 'Purchase Note',
+                                                                                'transaction_id' => $purchaseNoteId,
+                                                                                'date' => $makePaymentDate,
+                                                                                'payee_id' => $payeeId,
+                                                                                'location_id' => $locationId,
+                                                                                'reference_no' => $purchaseNoteReferenceNo,
+                                                                                'cheque_number' => $chequeNumber,
+                                                                                'bank' => $bankId,
+                                                                                'cheque_date' => $chequeDate,
+                                                                                'amount' => $remainingPaymentAmount,
+                                                                                'cheque_payment_prime_entry_book_id' => $makePaymentInSecondOrThirdPartyPrimeEntryBookId,
+                                                                                'status' => "Open",
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'added'
+                                                                            );
+
+                                                                            $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
+
+                                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+                                                                            if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                                                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                                    $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
+                                                                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                                    if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                                    }
+                                                                                }
+                                                                            } else {
+                                                                                $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                            }
+
+                                                                            if ($correctChartOfAccountsFoundInPrimeEntryBooks) {
+                                                                                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                                    $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
+
+                                                                                    $journalEntry = array(
+                                                                                        'prime_entry_book_id' => $primeEntryBookId,
+                                                                                        'transaction_date' => $today,
+                                                                                        'reference_no' => $chequeNumber,
+                                                                                        'should_have_a_payment_journal_entry' => "No",
+                                                                                        'location_id' => $locationId,
+                                                                                        'payee_payer_type' => $payeeType,
+                                                                                        'payee_payer_id' => $payeeId,
+                                                                                        'description' => $this->lang->line('Journal entry for second or third party cheque payment for Cheque number : ') . $chequeNumber,
+                                                                                        'post_type' => "Indirect",
+                                                                                        'actioned_user_id' => $this->user_id,
+                                                                                        'action_date' => $this->date,
+                                                                                        'last_action_status' => 'added'
+                                                                                    );
+
+                                                                                    $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
+
+                                                                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                                                                                    $amount = str_replace(',', '', $amount);
+
+                                                                                    foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+
+                                                                                        $transactionStatus = "No";
+
+                                                                                        if ($chartOfAccount->debit_or_credit == "debit") {
+                                                                                            $generalLedgerTransaction = array(
+                                                                                                'journal_entry_id' => $journalEntryId,
+                                                                                                'prime_entry_book_id' => $primeEntryBookId,
+                                                                                                'transaction_date' => $today,
+                                                                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                                'debit_value' => $remainingPaymentAmount,
+                                                                                                'transaction_complete' => $transactionStatus,
+                                                                                                'actioned_user_id' => $this->user_id,
+                                                                                                'action_date' => $this->date,
+                                                                                                'last_action_status' => 'added'
+                                                                                            );
+                                                                                        } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                                                                            $generalLedgerTransaction = array(
+                                                                                                'journal_entry_id' => $journalEntryId,
+                                                                                                'prime_entry_book_id' => $primeEntryBookId,
+                                                                                                'transaction_date' => $today,
+                                                                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                                'credit_value' => $remainingPaymentAmount,
+                                                                                                'transaction_complete' => $transactionStatus,
+                                                                                                'actioned_user_id' => $this->user_id,
+                                                                                                'action_date' => $this->date,
+                                                                                                'last_action_status' => 'added'
+                                                                                            );
+                                                                                        }
+
+                                                                                        $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
+
+                                                                                        //Same time add the data to previous years record table.
+                                                                                        $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+
+                                                                        $this->purchase_note_model->editPurchaseNoteData($purchaseNote[0]->purchase_note_id, $data);
+
+                                                                        $remainingPaymentAmount = 0;
+                                                                    } else if ($currentBalancePayment > 0 && $currentBalancePayment <= $remainingPaymentAmount) {
+                                                                        if ($paymentMethod == 'Cash Payment') {
+                                                                            $paidAmount = $currentBalancePayment;
+
+                                                                            $data = array(
+                                                                                'cash_payment_amount' => $paidCashAmount + $currentBalancePayment,
+                                                                                'balance_payment' => $newBalancePayment,
+                                                                                'status' => $status,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            $cashPaymentData = array(
+                                                                                'transaction_type' => 'Purchase Note',
+                                                                                'transaction_id' => $purchaseNoteId,
+                                                                                'date' => $makePaymentDate,
+                                                                                'amount' => $currentBalancePayment,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
+                                                                        } else if ($paymentMethod == 'Cheque Payment') {
+                                                                            $paidAmount = $currentBalancePayment;
+
+                                                                            $data = array(
+                                                                                'cheque_payment_amount' => $paidChequeAmount + $currentBalancePayment,
+                                                                                'balance_payment' => $newBalancePayment,
+                                                                                'status' => $status,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            $expenseChequeData = array(
+                                                                                'transaction_type' => 'Purchase Note',
+                                                                                'transaction_id' => $purchaseNoteId,
+                                                                                'date' => $makePaymentDate,
+                                                                                'payee_id' => $payeeId,
+                                                                                'location_id' => $locationId,
+                                                                                'reference_no' => $purchaseNoteReferenceNo,
+                                                                                'cheque_number' => $chequeNumber,
+                                                                                'bank' => $bankId,
+                                                                                'cheque_date' => $chequeDate,
+                                                                                'amount' => $currentBalancePayment,
+                                                                                'cheque_payment_prime_entry_book_id' => $paymentAccountId,
+                                                                                'status' => "Open",
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'added'
+                                                                            );
+
+                                                                            $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
+                                                                        } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
+
+                                                                            $chequeType = "Expense Cheque";
+                                                                            $paidAmount = $currentBalancePayment;
+
+                                                                            $data = array(
+                                                                                'cheque_payment_amount' => $paidChequeAmount + $currentBalancePayment,
+                                                                                'balance_payment' => $newBalancePayment,
+                                                                                'status' => $status,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            //Mark second party/third party cheque as paid
+
+                                                                            $incomeChequeData = array(
+                                                                                'status' => "Paid",
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
+
+                                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBook = $this->system_configurations_model->getMakePaymentSecondOrThirdPartyChequeAccountsPrimeEntryBooks();
+
+                                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBookId = '';
+                                                                            $primeEntryBooksToUpdate = '';
+                                                                            if ($makePaymentInSecondOrThirdPartyPrimeEntryBook && sizeof($makePaymentInSecondOrThirdPartyPrimeEntryBook) > 0) {
+                                                                                $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $makePaymentInSecondOrThirdPartyPrimeEntryBook[0]->config_filed_value;
+                                                                                $primeEntryBooksToUpdate = $this->prime_entry_book_model->getPrimeEntryBookById($makePaymentInSecondOrThirdPartyPrimeEntryBookId);
+                                                                            }
+
+                                                                            //Add a new expense cheque using party/third party cheque
+                                                                            $expenseChequeData = array(
+                                                                                'transaction_type' => 'Purchase Note',
+                                                                                'transaction_id' => $purchaseNoteId,
+                                                                                'date' => $makePaymentDate,
+                                                                                'payee_id' => $payeeId,
+                                                                                'location_id' => $locationId,
+                                                                                'reference_no' => $purchaseNoteReferenceNo,
+                                                                                'cheque_number' => $chequeNumber,
+                                                                                'bank' => $bankId,
+                                                                                'cheque_date' => $chequeDate,
+                                                                                'amount' => $currentBalancePayment,
+                                                                                'cheque_payment_prime_entry_book_id' => $makePaymentInSecondOrThirdPartyPrimeEntryBookId,
+                                                                                'status' => "Open",
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'added'
+                                                                            );
+
+                                                                            $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
+
+                                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+                                                                            if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                                                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                                    $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
+                                                                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                                    if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                                    }
+                                                                                }
+                                                                            } else {
+                                                                                $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                            }
+
+                                                                            if ($correctChartOfAccountsFoundInPrimeEntryBooks) {
+                                                                                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                                    $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
+
+                                                                                    $journalEntry = array(
+                                                                                        'prime_entry_book_id' => $primeEntryBookId,
+                                                                                        'transaction_date' => $today,
+                                                                                        'reference_no' => $chequeNumber,
+                                                                                        'should_have_a_payment_journal_entry' => "No",
+                                                                                        'location_id' => $locationId,
+                                                                                        'payee_payer_type' => $payeeType,
+                                                                                        'payee_payer_id' => $payeeId,
+                                                                                        'description' => $this->lang->line('Journal entry for second or third party cheque payment for Cheque number : ') . $chequeNumber,
+                                                                                        'post_type' => "Indirect",
+                                                                                        'actioned_user_id' => $this->user_id,
+                                                                                        'action_date' => $this->date,
+                                                                                        'last_action_status' => 'added'
+                                                                                    );
+
+                                                                                    $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
+
+                                                                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                                                                                    $amount = str_replace(',', '', $amount);
+
+                                                                                    foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+
+                                                                                        $transactionStatus = "No";
+
+                                                                                        if ($chartOfAccount->debit_or_credit == "debit") {
+                                                                                            $generalLedgerTransaction = array(
+                                                                                                'journal_entry_id' => $journalEntryId,
+                                                                                                'prime_entry_book_id' => $primeEntryBookId,
+                                                                                                'transaction_date' => $today,
+                                                                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                                'debit_value' => $currentBalancePayment,
+                                                                                                'transaction_complete' => $transactionStatus,
+                                                                                                'actioned_user_id' => $this->user_id,
+                                                                                                'action_date' => $this->date,
+                                                                                                'last_action_status' => 'added'
+                                                                                            );
+                                                                                        } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                                                                            $generalLedgerTransaction = array(
+                                                                                                'journal_entry_id' => $journalEntryId,
+                                                                                                'prime_entry_book_id' => $primeEntryBookId,
+                                                                                                'transaction_date' => $today,
+                                                                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                                'credit_value' => $currentBalancePayment,
+                                                                                                'transaction_complete' => $transactionStatus,
+                                                                                                'actioned_user_id' => $this->user_id,
+                                                                                                'action_date' => $this->date,
+                                                                                                'last_action_status' => 'added'
+                                                                                            );
+                                                                                        }
+
+                                                                                        $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
+
+                                                                                        //Same time add the data to previous years record table.
+                                                                                        $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+
+                                                                        $this->purchase_note_model->editPurchaseNoteData($purchaseNote[0]->purchase_note_id, $data);
+
+                                                                        $remainingPaymentAmount = $remainingPaymentAmount - $currentBalancePayment;
+                                                                    }
+                                                                }
+
+                                                                $claimAmount = 0;
+
+                                                                if ($makePaymentClaimAmountTotal >= $amountToClaimFromPurchaseNoteAmount) {
+                                                                    $claimAmount = $amountToClaimFromPurchaseNoteAmount;
+                                                                    $makePaymentClaimAmountTotal = $makePaymentClaimAmountTotal - $amountToClaimFromPurchaseNoteAmount;
+                                                                } else if ($makePaymentClaimAmountTotal > 0) {
+                                                                    $claimAmount = $makePaymentClaimAmountTotal;
+                                                                    $makePaymentClaimAmountTotal = 0;
+                                                                }
+
+                                                                $primeEntryBooksToUpdateForSupplierReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForMakePaymentTransactionClaim();
+
+                                                                //Post journal entry for supplier return note claim for purchase note
+                                                                if ($claimAmount > 0 && $journalEntryId != '') {
+
+                                                                    if ($claimTransactionList && sizeof($claimTransactionList) > 0) {
+                                                                        $count = 0;
+                                                                        $arrayElementsToUnset = array();
+                                                                        foreach($claimTransactionList as $claimTransactionRow) {
+                                                                            if ($claimTransactionRow[1] <= $claimAmount) {
+
+                                                                                $claimReferenceJournalEntryId = $this->postReferenceJournalEntries($primeEntryBooksToUpdateForSupplierReturnNoteClaim, '', $makePaymentDate, 
+                                                                                        $purchaseNoteReferenceNo, '1', $purchaseNoteId, $journalEntryId, $claimTransactionRow[2], $locationId, "Supplier", $payeeId, 
+                                                                                        $claimTransactionRow[1], true);
+
+                                                                                if ($claimReferenceJournalEntryId != '') {
+                                                                                    $data = array(
+                                                                                        'journal_entry_id' => $claimTransactionRow[0],
+                                                                                        'claim_reference_journal_entry_id' => $claimReferenceJournalEntryId,
+                                                                                        'actioned_user_id' => $this->user_id,
+                                                                                        'action_date' => $this->date,
+                                                                                        'last_action_status' => 'added'
+                                                                                    );
+
+                                                                                    $this->journal_entries_model->addJournalEntryClaimReference($data);
+                                                                                }
+
+                                                                                $arrayElementsToUnset[] = $count;
+                                                                                $claimAmount = $claimAmount - $claimTransactionRow[1];
+                                                                            } else {
+                                                                                $claimReferenceJournalEntryId = $this->postReferenceJournalEntries($primeEntryBooksToUpdateForSupplierReturnNoteClaim, '', $makePaymentDate, 
+                                                                                        $purchaseNoteReferenceNo, '1', $purchaseNoteId, $journalEntryId, $claimTransactionRow[2], $locationId, "Supplier", $payeeId, 
+                                                                                        $claimAmount, true);
+
+                                                                                if ($claimReferenceJournalEntryId != '') {
+                                                                                    $data = array(
+                                                                                        'journal_entry_id' => $claimTransactionRow[0],
+                                                                                        'claim_reference_journal_entry_id' => $claimReferenceJournalEntryId,
+                                                                                        'actioned_user_id' => $this->user_id,
+                                                                                        'action_date' => $this->date,
+                                                                                        'last_action_status' => 'added'
+                                                                                    );
+
+                                                                                    $this->journal_entries_model->addJournalEntryClaimReference($data);
+                                                                                }
+
+                                                                                $claimTransactionRow[1] = $claimTransactionRow[1] - $claimAmount;
+                                                                                $claimAmount = 0;
+                                                                            }
+
+                                                                            $count++;
+                                                                        }
+
+                                                                        if ($arrayElementsToUnset && sizeof($arrayElementsToUnset) > 0) {
+                                                                            foreach($arrayElementsToUnset as $row) {
+                                                                                unset($claimTransactionList[$row]);
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                $cashPaymentId = 0;
+
+                                                                if ($paymentMethod == 'Cash Payment') {
+                                                                    $cashPaymentId = $paymentId;
+                                                                }
+
+                                                                $makePaymentMethodRecordData = array(
+                                                                    'make_payment_id' => $makePaymentId,
+                                                                    'payment_method' => $paymentMethod,
+                                                                    'cash_payment_id' => $cashPaymentId,
+                                                                    'payment_account_id' => $paymentAccountId,
+                                                                    'cheque_type' => $chequeType,
+                                                                    'cheque_id' => $chequeId,
+                                                                    'actioned_user_id' => $this->user_id,
+                                                                    'action_date' => $this->date,
+                                                                    'last_action_status' => 'added'
+                                                                );
+
+                                                                $makePaymentMethodId = $this->make_payment_model->addMakePaymentMethodRecord($makePaymentMethodRecordData);
+
+                                                                $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+                                                                $primeEntryBookIds = '';
+                                                                if ($paymentMethod == "Cash Payment") {
+                                                                    $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForMakePaymentCashTransaction();
+
+                                                                    if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                                        foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                            $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                                                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                            if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                                $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                            } else {
+                                                                                $primeEntryBookIds[] = $primeEntryBookId;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                } else if ($paymentMethod == "Cheque Payment") {
+
+                                                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($paymentAccountId);
+
+                                                                    if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                    } else {
+                                                                        $primeEntryBookIds[] = $paymentAccountId;
+                                                                    }
+                                                                } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
+                                                                    $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForMakePaymentSecondOrThirdPartyChequeTransaction();
+
+                                                                    if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                                        foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                            $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                                                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                            if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                                $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                            } else {
+                                                                                $primeEntryBookIds[] = $primeEntryBookId;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                                                                    if ($primeEntryBookIds && sizeof($primeEntryBookIds) > 0) {
+
+                                                                        foreach ($primeEntryBookIds as $primeEntryBookId) {
+
+                                                                            $journalEntry = array(
+                                                                                'prime_entry_book_id' => $primeEntryBookId,
+                                                                                'transaction_date' => $makePaymentDate,
+                                                                                'reference_no' => $chequeNumber,
+                                                                                'should_have_a_payment_journal_entry' => "No",
+                                                                                'location_id' => $locationId,
+                                                                                'payee_payer_type' => $payeeType,
+                                                                                'payee_payer_id' => $payeeId,
+                                                                                'reference_transaction_type_id' => $referenceTransactionTypeId,
+                                                                                'reference_transaction_id' => $referenceTransactionId,
+                                                                                'reference_journal_entry_id' => $referenceJournalEntryId,
+                                                                                'description' => $this->lang->line('Journal entry for Make Payment number : ') . $makePaymentReferenceNo,
+                                                                                'post_type' => "Indirect",
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'added'
+                                                                            );
+
+                                                                            $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
+
+                                                                            $makePaymentJournalEntry = array(
+                                                                                'make_payment_id' => $makePaymentId,
+                                                                                'make_payment_method_id' => $makePaymentMethodId,
+                                                                                'prime_entry_book_id' => $primeEntryBookId,
+                                                                                'journal_entry_id' => $journalEntryId,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'added'
+                                                                            );
+
+                                                                            $this->make_payment_model->addMakePaymentJournalEntry($makePaymentJournalEntry);
+
+                                                                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                                                                            $amount = str_replace(',', '', $amount);
+
+                                                                            foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+
+                                                                                if ($paymentMethod == "Cheque Payment") {
+                                                                                    $transactionStatus = "No";
+                                                                                } else {
+                                                                                    $transactionStatus = "Yes";
+                                                                                }
+
+                                                                                if ($chartOfAccount->debit_or_credit == "debit") {
+                                                                                    $generalLedgerTransaction = array(
+                                                                                        'journal_entry_id' => $journalEntryId,
+                                                                                        'prime_entry_book_id' => $primeEntryBookId,
+                                                                                        'transaction_date' => $makePaymentDate,
+                                                                                        'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                        'debit_value' => $paidAmount,
+                                                                                        'transaction_complete' => $transactionStatus,
+                                                                                        'actioned_user_id' => $this->user_id,
+                                                                                        'action_date' => $this->date,
+                                                                                        'last_action_status' => 'added'
+                                                                                    );
+                                                                                } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                                                                    $generalLedgerTransaction = array(
+                                                                                        'journal_entry_id' => $journalEntryId,
+                                                                                        'prime_entry_book_id' => $primeEntryBookId,
+                                                                                        'transaction_date' => $makePaymentDate,
+                                                                                        'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                        'credit_value' => $paidAmount,
+                                                                                        'transaction_complete' => $transactionStatus,
+                                                                                        'actioned_user_id' => $this->user_id,
+                                                                                        'action_date' => $this->date,
+                                                                                        'last_action_status' => 'added'
+                                                                                    );
+                                                                                }
+
+                                                                                $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
+
+                                                                                //Same time add the data to previous years record table.
+                                                                                $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
+                                                                            }
+                                                                        }
+                                                                    } 
+
+                                                                    $result = 'ok';
+                                                                } else {
+                                                                    $result = 'incorrect_prime_entry_book_selected_for_make_payment_transaction';
+                                                                    break;
+                                                                }
+
+                                                                if ($paymentMethodFullyConsumed == true) {
+                                                                    break;
+                                                                }
+                                                            }
+                                                        }
+                                                    } else if ($referenceTransactionData[$p][0][$q] == '4') {
+                                                        //Customer Return Note
+                                                        $journalEntryId = $referenceTransactionData[$p][2][$q];
+                                                        $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+
+                                                        $customerReturnNoteReferenceNo = $journalEntry[0]->reference_no;
+                                                        $customerReturnNote = $this->customer_return_note_model->getCustomerReturnNoteByReferenceNo($customerReturnNoteReferenceNo);
+
+                                                        if ($customerReturnNote && sizeof($customerReturnNote) > 0) {
+
+                                                            $customerReturnNoteId = $customerReturnNote[0]->customer_return_note_id;
+
+                                                            $referenceTransactionTypeId = '4';
+                                                            $referenceTransactionId = $customerReturnNoteId;
+                                                            $referenceJournalEntryId = $journalEntryId;
+
+                                                            $totalAmount = $customerReturnNote[0]->amount;
+                                                            $paidCashAmount = $customerReturnNote[0]->cash_payment_amount;
+                                                            $paidChequeAmount = $customerReturnNote[0]->cheque_payment_amount;
+                                                            $paidCreditCardAmount = $customerReturnNote[0]->credit_card_payment_amount;
+                                                            $salesAmountClaimed = $customerReturnNote[0]->sales_note_claimed;
+                                                            $totalReceivable = $totalAmount;
+                                                            $totalReceived = $paidCashAmount + $paidChequeAmount + $paidCreditCardAmount + $salesAmountClaimed;
+
+                                                            $currentBalancePayment = $totalReceivable - $totalReceived;
+
+                                                            if (round($currentBalancePayment) > 0) {
+
+                                                                $amountToClaimFromPayment = 0;
+                                                                $amountToClaimFromCustomerReturnAmount = 0;
+
+                                                                if ($pendingClaimAmountTotalForCustomerReturnNotes > 0) {
+
+                                                                    if ($currentBalancePayment >= $pendingClaimAmountTotalForCustomerReturnNotes) {
+                                                                        $amountToClaimFromPayment = $currentBalancePayment - $pendingClaimAmountTotalForCustomerReturnNotes;
+
+                                                                        if ($amountToClaimFromPayment > $remainingPaymentAmount) {
+                                                                            $amountToClaimFromPayment = $remainingPaymentAmount;
+                                                                        }
+
+                                                                        $amountToClaimFromCustomerReturnAmount = $pendingClaimAmountTotalForCustomerReturnNotes;
+                                                                        $newBalancePayment = $totalReceivable - ($totalReceived + $amountToClaimFromPayment + $pendingClaimAmountTotalForCustomerReturnNotes);
+                                                                        $remainingPaymentAmount = $remainingPaymentAmount - $amountToClaimFromPayment;
+                                                                        $pendingClaimAmountTotalForCustomerReturnNotes = 0;
+                                                                    } else {
+                                                                        $amountToClaimFromCustomerReturnAmount = $currentBalancePayment;
+                                                                        $newBalancePayment = $totalReceivable - ($totalReceived + $amountToClaimFromCustomerReturnAmount);
+                                                                        $pendingClaimAmountTotalForCustomerReturnNotes = $pendingClaimAmountTotalForCustomerReturnNotes - $amountToClaimFromCustomerReturnAmount;
+                                                                    }
+                                                                } else {
+                                                                    $newBalancePayment = $totalReceivable - ($totalReceived + $remainingPaymentAmount);
+                                                                }
+
+                                                                $paidAmount = 0;
+
+                                                                if ($newBalancePayment < 0) {
+                                                                    $newBalancePayment = 0;
+                                                                }
+
+                                                                $status = "Open";
+                                                                $paymentMethodFullyConsumed = false;
+
+                                                                if ($newBalancePayment == 0) {
+                                                                    $status = "Claimed";
+                                                                } else {
+                                                                    $paymentMethodFullyConsumed = true;
+                                                                }
+
+                                                                if ($amountToClaimFromCustomerReturnAmount > 0) {
+                                                                    if ($paymentMethod == 'Cash Payment') {
+                                                                        $paidAmount = $amountToClaimFromPayment;
+
+                                                                        $data = array(
+                                                                            'cash_payment_amount' => $paidCashAmount + $amountToClaimFromPayment,
+                                                                            'balance_payment' => $newBalancePayment,
+                                                                            'sales_note_claimed' => $amountToClaimFromCustomerReturnAmount + $salesAmountClaimed,
+                                                                            'status' => $status,
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'edited'
+                                                                        );
+
+                                                                        $cashPaymentData = array(
+                                                                            'transaction_type' => 'Customer Return Note',
+                                                                            'transaction_id' => $customerReturnNoteId,
+                                                                            'date' => $makePaymentDate,
+                                                                            'amount' => $amountToClaimFromPayment,
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'edited'
+                                                                        );
+
+                                                                        $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
+                                                                    } else if ($paymentMethod == 'Cheque Payment') {
+                                                                        $paidAmount = $amountToClaimFromPayment;
+
+                                                                        $data = array(
+                                                                            'cheque_payment_amount' => $paidChequeAmount + $amountToClaimFromPayment,
+                                                                            'balance_payment' => $newBalancePayment,
+                                                                            'sales_note_claimed' => $amountToClaimFromCustomerReturnAmount + $salesAmountClaimed,
+                                                                            'status' => $status,
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'edited'
+                                                                        );
+
+                                                                        $expenseChequeData = array(
+                                                                            'transaction_type' => 'Customer Return Note',
+                                                                            'transaction_id' => $customerReturnNoteId,
+                                                                            'date' => $makePaymentDate,
+                                                                            'payee_id' => $payeeId,
+                                                                            'location_id' => $locationId,
+                                                                            'reference_no' => $customerReturnNoteReferenceNo,
+                                                                            'cheque_number' => $chequeNumber,
+                                                                            'bank' => $bankId,
+                                                                            'cheque_date' => $chequeDate,
+                                                                            'amount' => $amountToClaimFromPayment,
+                                                                            'cheque_payment_prime_entry_book_id' => $paymentAccountId,
+                                                                            'status' => "Open",
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'added'
+                                                                        );
+
+                                                                        $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
+                                                                    } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
+
+                                                                        $chequeType = "Expense Cheque";
+                                                                        $paidAmount = $amountToClaimFromPayment;
+
+                                                                        $data = array(
+                                                                            'cheque_payment_amount' => $paidChequeAmount + $amountToClaimFromPayment,
+                                                                            'balance_payment' => $newBalancePayment,
+                                                                            'sales_note_claimed' => $amountToClaimFromCustomerReturnAmount + $salesAmountClaimed,
+                                                                            'status' => $status,
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'edited'
+                                                                        );
+
+                                                                        //Mark second party/third party cheque as paid
+
+                                                                        $incomeChequeData = array(
+                                                                            'status' => "Paid",
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'edited'
+                                                                        );
+
+                                                                        $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
+
+                                                                        $makePaymentInSecondOrThirdPartyPrimeEntryBook = $this->system_configurations_model->getMakePaymentSecondOrThirdPartyChequeAccountsPrimeEntryBooks();
+
+                                                                        $makePaymentInSecondOrThirdPartyPrimeEntryBookId = '';
+                                                                        $primeEntryBooksToUpdate = '';
+                                                                        if ($makePaymentInSecondOrThirdPartyPrimeEntryBook && sizeof($makePaymentInSecondOrThirdPartyPrimeEntryBook) > 0) {
+                                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $makePaymentInSecondOrThirdPartyPrimeEntryBook[0]->config_filed_value;
+                                                                            $primeEntryBooksToUpdate = $this->prime_entry_book_model->getPrimeEntryBookById($makePaymentInSecondOrThirdPartyPrimeEntryBookId);
+                                                                        }
+
+                                                                        //Add a new expense cheque using party/third party cheque
+                                                                        $expenseChequeData = array(
+                                                                            'transaction_type' => 'Customer Return Note',
+                                                                            'transaction_id' => $customerReturnNoteId,
+                                                                            'date' => $makePaymentDate,
+                                                                            'payee_id' => $payeeId,
+                                                                            'location_id' => $locationId,
+                                                                            'reference_no' => $customerReturnNoteReferenceNo,
+                                                                            'cheque_number' => $chequeNumber,
+                                                                            'bank' => $bankId,
+                                                                            'cheque_date' => $chequeDate,
+                                                                            'amount' => $amountToClaimFromPayment,
+                                                                            'cheque_payment_prime_entry_book_id' => $makePaymentInSecondOrThirdPartyPrimeEntryBookId,
+                                                                            'status' => "Open",
+                                                                            'actioned_user_id' => $this->user_id,
+                                                                            'action_date' => $this->date,
+                                                                            'last_action_status' => 'added'
+                                                                        );
+
+                                                                        $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
+
+                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+                                                                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                                $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
+                                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                                }
+                                                                            }
+                                                                        } else {
+                                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                        }
+
+                                                                        if ($correctChartOfAccountsFoundInPrimeEntryBooks) {
+                                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                                $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
+
+                                                                                $journalEntry = array(
+                                                                                    'prime_entry_book_id' => $primeEntryBookId,
+                                                                                    'transaction_date' => $today,
+                                                                                    'reference_no' => $chequeNumber,
+                                                                                    'should_have_a_payment_journal_entry' => "No",
+                                                                                    'location_id' => $locationId,
+                                                                                    'payee_payer_type' => $payeeType,
+                                                                                    'payee_payer_id' => $payeeId,
+                                                                                    'description' => $this->lang->line('Journal entry for second or third party cheque payment for Cheque number : ') . $chequeNumber,
+                                                                                    'post_type' => "Indirect",
+                                                                                    'actioned_user_id' => $this->user_id,
+                                                                                    'action_date' => $this->date,
+                                                                                    'last_action_status' => 'added'
+                                                                                );
+
+                                                                                $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
+
+                                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                                                                                $amount = str_replace(',', '', $amount);
+
+                                                                                foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+
+                                                                                    $transactionStatus = "No";
+
+                                                                                    if ($chartOfAccount->debit_or_credit == "debit") {
+                                                                                        $generalLedgerTransaction = array(
+                                                                                            'journal_entry_id' => $journalEntryId,
+                                                                                            'prime_entry_book_id' => $primeEntryBookId,
+                                                                                            'transaction_date' => $today,
+                                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                            'debit_value' => $amountToClaimFromPayment,
+                                                                                            'transaction_complete' => $transactionStatus,
+                                                                                            'actioned_user_id' => $this->user_id,
+                                                                                            'action_date' => $this->date,
+                                                                                            'last_action_status' => 'added'
+                                                                                        );
+                                                                                    } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                                                                        $generalLedgerTransaction = array(
+                                                                                            'journal_entry_id' => $journalEntryId,
+                                                                                            'prime_entry_book_id' => $primeEntryBookId,
+                                                                                            'transaction_date' => $today,
+                                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                            'credit_value' => $amountToClaimFromPayment,
+                                                                                            'transaction_complete' => $transactionStatus,
+                                                                                            'actioned_user_id' => $this->user_id,
+                                                                                            'action_date' => $this->date,
+                                                                                            'last_action_status' => 'added'
+                                                                                        );
+                                                                                    }
+
+                                                                                    $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
+
+                                                                                    //Same time add the data to previous years record table.
+                                                                                    $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+
+                                                                    $this->customer_return_note_model->editCustomerReturnNoteData($customerReturnNote[0]->customer_return_note_id, $data);
+                                                                } else {
+                                                                    if ($currentBalancePayment > $remainingPaymentAmount && $remainingPaymentAmount > 0) {
+
+                                                                        if ($paymentMethod == 'Cash Payment') {
+                                                                            $paidAmount = $remainingPaymentAmount;
+
+                                                                            $data = array(
+                                                                                'cash_payment_amount' => $paidCashAmount + $remainingPaymentAmount,
+                                                                                'balance_payment' => $newBalancePayment,
+                                                                                'status' => $status,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            $cashPaymentData = array(
+                                                                                'transaction_type' => 'Customer Return Note',
+                                                                                'transaction_id' => $customerReturnNoteId,
+                                                                                'date' => $makePaymentDate,
+                                                                                'amount' => $remainingPaymentAmount,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
+                                                                        } else if ($paymentMethod == 'Cheque Payment') {
+                                                                            $paidAmount = $remainingPaymentAmount;
+
+                                                                            $data = array(
+                                                                                'cheque_payment_amount' => $paidChequeAmount + $remainingPaymentAmount,
+                                                                                'balance_payment' => $newBalancePayment,
+                                                                                'status' => $status,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            $expenseChequeData = array(
+                                                                                'transaction_type' => 'Customer Return Note',
+                                                                                'transaction_id' => $customerReturnNoteId,
+                                                                                'date' => $makePaymentDate,
+                                                                                'payee_id' => $payeeId,
+                                                                                'location_id' => $locationId,
+                                                                                'reference_no' => $customerReturnNoteReferenceNo,
+                                                                                'cheque_number' => $chequeNumber,
+                                                                                'bank' => $bankId,
+                                                                                'cheque_date' => $chequeDate,
+                                                                                'amount' => $remainingPaymentAmount,
+                                                                                'cheque_payment_prime_entry_book_id' => $paymentAccountId,
+                                                                                'status' => "Open",
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'added'
+                                                                            );
+
+                                                                            $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
+                                                                        } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
+
+                                                                            $chequeType = "Expense Cheque";
+                                                                            $paidAmount = $remainingPaymentAmount;
+
+                                                                            $data = array(
+                                                                                'cheque_payment_amount' => $paidChequeAmount + $remainingPaymentAmount,
+                                                                                'balance_payment' => $newBalancePayment,
+                                                                                'status' => $status,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            //Mark second party/third party cheque as paid
+
+                                                                            $incomeChequeData = array(
+                                                                                'status' => "Paid",
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
+
+                                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBook = $this->system_configurations_model->getMakePaymentSecondOrThirdPartyChequeAccountsPrimeEntryBooks();
+
+                                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBookId = '';
+                                                                            $primeEntryBooksToUpdate = '';
+                                                                            if ($makePaymentInSecondOrThirdPartyPrimeEntryBook && sizeof($makePaymentInSecondOrThirdPartyPrimeEntryBook) > 0) {
+                                                                                $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $makePaymentInSecondOrThirdPartyPrimeEntryBook[0]->config_filed_value;
+                                                                                $primeEntryBooksToUpdate = $this->prime_entry_book_model->getPrimeEntryBookById($makePaymentInSecondOrThirdPartyPrimeEntryBookId);
+                                                                            }
+
+                                                                            //Add a new expense cheque using party/third party cheque
+                                                                            $expenseChequeData = array(
+                                                                                'transaction_type' => 'Customer Return Note',
+                                                                                'transaction_id' => $customerReturnNoteId,
+                                                                                'date' => $makePaymentDate,
+                                                                                'payee_id' => $payeeId,
+                                                                                'location_id' => $locationId,
+                                                                                'reference_no' => $customerReturnNoteReferenceNo,
+                                                                                'cheque_number' => $chequeNumber,
+                                                                                'bank' => $bankId,
+                                                                                'cheque_date' => $chequeDate,
+                                                                                'amount' => $remainingPaymentAmount,
+                                                                                'cheque_payment_prime_entry_book_id' => $makePaymentInSecondOrThirdPartyPrimeEntryBookId,
+                                                                                'status' => "Open",
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'added'
+                                                                            );
+
+                                                                            $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
+
+                                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+                                                                            if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                                                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                                    $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
+                                                                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                                    if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                                    }
+                                                                                }
+                                                                            } else {
+                                                                                $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                            }
+
+                                                                            if ($correctChartOfAccountsFoundInPrimeEntryBooks) {
+                                                                                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                                    $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
+
+                                                                                    $journalEntry = array(
+                                                                                        'prime_entry_book_id' => $primeEntryBookId,
+                                                                                        'transaction_date' => $today,
+                                                                                        'reference_no' => $chequeNumber,
+                                                                                        'should_have_a_payment_journal_entry' => "No",
+                                                                                        'location_id' => $locationId,
+                                                                                        'payee_payer_type' => $payeeType,
+                                                                                        'payee_payer_id' => $payeeId,
+                                                                                        'description' => $this->lang->line('Journal entry for second or third party cheque payment for Cheque number : ') . $chequeNumber,
+                                                                                        'post_type' => "Indirect",
+                                                                                        'actioned_user_id' => $this->user_id,
+                                                                                        'action_date' => $this->date,
+                                                                                        'last_action_status' => 'added'
+                                                                                    );
+
+                                                                                    $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
+
+                                                                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                                                                                    $amount = str_replace(',', '', $amount);
+
+                                                                                    foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+
+                                                                                        $transactionStatus = "No";
+
+                                                                                        if ($chartOfAccount->debit_or_credit == "debit") {
+                                                                                            $generalLedgerTransaction = array(
+                                                                                                'journal_entry_id' => $journalEntryId,
+                                                                                                'prime_entry_book_id' => $primeEntryBookId,
+                                                                                                'transaction_date' => $today,
+                                                                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                                'debit_value' => $remainingPaymentAmount,
+                                                                                                'transaction_complete' => $transactionStatus,
+                                                                                                'actioned_user_id' => $this->user_id,
+                                                                                                'action_date' => $this->date,
+                                                                                                'last_action_status' => 'added'
+                                                                                            );
+                                                                                        } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                                                                            $generalLedgerTransaction = array(
+                                                                                                'journal_entry_id' => $journalEntryId,
+                                                                                                'prime_entry_book_id' => $primeEntryBookId,
+                                                                                                'transaction_date' => $today,
+                                                                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                                'credit_value' => $remainingPaymentAmount,
+                                                                                                'transaction_complete' => $transactionStatus,
+                                                                                                'actioned_user_id' => $this->user_id,
+                                                                                                'action_date' => $this->date,
+                                                                                                'last_action_status' => 'added'
+                                                                                            );
+                                                                                        }
+
+                                                                                        $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
+
+                                                                                        //Same time add the data to previous years record table.
+                                                                                        $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+
+                                                                        $this->customer_return_note_model->editCustomerReturnNoteData($customerReturnNote[0]->customer_return_note_id, $data);
+
+                                                                        $remainingPaymentAmount = 0;
+                                                                    } else if ($currentBalancePayment > 0 && $currentBalancePayment <= $remainingPaymentAmount) {
+                                                                        if ($paymentMethod == 'Cash Payment') {
+                                                                            $paidAmount = $currentBalancePayment;
+
+                                                                            $data = array(
+                                                                                'cash_payment_amount' => $paidCashAmount + $currentBalancePayment,
+                                                                                'balance_payment' => $newBalancePayment,
+                                                                                'status' => $status,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            $cashPaymentData = array(
+                                                                                'transaction_type' => 'Customer Return Note',
+                                                                                'transaction_id' => $customerReturnNoteId,
+                                                                                'date' => $makePaymentDate,
+                                                                                'amount' => $currentBalancePayment,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
+                                                                        } else if ($paymentMethod == 'Cheque Payment') {
+                                                                            $paidAmount = $currentBalancePayment;
+
+                                                                            $data = array(
+                                                                                'cheque_payment_amount' => $paidChequeAmount + $currentBalancePayment,
+                                                                                'balance_payment' => $newBalancePayment,
+                                                                                'status' => $status,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            $expenseChequeData = array(
+                                                                                'transaction_type' => 'Customer Return Note',
+                                                                                'transaction_id' => $customerReturnNoteId,
+                                                                                'date' => $makePaymentDate,
+                                                                                'payee_id' => $payeeId,
+                                                                                'location_id' => $locationId,
+                                                                                'reference_no' => $customerReturnNoteReferenceNo,
+                                                                                'cheque_number' => $chequeNumber,
+                                                                                'bank' => $bankId,
+                                                                                'cheque_date' => $chequeDate,
+                                                                                'amount' => $currentBalancePayment,
+                                                                                'cheque_payment_prime_entry_book_id' => $paymentAccountId,
+                                                                                'status' => "Open",
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'added'
+                                                                            );
+
+                                                                            $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
+                                                                        } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
+
+                                                                            $chequeType = "Expense Cheque";
+                                                                            $paidAmount = $currentBalancePayment;
+
+                                                                            $data = array(
+                                                                                'cheque_payment_amount' => $paidChequeAmount + $currentBalancePayment,
+                                                                                'balance_payment' => $newBalancePayment,
+                                                                                'status' => $status,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            //Mark second party/third party cheque as paid
+
+                                                                            $incomeChequeData = array(
+                                                                                'status' => "Paid",
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'edited'
+                                                                            );
+
+                                                                            $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
+
+                                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBook = $this->system_configurations_model->getMakePaymentSecondOrThirdPartyChequeAccountsPrimeEntryBooks();
+
+                                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBookId = '';
+                                                                            $primeEntryBooksToUpdate = '';
+                                                                            if ($makePaymentInSecondOrThirdPartyPrimeEntryBook && sizeof($makePaymentInSecondOrThirdPartyPrimeEntryBook) > 0) {
+                                                                                $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $makePaymentInSecondOrThirdPartyPrimeEntryBook[0]->config_filed_value;
+                                                                                $primeEntryBooksToUpdate = $this->prime_entry_book_model->getPrimeEntryBookById($makePaymentInSecondOrThirdPartyPrimeEntryBookId);
+                                                                            }
+
+                                                                            //Add a new expense cheque using party/third party cheque
+                                                                            $expenseChequeData = array(
+                                                                                'transaction_type' => 'Customer Return Note',
+                                                                                'transaction_id' => $customerReturnNoteId,
+                                                                                'date' => $makePaymentDate,
+                                                                                'payee_id' => $payeeId,
+                                                                                'location_id' => $locationId,
+                                                                                'reference_no' => $customerReturnNoteReferenceNo,
+                                                                                'cheque_number' => $chequeNumber,
+                                                                                'bank' => $bankId,
+                                                                                'cheque_date' => $chequeDate,
+                                                                                'amount' => $currentBalancePayment,
+                                                                                'cheque_payment_prime_entry_book_id' => $makePaymentInSecondOrThirdPartyPrimeEntryBookId,
+                                                                                'status' => "Open",
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'added'
+                                                                            );
+
+                                                                            $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
+
+                                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+                                                                            if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                                                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                                    $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
+                                                                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                                    if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                                    }
+                                                                                }
+                                                                            } else {
+                                                                                $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                            }
+
+                                                                            if ($correctChartOfAccountsFoundInPrimeEntryBooks) {
+                                                                                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                                    $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
+
+                                                                                    $journalEntry = array(
+                                                                                        'prime_entry_book_id' => $primeEntryBookId,
+                                                                                        'transaction_date' => $today,
+                                                                                        'reference_no' => $chequeNumber,
+                                                                                        'should_have_a_payment_journal_entry' => "No",
+                                                                                        'location_id' => $locationId,
+                                                                                        'payee_payer_type' => $payeeType,
+                                                                                        'payee_payer_id' => $payeeId,
+                                                                                        'description' => $this->lang->line('Journal entry for second or third party cheque payment for Cheque number : ') . $chequeNumber,
+                                                                                        'post_type' => "Indirect",
+                                                                                        'actioned_user_id' => $this->user_id,
+                                                                                        'action_date' => $this->date,
+                                                                                        'last_action_status' => 'added'
+                                                                                    );
+
+                                                                                    $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
+
+                                                                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                                                                                    $amount = str_replace(',', '', $amount);
+
+                                                                                    foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+
+                                                                                        $transactionStatus = "No";
+
+                                                                                        if ($chartOfAccount->debit_or_credit == "debit") {
+                                                                                            $generalLedgerTransaction = array(
+                                                                                                'journal_entry_id' => $journalEntryId,
+                                                                                                'prime_entry_book_id' => $primeEntryBookId,
+                                                                                                'transaction_date' => $today,
+                                                                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                                'debit_value' => $currentBalancePayment,
+                                                                                                'transaction_complete' => $transactionStatus,
+                                                                                                'actioned_user_id' => $this->user_id,
+                                                                                                'action_date' => $this->date,
+                                                                                                'last_action_status' => 'added'
+                                                                                            );
+                                                                                        } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                                                                            $generalLedgerTransaction = array(
+                                                                                                'journal_entry_id' => $journalEntryId,
+                                                                                                'prime_entry_book_id' => $primeEntryBookId,
+                                                                                                'transaction_date' => $today,
+                                                                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                                'credit_value' => $currentBalancePayment,
+                                                                                                'transaction_complete' => $transactionStatus,
+                                                                                                'actioned_user_id' => $this->user_id,
+                                                                                                'action_date' => $this->date,
+                                                                                                'last_action_status' => 'added'
+                                                                                            );
+                                                                                        }
+
+                                                                                        $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
+
+                                                                                        //Same time add the data to previous years record table.
+                                                                                        $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+
+                                                                        $this->customer_return_note_model->editCustomerReturnNoteData($customerReturnNote[0]->customer_return_note_id, $data);
+
+                                                                        $remainingPaymentAmount = $remainingPaymentAmount - $currentBalancePayment;
+                                                                    }
+                                                                }
+
+                                                                $claimAmount = 0;
+
+                                                                if ($makePaymentClaimAmountTotal >= $amountToClaimFromCustomerReturnAmount) {
+                                                                    $claimAmount = $amountToClaimFromCustomerReturnAmount;
+                                                                    $makePaymentClaimAmountTotal = $makePaymentClaimAmountTotal - $amountToClaimFromCustomerReturnAmount;
+                                                                } else if ($makePaymentClaimAmountTotal > 0) {
+                                                                    $claimAmount = $makePaymentClaimAmountTotal;
+                                                                    $makePaymentClaimAmountTotal = 0;
+                                                                }
+
+                                                                $primeEntryBooksToUpdateForCustomerSalesNoteClaim = $this->getPrimeEntryBooksToUpdateForMakePaymentTransactionClaim();
+
+                                                                //Post journal entry for sales note claim for customer return note
+                                                                if ($claimAmount > 0 && $journalEntryId != '') {
+
+                                                                    if ($claimTransactionList && sizeof($claimTransactionList) > 0) {
+                                                                        $count = 0;
+                                                                        $arrayElementsToUnset = array();
+                                                                        foreach($claimTransactionList as $claimTransactionRow) {
+                                                                            if ($claimTransactionRow[1] <= $claimAmount) {
+
+                                                                                $claimReferenceJournalEntryId = $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerSalesNoteClaim, '', $makePaymentDate, 
+                                                                                        $customerReturnNoteReferenceNo, '4', $customerReturnNoteId, $journalEntryId, $claimTransactionRow[2], $locationId, "Customer", $payeeId, 
+                                                                                        $claimTransactionRow[1], true);
+
+                                                                                if ($claimReferenceJournalEntryId != '') {
+                                                                                    $data = array(
+                                                                                        'journal_entry_id' => $claimTransactionRow[0],
+                                                                                        'claim_reference_journal_entry_id' => $claimReferenceJournalEntryId,
+                                                                                        'actioned_user_id' => $this->user_id,
+                                                                                        'action_date' => $this->date,
+                                                                                        'last_action_status' => 'added'
+                                                                                    );
+
+                                                                                    $this->journal_entries_model->addJournalEntryClaimReference($data);
+                                                                                }
+
+                                                                                $arrayElementsToUnset[] = $count;
+                                                                                $claimAmount = $claimAmount - $claimTransactionRow[1];
+                                                                            } else {
+                                                                                $claimReferenceJournalEntryId = $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerSalesNoteClaim, '', $makePaymentDate, 
+                                                                                        $customerReturnNoteReferenceNo, '4', $customerReturnNoteId, $journalEntryId, $claimTransactionRow[2], $locationId, "Customer", $payeeId, 
+                                                                                        $claimAmount, true);
+
+                                                                                if ($claimReferenceJournalEntryId != '') {
+                                                                                    $data = array(
+                                                                                        'journal_entry_id' => $claimTransactionRow[0],
+                                                                                        'claim_reference_journal_entry_id' => $claimReferenceJournalEntryId,
+                                                                                        'actioned_user_id' => $this->user_id,
+                                                                                        'action_date' => $this->date,
+                                                                                        'last_action_status' => 'added'
+                                                                                    );
+
+                                                                                    $this->journal_entries_model->addJournalEntryClaimReference($data);
+                                                                                }
+
+                                                                                $claimTransactionRow[1] = $claimTransactionRow[1] - $claimAmount;
+                                                                                $claimAmount = 0;
+                                                                            }
+
+                                                                            $count++;
+                                                                        }
+
+                                                                        if ($arrayElementsToUnset && sizeof($arrayElementsToUnset) > 0) {
+                                                                            foreach($arrayElementsToUnset as $row) {
+                                                                                unset($claimTransactionList[$row]);
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                $cashPaymentId = 0;
+
+                                                                if ($paymentMethod == 'Cash Payment') {
+                                                                    $cashPaymentId = $paymentId;
+                                                                }
+
+                                                                $makePaymentMethodRecordData = array(
+                                                                    'make_payment_id' => $makePaymentId,
+                                                                    'payment_method' => $paymentMethod,
+                                                                    'cash_payment_id' => $cashPaymentId,
+                                                                    'payment_account_id' => $paymentAccountId,
+                                                                    'cheque_type' => $chequeType,
+                                                                    'cheque_id' => $chequeId,
+                                                                    'actioned_user_id' => $this->user_id,
+                                                                    'action_date' => $this->date,
+                                                                    'last_action_status' => 'added'
+                                                                );
+
+                                                                $makePaymentMethodId = $this->make_payment_model->addMakePaymentMethodRecord($makePaymentMethodRecordData);
+
+                                                                $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+                                                                $primeEntryBookIds = '';
+                                                                if ($paymentMethod == "Cash Payment") {
+                                                                    $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForMakePaymentCashTransaction();
+
+                                                                    if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                                        foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                            $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                                                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                            if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                                $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                            } else {
+                                                                                $primeEntryBookIds[] = $primeEntryBookId;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                } else if ($paymentMethod == "Cheque Payment") {
+
+                                                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($paymentAccountId);
+
+                                                                    if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                    } else {
+                                                                        $primeEntryBookIds[] = $paymentAccountId;
+                                                                    }
+                                                                } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
+                                                                    $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForMakePaymentSecondOrThirdPartyChequeTransaction();
+
+                                                                    if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                                        foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                            $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                                                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                            if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                                $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                            } else {
+                                                                                $primeEntryBookIds[] = $primeEntryBookId;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                                                                    if ($primeEntryBookIds && sizeof($primeEntryBookIds) > 0) {
+
+                                                                        foreach ($primeEntryBookIds as $primeEntryBookId) {
+
+                                                                            $journalEntry = array(
+                                                                                'prime_entry_book_id' => $primeEntryBookId,
+                                                                                'transaction_date' => $makePaymentDate,
+                                                                                'reference_no' => $chequeNumber,
+                                                                                'should_have_a_payment_journal_entry' => "No",
+                                                                                'location_id' => $locationId,
+                                                                                'payee_payer_type' => $payeeType,
+                                                                                'payee_payer_id' => $payeeId,
+                                                                                'reference_transaction_type_id' => $referenceTransactionTypeId,
+                                                                                'reference_transaction_id' => $referenceTransactionId,
+                                                                                'reference_journal_entry_id' => $referenceJournalEntryId,
+                                                                                'description' => $this->lang->line('Journal entry for Make Payment number : ') . $makePaymentReferenceNo,
+                                                                                'post_type' => "Indirect",
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'added'
+                                                                            );
+
+                                                                            $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
+
+                                                                            $makePaymentJournalEntry = array(
+                                                                                'make_payment_id' => $makePaymentId,
+                                                                                'make_payment_method_id' => $makePaymentMethodId,
+                                                                                'prime_entry_book_id' => $primeEntryBookId,
+                                                                                'journal_entry_id' => $journalEntryId,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'added'
+                                                                            );
+
+                                                                            $this->make_payment_model->addMakePaymentJournalEntry($makePaymentJournalEntry);
+
+                                                                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                                                                            $amount = str_replace(',', '', $amount);
+
+                                                                            foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+
+                                                                                if ($paymentMethod == "Cheque Payment") {
+                                                                                    $transactionStatus = "No";
+                                                                                } else {
+                                                                                    $transactionStatus = "Yes";
+                                                                                }
+
+                                                                                if ($chartOfAccount->debit_or_credit == "debit") {
+                                                                                    $generalLedgerTransaction = array(
+                                                                                        'journal_entry_id' => $journalEntryId,
+                                                                                        'prime_entry_book_id' => $primeEntryBookId,
+                                                                                        'transaction_date' => $makePaymentDate,
+                                                                                        'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                        'debit_value' => $paidAmount,
+                                                                                        'transaction_complete' => $transactionStatus,
+                                                                                        'actioned_user_id' => $this->user_id,
+                                                                                        'action_date' => $this->date,
+                                                                                        'last_action_status' => 'added'
+                                                                                    );
+                                                                                } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                                                                    $generalLedgerTransaction = array(
+                                                                                        'journal_entry_id' => $journalEntryId,
+                                                                                        'prime_entry_book_id' => $primeEntryBookId,
+                                                                                        'transaction_date' => $makePaymentDate,
+                                                                                        'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                        'credit_value' => $paidAmount,
+                                                                                        'transaction_complete' => $transactionStatus,
+                                                                                        'actioned_user_id' => $this->user_id,
+                                                                                        'action_date' => $this->date,
+                                                                                        'last_action_status' => 'added'
+                                                                                    );
+                                                                                }
+
+                                                                                $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
+
+                                                                                //Same time add the data to previous years record table.
+                                                                                $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
+                                                                            }
+                                                                        }
+                                                                    } 
+
+                                                                    $result = 'ok';
+                                                                } else {
+                                                                    $result = 'incorrect_prime_entry_book_selected_for_make_payment_transaction';
+                                                                    break;
+                                                                }
+
+                                                                if ($paymentMethodFullyConsumed == true) {
+                                                                    break;
+                                                                }
+                                                            }
+                                                        }
+                                                    } else if ($referenceTransactionData[$p][0][$q] == '5') {
+
+                                                        $journalEntryId = $referenceTransactionData[$p][2][$q];
+
+                                                        $referenceJournalEntryId = $journalEntryId;
+
+                                                        $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+
+                                                        $balanceAmount = $journalEntry[0]->balance_amount;
+
+                                                        if ($balanceAmount == 0) {
+                                                            $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
+
+                                                            $transactionAmount = 0;
+                                                            if ($glTransactions && sizeof($glTransactions) > 0) {
+                                                                if ($glTransactions[0]->debit_value > 0) {
+                                                                    $balanceAmount = $glTransactions[0]->debit_value;
+                                                                } else if ($glTransactions[0]->credit_value > 0) {
+                                                                    $balanceAmount = $glTransactions[0]->credit_value;
+                                                                }
+                                                            }
+                                                        }
+
+                                                        $journalEntryStatus = "Open";
+                                                        $paymentMethodFullyConsumed = false;
+
+                                                        if ($balanceAmount > $remainingPaymentAmount) {
+                                                            $paidAmount = $remainingPaymentAmount;
+                                                            $balanceAmount = $balanceAmount - $paidAmount;
+                                                            $remainingPaymentAmount = 0;
+                                                            $paymentMethodFullyConsumed  =true;
+                                                        } else {
+                                                            $paidAmount = $balanceAmount;
+                                                            $balanceAmount = 0;
+                                                            $remainingPaymentAmount = $remainingPaymentAmount - $balanceAmount;
+
+                                                            $journalEntryStatus = "Closed";
+                                                        }
+
+                                                        $journalEntryData = array(
+                                                            'balance_amount' => $balanceAmount,
+                                                            'status' => $journalEntryStatus,
+                                                            'actioned_user_id' => $this->user_id,
+                                                            'action_date' => $this->date,
+                                                            'last_action_status' => 'edited'
+                                                        );
+
+                                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+
+                                                        if ($paymentMethod == 'Cash Payment') {
+
+                                                            $cashPaymentData = array(
+                                                                'date' => $makePaymentDate,
+                                                                'amount' => $amount,
+                                                                'actioned_user_id' => $this->user_id,
+                                                                'action_date' => $this->date,
+                                                                'last_action_status' => 'edited'
+                                                            );
+
+                                                            $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
+                                                        } else if ($paymentMethod == 'Cheque Payment') {
+
+                                                            $expenseChequeData = array(
+                                                                'date' => $makePaymentDate,
+                                                                'payee_id' => $payeeId,
+                                                                'location_id' => $locationId,
+                                                                'cheque_number' => $chequeNumber,
+                                                                'bank' => $bankId,
+                                                                'cheque_date' => $chequeDate,
+                                                                'amount' => $amount,
+                                                                'cheque_payment_prime_entry_book_id' => $paymentAccountId,
+                                                                'status' => "Open",
+                                                                'actioned_user_id' => $this->user_id,
+                                                                'action_date' => $this->date,
+                                                                'last_action_status' => 'added'
+                                                            );
+
+                                                            $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
+                                                        } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
+
+                                                            $chequeType = "Expense Cheque";
+
+                                                            //Mark second party/third party cheque as paid
+
+                                                            $incomeChequeData = array(
+                                                                'status' => "Paid",
+                                                                'actioned_user_id' => $this->user_id,
+                                                                'action_date' => $this->date,
+                                                                'last_action_status' => 'edited'
+                                                            );
+
+                                                            $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
+
+                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBook = $this->system_configurations_model->getMakePaymentSecondOrThirdPartyChequeAccountsPrimeEntryBooks();
+
+                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBookId = '';
+                                                            $primeEntryBooksToUpdate = '';
+                                                            if ($makePaymentInSecondOrThirdPartyPrimeEntryBook && sizeof($makePaymentInSecondOrThirdPartyPrimeEntryBook) > 0) {
+                                                                $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $makePaymentInSecondOrThirdPartyPrimeEntryBook[0]->config_filed_value;
+                                                                $primeEntryBooksToUpdate = $this->prime_entry_book_model->getPrimeEntryBookById($makePaymentInSecondOrThirdPartyPrimeEntryBookId);
+                                                            }
+
+                                                            //Add a new expense cheque using party/third party cheque
+                                                            $expenseChequeData = array(
+                                                                'date' => $makePaymentDate,
+                                                                'payee_id' => $payeeId,
+                                                                'location_id' => $locationId,
+                                                                'cheque_number' => $chequeNumber,
+                                                                'bank' => $bankId,
+                                                                'cheque_date' => $chequeDate,
+                                                                'amount' => $amount,
+                                                                'cheque_payment_prime_entry_book_id' => $makePaymentInSecondOrThirdPartyPrimeEntryBookId,
+                                                                'status' => "Open",
+                                                                'actioned_user_id' => $this->user_id,
+                                                                'action_date' => $this->date,
+                                                                'last_action_status' => 'added'
+                                                            );
+
+                                                            $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
+
+                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+                                                            if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                    $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
+                                                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                    if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                            }
+
+                                                            if ($correctChartOfAccountsFoundInPrimeEntryBooks) {
+                                                                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                    $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
+
+                                                                    $journalEntry = array(
+                                                                        'prime_entry_book_id' => $primeEntryBookId,
+                                                                        'transaction_date' => $today,
+                                                                        'reference_no' => $chequeNumber,
+                                                                        'should_have_a_payment_journal_entry' => "No",
+                                                                        'location_id' => $locationId,
+                                                                        'payee_payer_type' => $payeeType,
+                                                                        'payee_payer_id' => $payeeId,
+                                                                        'description' => $this->lang->line('Journal entry for second or third party cheque payment for Cheque number : ') . $chequeNumber,
+                                                                        'post_type' => "Indirect",
+                                                                        'actioned_user_id' => $this->user_id,
+                                                                        'action_date' => $this->date,
+                                                                        'last_action_status' => 'added'
+                                                                    );
+
+                                                                    $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
+
+                                                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                                                                    $amount = str_replace(',', '', $amount);
+
+                                                                    foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+
+                                                                        $transactionStatus = "No";
+
+                                                                        if ($chartOfAccount->debit_or_credit == "debit") {
+                                                                            $generalLedgerTransaction = array(
+                                                                                'journal_entry_id' => $journalEntryId,
+                                                                                'prime_entry_book_id' => $primeEntryBookId,
+                                                                                'transaction_date' => $today,
+                                                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                'debit_value' => $amount,
+                                                                                'transaction_complete' => $transactionStatus,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'added'
+                                                                            );
+                                                                        } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                                                            $generalLedgerTransaction = array(
+                                                                                'journal_entry_id' => $journalEntryId,
+                                                                                'prime_entry_book_id' => $primeEntryBookId,
+                                                                                'transaction_date' => $today,
+                                                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                'credit_value' => $amount,
+                                                                                'transaction_complete' => $transactionStatus,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'added'
+                                                                            );
+                                                                        }
+
+                                                                        $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
+
+                                                                        //Same time add the data to previous years record table.
+                                                                        $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        $cashPaymentId = 0;
+
+                                                        if ($paymentMethod == 'Cash Payment') {
+                                                            $cashPaymentId = $paymentId;
+                                                        }
+
+                                                        $makePaymentMethodRecordData = array(
+                                                            'make_payment_id' => $makePaymentId,
+                                                            'payment_method' => $paymentMethod,
+                                                            'cash_payment_id' => $cashPaymentId,
+                                                            'payment_account_id' => $paymentAccountId,
+                                                            'cheque_type' => $chequeType,
+                                                            'cheque_id' => $chequeId,
+                                                            'actioned_user_id' => $this->user_id,
+                                                            'action_date' => $this->date,
+                                                            'last_action_status' => 'added'
+                                                        );
+
+                                                        $makePaymentMethodId = $this->make_payment_model->addMakePaymentMethodRecord($makePaymentMethodRecordData);
+
+                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+                                                        $primeEntryBookIds = '';
+                                                        if ($paymentMethod == "Cash Payment") {
+                                                            $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForMakePaymentCashTransaction();
+
+                                                            if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                    $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                    if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                    } else {
+                                                                        $primeEntryBookIds[] = $primeEntryBookId;
+                                                                    }
+                                                                }
+                                                            }
+                                                        } else if ($paymentMethod == "Cheque Payment") {
+
+                                                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($paymentAccountId);
+
+                                                            if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                            } else {
+                                                                $primeEntryBookIds[] = $paymentAccountId;
+                                                            }
+                                                        } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
+                                                            $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForMakePaymentSecondOrThirdPartyChequeTransaction();
+
+                                                            if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                                                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                                                    $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                                                    if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                                                    } else {
+                                                                        $primeEntryBookIds[] = $primeEntryBookId;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                                                            if ($primeEntryBookIds && sizeof($primeEntryBookIds) > 0) {
+
+                                                                foreach ($primeEntryBookIds as $primeEntryBookId) {
+
+                                                                    $journalEntry = array(
+                                                                        'prime_entry_book_id' => $primeEntryBookId,
+                                                                        'transaction_date' => $makePaymentDate,
+                                                                        'reference_no' => $makePaymentReferenceNo,
+                                                                        'should_have_a_payment_journal_entry' => "No",
+                                                                        'location_id' => $locationId,
+                                                                        'payee_payer_type' => $payeeType,
+                                                                        'payee_payer_id' => $payeeId,
+                                                                        'reference_journal_entry_id' => $referenceJournalEntryId,
+                                                                        'description' => $this->lang->line('Journal entry for Make Payment number : ') . $makePaymentReferenceNo,
+                                                                        'post_type' => "Indirect",
+                                                                        'actioned_user_id' => $this->user_id,
+                                                                        'action_date' => $this->date,
+                                                                        'last_action_status' => 'added'
+                                                                    );
+
+                                                                    $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
+
+                                                                    $makePaymentJournalEntry = array(
+                                                                        'make_payment_id' => $makePaymentId,
+                                                                        'make_payment_method_id' => $makePaymentMethodId,
+                                                                        'prime_entry_book_id' => $primeEntryBookId,
+                                                                        'journal_entry_id' => $journalEntryId,
+                                                                        'actioned_user_id' => $this->user_id,
+                                                                        'action_date' => $this->date,
+                                                                        'last_action_status' => 'added'
+                                                                    );
+
+                                                                    $this->make_payment_model->addMakePaymentJournalEntry($makePaymentJournalEntry);
+
+                                                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                                                                    $amount = str_replace(',', '', $amount);
+
+                                                                    foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+
+                                                                        if ($paymentMethod == "Cheque Payment") {
+                                                                            $transactionStatus = "No";
+                                                                        } else {
+                                                                            $transactionStatus = "Yes";
+                                                                        }
+
+                                                                        if ($chartOfAccount->debit_or_credit == "debit") {
+                                                                            $generalLedgerTransaction = array(
+                                                                                'journal_entry_id' => $journalEntryId,
+                                                                                'prime_entry_book_id' => $primeEntryBookId,
+                                                                                'transaction_date' => $makePaymentDate,
+                                                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                'debit_value' => $paidAmount,
+                                                                                'transaction_complete' => $transactionStatus,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'added'
+                                                                            );
+                                                                        } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                                                            $generalLedgerTransaction = array(
+                                                                                'journal_entry_id' => $journalEntryId,
+                                                                                'prime_entry_book_id' => $primeEntryBookId,
+                                                                                'transaction_date' => $makePaymentDate,
+                                                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                                                'credit_value' => $paidAmount,
+                                                                                'transaction_complete' => $transactionStatus,
+                                                                                'actioned_user_id' => $this->user_id,
+                                                                                'action_date' => $this->date,
+                                                                                'last_action_status' => 'added'
+                                                                            );
+                                                                        }
+
+                                                                        $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
+
+                                                                        //Same time add the data to previous years record table.
+                                                                        $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
+                                                                    }
+                                                                }
+                                                            } 
+
+                                                            $result = 'ok';
+                                                        } else {
+                                                            $result = 'incorrect_prime_entry_book_selected_for_make_payment_transaction';
+                                                            break;
+                                                        }
+
+                                                        if ($paymentMethodFullyConsumed == true) {
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    $result = "previous_financial_year_is_closed";
+                }
+			}
+			
+			if ($result == '') {
+				$result = 'ok';
+			}
+
+			echo json_encode(array('result' => $result, 'makePaymentId' => $makePaymentId));
+		}
+	}
+
+	//Delete Make Payment
+	public function deleteMakePayment() {
+		if(isset($this->data['ACM_Bookkeeping_Delete_Make_Payment_Permissions'])) {
+            
+            $html = '';
+			$makePaymentId = $this->db->escape_str($this->input->post('id'));
+			
+            $makePayment = $this->make_payment_model->getMakePaymentById($makePaymentId);
+            $makePaymentTransactionDate = $makePayment[0]->date;
+
+            $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($makePaymentTransactionDate);
+
+            if ($financialYear[0]->year_end_process_status != "Closed") {
+            
+                $status = "deleted";
+
+                $paymentReferenceList = $this->make_payment_model->getMakePaymentReferenceTransactionList($makePaymentId);
                 $paymentMethodList = $this->make_payment_model->getMakePaymentMethodList($makePaymentId);
                 $refundClaimAmountTotal = $this->make_payment_model->getMakePaymentClaimAmountTotal($makePaymentId);
 
-				if ($paymentMethodList && sizeof($paymentMethodList) > 0) {
+                if ($paymentMethodList && sizeof($paymentMethodList) > 0) {
 
                     foreach ($paymentMethodList as $paymentMethodRecord) {
 
                         $paymentMethod = $paymentMethodRecord->payment_method;
                         $cashPaymentId = $paymentMethodRecord->cash_payment_id;
                         $chequeId = $paymentMethodRecord->cheque_id;
-                        
+
                         $cashAmount = 0;
                         $chequeAmount = 0;
                         $status = "deleted";
@@ -2600,19 +5395,19 @@ class Make_payment_controller extends CI_Controller {
                             $chequeAmount = $expenseCheque[0]->amount;
                             $chequeNumber = $expenseCheque[0]->cheque_number;
                             $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $expenseCheque[0]->cheque_payment_prime_entry_book_id;
-                            
+
                             $makePaymentInSecondOrThirdPartyJournalEntries = $this->journal_entries_model->getJournalEntryByPrimeEntryBookIdAndReferenceNo($makePaymentInSecondOrThirdPartyPrimeEntryBookId, $chequeNumber);
 
                             if ($makePaymentInSecondOrThirdPartyJournalEntries && sizeof($makePaymentInSecondOrThirdPartyJournalEntries) > 0) {
                                 foreach($makePaymentInSecondOrThirdPartyJournalEntries as $makePaymentInSecondOrThirdPartyJournalEntry) {
                                     $journalEntryId = $makePaymentInSecondOrThirdPartyJournalEntry->journal_entry_id;
 
-                                    $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+                                    $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId, '', "Yes");
 
                                     if ($glTransactions && sizeof($glTransactions) > 0) {
                                         foreach($glTransactions as $glTransaction) {
                                             $chartOfAccountId = $glTransaction->chart_of_account_id;
-                                            
+
                                             $generalLedgerTransaction = array(
                                                 'transaction_complete' => "No",
                                                 'actioned_user_id' => $this->user_id,
@@ -2623,7 +5418,7 @@ class Make_payment_controller extends CI_Controller {
                                             $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $generalLedgerTransaction);
                                         }
                                     }
-                                    
+
                                     $journalEntry = array(
                                         'actioned_user_id' => $this->user_id,
                                         'action_date' => $this->date,
@@ -2633,26 +5428,26 @@ class Make_payment_controller extends CI_Controller {
                                     $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntry);
                                 }
                             }
-                            
+
                             $this->payments_model->deleteExpenseCheque($chequeId, $status, $this->user_id);
                         } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
                             $expenseCheque = $this->payments_model->getExpenseChequeById($chequeId);
                             $chequeAmount = $expenseCheque[0]->amount;
                             $chequeNumber = $expenseCheque[0]->cheque_number;
                             $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $expenseCheque[0]->cheque_payment_prime_entry_book_id;
-                            
+
                             $makePaymentInSecondOrThirdPartyJournalEntries = $this->journal_entries_model->getJournalEntryByPrimeEntryBookIdAndReferenceNo($makePaymentInSecondOrThirdPartyPrimeEntryBookId, $chequeNumber);
 
                             if ($makePaymentInSecondOrThirdPartyJournalEntries && sizeof($makePaymentInSecondOrThirdPartyJournalEntries) > 0) {
                                 foreach($makePaymentInSecondOrThirdPartyJournalEntries as $makePaymentInSecondOrThirdPartyJournalEntry) {
                                     $journalEntryId = $makePaymentInSecondOrThirdPartyJournalEntry->journal_entry_id;
 
-                                    $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+                                    $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId, '', "Yes");
 
                                     if ($glTransactions && sizeof($glTransactions) > 0) {
                                         foreach($glTransactions as $glTransaction) {
                                             $chartOfAccountId = $glTransaction->chart_of_account_id;
-                                            
+
                                             $generalLedgerTransaction = array(
                                                 'transaction_complete' => "No",
                                                 'actioned_user_id' => $this->user_id,
@@ -2663,7 +5458,7 @@ class Make_payment_controller extends CI_Controller {
                                             $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $generalLedgerTransaction);
                                         }
                                     }
-                                    
+
                                     $journalEntry = array(
                                         'actioned_user_id' => $this->user_id,
                                         'action_date' => $this->date,
@@ -2673,9 +5468,9 @@ class Make_payment_controller extends CI_Controller {
                                     $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntry);
                                 }
                             }
-                            
+
                             $this->payments_model->deleteExpenseCheque($chequeId, $status, $this->user_id);
-                            
+
                             //Mark coresponding income cheque (if available) is In Hand
                             $incomeCheque = $this->payments_model->getIncomeChequeByChequeNumber($chequeNumber);
                             $chequeId = $incomeCheque[0]->cheque_id;
@@ -2699,9 +5494,7 @@ class Make_payment_controller extends CI_Controller {
 
                                 $referenceTransactionTypeId = $paymentReference->reference_transaction_type_id;
                                 $referenceTransactionId = $paymentReference->reference_transaction_id;
-                                $referenceTransactionNote = $paymentReference->reference_transaction_note;
-                                $referenceTransactionClaimAmount = $paymentReference->claim_amount;
-                                
+
                                 if ($referenceTransactionTypeId == '1') {
                                     //Purchase Note
                                     $successfulTransaction = false;
@@ -2713,14 +5506,16 @@ class Make_payment_controller extends CI_Controller {
                                     $currentChequePayment = $purchaseNote[0]->cheque_payment_amount;
                                     $currentBalancePayment = $purchaseNote[0]->balance_payment;
                                     $claimAmountTotal = $purchaseNote[0]->supplier_return_note_claimed;
-                                    
+
+                                    $balancePaymentAdjustmentFromClaimAmount = 0;
+
                                     if ($refundClaimAmountTotal >= $claimAmountTotal) {
+                                        $balancePaymentAdjustmentFromClaimAmount = $claimAmountTotal;
                                         $refundClaimAmountTotal = $refundClaimAmountTotal - $claimAmountTotal;
-                                        $currentBalancePayment = $currentBalancePayment + $claimAmountTotal;
                                         $claimAmountTotal = 0;
                                     } else {
+                                        $balancePaymentAdjustmentFromClaimAmount = $refundClaimAmountTotal;
                                         $claimAmountTotal = $claimAmountTotal - $refundClaimAmountTotal;
-                                        $currentBalancePayment = $currentBalancePayment + $refundClaimAmountTotal;
                                         $refundClaimAmountTotal = 0;
                                     }
 
@@ -2750,6 +5545,8 @@ class Make_payment_controller extends CI_Controller {
 
                                     if ($successfulTransaction) {
 
+                                        $currentBalancePayment = $currentBalancePayment + $balancePaymentAdjustmentFromClaimAmount;
+
                                         $purchaseNoteData = array(
                                             'cash_payment_amount' => $currentCashPayment,
                                             'cheque_payment_amount' => $currentChequePayment,
@@ -2769,12 +5566,12 @@ class Make_payment_controller extends CI_Controller {
                                     $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
 
                                     $status = $salesNote[0]->status;
-                                    //$amount = $salesNote[0]->sales_amount;
+                                    $amount = $salesNote[0]->amount;
                                     $currentBalancePayment = $salesNote[0]->balance_payment;
-                                    
+
                                     if ($status == "Claimed" && $currentBalancePayment == "0.00") {
                                         $salesNoteData = array(
-                                            'balance_payment' => $referenceTransactionClaimAmount,
+                                            'balance_payment' => $amount,
                                             'status' => "Open",
                                             'actioned_user_id' => $this->user_id,
                                             'action_date' => $this->date,
@@ -2783,16 +5580,16 @@ class Make_payment_controller extends CI_Controller {
 
                                         $this->sales_note_model->editSalesNoteData($referenceTransactionId, $salesNoteData);
                                     }
-                                    
+
                                     $salesNoteSalesEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId);
-                                    
+
                                     if ($salesNoteSalesEntryJournalEntries && sizeof($salesNoteSalesEntryJournalEntries) > 0) {
-                                        //Delete sales note claim journal entries
+                                        //Delete sales claim journal entries
                                         foreach($salesNoteSalesEntryJournalEntries as $journalEntry) {
                                             $journalEntryId = $journalEntry->journal_entry_id;
-                                            
+
                                             $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
-                                            
+
                                             if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
                                                 foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
                                                     $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
@@ -2808,13 +5605,13 @@ class Make_payment_controller extends CI_Controller {
                                     $supplierReturnNote = $this->supplier_return_note_model->getSupplierReturnNoteById($supplierReturnNoteId);
 
                                     $status = $supplierReturnNote[0]->status;
-                                    //$amount = $supplierReturnNote[0]->amount;
+                                    $amount = $supplierReturnNote[0]->amount;
                                     $currentBalancePayment = $supplierReturnNote[0]->balance_payment;
                                     $supplierReturnType = $supplierReturnNote[0]->type;
-                                    
+
                                     if ($status == "Claimed" && $currentBalancePayment == "0.00") {
                                         $supplierReturnNoteData = array(
-                                            'balance_payment' => $referenceTransactionClaimAmount,
+                                            'balance_payment' => $amount,
                                             'status' => "Open",
                                             'actioned_user_id' => $this->user_id,
                                             'action_date' => $this->date,
@@ -2823,20 +5620,20 @@ class Make_payment_controller extends CI_Controller {
 
                                         $this->supplier_return_note_model->editSupplierReturnNoteData($referenceTransactionId, $supplierReturnNoteData);
                                     }
-                                    
+
                                     if ($supplierReturnType == 'saleable_return') {
                                         $supplierReturnNoteSalesEntryJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '1');
                                     } else if ($supplierReturnType == 'market_return') {
                                         $supplierReturnNoteSalesEntryJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '2');
                                     }
-                                    
+
                                     if ($supplierReturnNoteSalesEntryJournalEntries && sizeof($supplierReturnNoteSalesEntryJournalEntries) > 0) {
                                         //Delete supplier return claim journal entries
                                         foreach($supplierReturnNoteSalesEntryJournalEntries as $journalEntry) {
                                             $journalEntryId = $journalEntry->journal_entry_id;
-                                            
+
                                             $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
-                                            
+
                                             if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
                                                 foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
                                                     $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
@@ -2856,16 +5653,14 @@ class Make_payment_controller extends CI_Controller {
                                     $currentCashPayment = $customerReturnNote[0]->cash_payment_amount;
                                     $currentChequePayment = $customerReturnNote[0]->cheque_payment_amount;
                                     $currentBalancePayment = $customerReturnNote[0]->balance_payment;
-                                    $claimAmountTotal = $customerReturnNote[0]->sales_note_claimed;
-                                    
+                                    $claimAmountTotal = $customerReturnNote[0]->purchase_note_claimed;
+
                                     if ($refundClaimAmountTotal >= $claimAmountTotal) {
-                                        $refundClaimAmountTotal = $refundClaimAmountTotal - $claimAmountTotal;
-                                        $currentBalancePayment = $currentBalancePayment + $claimAmountTotal;
-                                        $claimAmountTotal = 0;
-                                    } else {
                                         $claimAmountTotal = $claimAmountTotal - $refundClaimAmountTotal;
-                                        $currentBalancePayment = $currentBalancePayment + $refundClaimAmountTotal;
                                         $refundClaimAmountTotal = 0;
+                                    } else {
+                                        $claimAmountTotal = 0;
+                                        $refundClaimAmountTotal = $refundClaimAmountTotal - $claimAmountTotal;
                                     }
 
                                     if ($currentCashPayment >= $cashAmount) {
@@ -2898,7 +5693,7 @@ class Make_payment_controller extends CI_Controller {
                                             'cash_payment_amount' => $currentCashPayment,
                                             'cheque_payment_amount' => $currentChequePayment,
                                             'balance_payment' => $currentBalancePayment,
-                                            'sales_note_claimed' => $claimAmountTotal,
+                                            'purchase_note_claimed' => $claimAmountTotal,
                                             'status' => "Open",
                                             'actioned_user_id' => $this->user_id,
                                             'action_date' => $this->date,
@@ -2908,134 +5703,92 @@ class Make_payment_controller extends CI_Controller {
                                         $this->customer_return_note_model->editCustomerReturnNoteData($referenceTransactionId, $customerReturnNoteData);
                                     }
                                 } else if ($referenceTransactionTypeId == '5') {
-                                    
-                                    if ($referenceTransactionNote != "Deduction") {
-                                        
-                                        $journalEntryId = $paymentReference->reference_journal_entry_id;
-                                        $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+                                    $journalEntryId = $paymentReference->reference_journal_entry_id;
+                                    $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
 
-                                        $balanceAmount = $journalEntry[0]->balance_amount;
+                                    $balanceAmount = $journalEntry[0]->balance_amount;
 
-                                        $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+                                    $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
 
-                                        $transactionAmount = 0;
-                                        if ($glTransactions && sizeof($glTransactions) > 0) {
-                                            if ($glTransactions[0]->debit_value > 0) {
-                                                $transactionAmount = $glTransactions[0]->debit_value;
-                                            } else if ($glTransactions[0]->credit_value > 0) {
-                                                $transactionAmount = $glTransactions[0]->credit_value;
-                                            }
+                                    $transactionAmount = 0;
+                                    if ($glTransactions && sizeof($glTransactions) > 0) {
+                                        if ($glTransactions[0]->debit_value > 0) {
+                                            $transactionAmount = $glTransactions[0]->debit_value;
+                                        } else if ($glTransactions[0]->credit_value > 0) {
+                                            $transactionAmount = $glTransactions[0]->credit_value;
                                         }
+                                    }
 
-                                        if ($cashAmount > 0) {
-                                            if (($transactionAmount - $balanceAmount) >= $cashAmount) {
+                                    if ($cashAmount > 0) {
+                                        if (($transactionAmount - $balanceAmount) >= $cashAmount) {
 
-                                                $balanceAmount = $balanceAmount + $cashAmount;
-                                                $cashAmount = 0;
+                                            $balanceAmount = $balanceAmount + $cashAmount;
+                                            $cashAmount = 0;
 
-                                                $journalEntryData = array(
-                                                    'balance_amount' => $balanceAmount,
-                                                    'status' => "Open",
-                                                    'actioned_user_id' => $this->user_id,
-                                                    'action_date' => $this->date,
-                                                    'last_action_status' => 'edited'
-                                                );
+                                            $journalEntryData = array(
+                                                'balance_amount' => $balanceAmount,
+                                                'status' => "Open",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'edited'
+                                            );
 
-                                                $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
-                                            } else if (($transactionAmount - $balanceAmount) < $cashAmount) {
-                                                $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
-                                                $cashAmount = $cashAmount - ($transactionAmount - $balanceAmount);
+                                            $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                        } else if (($transactionAmount - $balanceAmount) < $cashAmount) {
+                                            $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
+                                            $cashAmount = $cashAmount - ($transactionAmount - $balanceAmount);
 
-                                                $journalEntryData = array(
-                                                    'balance_amount' => $balanceAmount,
-                                                    'status' => "Open",
-                                                    'actioned_user_id' => $this->user_id,
-                                                    'action_date' => $this->date,
-                                                    'last_action_status' => 'edited'
-                                                );
+                                            $journalEntryData = array(
+                                                'balance_amount' => $balanceAmount,
+                                                'status' => "Open",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'edited'
+                                            );
 
-                                                $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
-                                            }
+                                            $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
                                         }
+                                    }
 
-                                        if ($chequeAmount > 0) {
-                                            if (($transactionAmount - $balanceAmount) >= $chequeAmount) {
+                                    if ($chequeAmount > 0) {
+                                        if (($transactionAmount - $balanceAmount) >= $chequeAmount) {
 
-                                                $balanceAmount = $balanceAmount + $chequeAmount;
-                                                $chequeAmount = 0;
+                                            $balanceAmount = $balanceAmount + $chequeAmount;
+                                            $chequeAmount = 0;
 
-                                                $journalEntryData = array(
-                                                    'balance_amount' => $balanceAmount,
-                                                    'status' => "Open",
-                                                    'actioned_user_id' => $this->user_id,
-                                                    'action_date' => $this->date,
-                                                    'last_action_status' => 'edited'
-                                                );
+                                            $journalEntryData = array(
+                                                'balance_amount' => $balanceAmount,
+                                                'status' => "Open",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'edited'
+                                            );
 
-                                                $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
-                                            } else if (($transactionAmount - $balanceAmount) < $chequeAmount) {
-                                                $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
-                                                $chequeAmount = $chequeAmount - ($transactionAmount - $balanceAmount);
+                                            $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
+                                        } else if (($transactionAmount - $balanceAmount) < $chequeAmount) {
+                                            $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
+                                            $chequeAmount = $chequeAmount - ($transactionAmount - $balanceAmount);
 
-                                                $journalEntryData = array(
-                                                    'balance_amount' => $balanceAmount,
-                                                    'status' => "Open",
-                                                    'actioned_user_id' => $this->user_id,
-                                                    'action_date' => $this->date,
-                                                    'last_action_status' => 'edited'
-                                                );
+                                            $journalEntryData = array(
+                                                'balance_amount' => $balanceAmount,
+                                                'status' => "Open",
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'edited'
+                                            );
 
-                                                $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
-                                            }
+                                            $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
                                         }
-                                    } else {
-                                        $journalEntryData = array(
-                                            'status' => "Open",
-                                            'actioned_user_id' => $this->user_id,
-                                            'action_date' => $this->date,
-                                            'last_action_status' => 'edited'
-                                        );
-
-                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
                                     }
                                 }
-                                
-                                $makePaymentReferenceTransactionDataHistory = array(
-                                    'make_payment_reference_transaction_id' => $paymentReference->make_payment_reference_transaction_id,
-                                    'make_payment_id' => $paymentReference->make_payment_id,
-                                    'reference_transaction_type_id' => $paymentReference->reference_transaction_type_id,
-                                    'reference_transaction_id' => $paymentReference->reference_transaction_id,
-                                    'reference_journal_entry_id' => $paymentReference->reference_journal_entry_id,
-                                    'claim_amount' => $paymentReference->claim_amount,
-                                    'actioned_user_id' => $paymentReference->actioned_user_id,
-                                    'action_date' => $paymentReference->action_date,
-                                    'last_action_status' => $paymentReference->last_action_status,
-                                );
-
-                                $this->make_payment_model->addMakePaymentReferenceTransactionToHistory($makePaymentReferenceTransactionDataHistory);
                             }
                         }
 
-                        $this->make_payment_model->deleteMakePaymentReferenceTransactions($makePaymentId);
-                        
-                        $makePaymentMethodDataHistory = array(
-							'make_payment_method_id' => $paymentMethodRecord->make_payment_method_id,
-							'make_payment_id' => $paymentMethodRecord->make_payment_id,
-							'payment_method' => $paymentMethodRecord->payment_method,
-                            'cash_payment_id' => $paymentMethodRecord->cash_payment_id,
-                            'payment_account_id' => $paymentMethodRecord->payment_account_id,
-                            'cheque_type' => $paymentMethodRecord->cheque_type,
-							'cheque_id' => $paymentMethodRecord->cheque_id,
-							'actioned_user_id' => $paymentMethodRecord->actioned_user_id,
-							'action_date' => $paymentMethodRecord->action_date,
-							'last_action_status' => $paymentMethodRecord->last_action_status,
-						);
-
-						$this->make_payment_model->addMakePaymentMethodRecordToHistory($makePaymentMethodDataHistory);
+                        $this->make_payment_model->deleteMakePaymentReferenceTransactionsSoftly($makePaymentId, "deleted", $this->user_id);
                     }
                 }
 
-                $this->make_payment_model->deleteMakePaymentMethodRecords($makePaymentId);
+                $this->make_payment_model->deleteMakePaymentMethodRecordsSoftly($makePaymentId, "deleted", $this->user_id);
 
                 $makePaymentJournalEntries = $this->make_payment_model->getMakePaymentJournalEntries($makePaymentId);
 
@@ -3050,2749 +5803,18 @@ class Make_payment_controller extends CI_Controller {
                     }
                 }
 
-                $makePaymentClaimAmountTotal = '0.00';
-                $salesNoteAmountTotal = '0.00';
-                $supplierReturnNoteAmountTotal = '0.00';
-                $otherReferenceTransactionDeductionAmountTotal = '0.00';
-                
-                $claimTransactionList = array();
-                
-                if ($referenceTransactionData && sizeof($referenceTransactionData) > 0) {
-
-					for($x = 0; $x < $referenceTransactionCount; $x++) {
-
-						if (isset($referenceTransactionData[$x])) {
-							$rowCount = sizeof($referenceTransactionData[$x][0]);
-
-							for($y = 1; $y <= $rowCount; $y++) {
-									
-                                $claimAmount = 0;
-                                $referenceTransactionNote = '';
-                                
-								if ($referenceTransactionData[$x][0][$y] == '2') {
-                                    //Sales Note
-									$journalEntryId = $referenceTransactionData[$x][2][$y];
-									$journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
-									$salesNoteReferenceNo = $journalEntry[0]->reference_no;
-									$salesNote = $this->sales_note_model->getSalesNoteByReferenceNo($salesNoteReferenceNo);
-									
-									if ($salesNote && sizeof($salesNote) > 0) {
-                                        
-                                        $referenceNo = $salesNote[0]->reference_no;
-                                        $salesNoteAmount = $salesNote[0]->balance_payment;
-                                        $claimAmount = $salesNoteAmount;
-                                        
-										$data = array(
-                                            'balance_payment' => '0.00',
-											'status' => "Claimed",
-											'actioned_user_id' => $this->user_id,
-											'action_date' => $this->date,
-											'last_action_status' => 'added'
-										);
-										
-										$this->sales_note_model->editSalesNoteData($salesNote[0]->sales_note_id, $data);
-                                        
-                                        $salesNoteAmountTotal = $salesNoteAmountTotal + $salesNoteAmount;
-                                        
-                                        $claimTransaction = array('0' => $journalEntryId, '1' => $claimAmount, '2' => $referenceNo);
-                                        $claimTransactionList[] = $claimTransaction;
-									}
-								} else if ($referenceTransactionData[$x][0][$y] == '3') {
-                                    //Supplier Return Note
-									$journalEntryId = $referenceTransactionData[$x][2][$y];
-									$journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
-									$supplierReturnNoteReferenceNo = $journalEntry[0]->reference_no;
-									$supplierReturnNote = $this->supplier_return_note_model->getSupplierReturnNoteByReferenceNo($supplierReturnNoteReferenceNo);
-									
-									if ($supplierReturnNote && sizeof($supplierReturnNote) > 0) {
-                                        
-                                        $referenceNo = $supplierReturnNote[0]->reference_no;
-                                        $supplierReturnNoteAmount = $supplierReturnNote[0]->balance_payment;
-                                        $claimAmount = $supplierReturnNoteAmount;
-                                        
-										$data = array(
-                                            'balance_payment' => '0.00',
-											'status' => "Claimed",
-											'actioned_user_id' => $this->user_id,
-											'action_date' => $this->date,
-											'last_action_status' => 'added'
-										);
-										
-										$this->supplier_return_note_model->editSupplierReturnNoteData($supplierReturnNote[0]->supplier_return_note_id, $data);
-                                        
-                                        $supplierReturnNoteAmountTotal = $supplierReturnNoteAmountTotal + $supplierReturnNoteAmount;
-                                        
-                                        $claimTransaction = array('0' => $journalEntryId, '1' => $claimAmount, '2' => $referenceNo);
-                                        $claimTransactionList[] = $claimTransaction;
-									}
-								} else if ($referenceTransactionData[$x][0][$y] == '5') {
-                                    if ($referenceTransactionData[$x][3][$y] == "Deduction") {
-                                        $journalEntryId = $referenceTransactionData[$x][2][$y];
-                                        $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
-
-                                        $transactionAmount = 0;
-                                        if ($glTransactions && sizeof($glTransactions) > 0) {
-                                            if ($glTransactions[0]->debit_value > 0) {
-                                                $transactionAmount = $glTransactions[0]->debit_value;
-                                            } else if ($glTransactions[0]->credit_value > 0) {
-                                                $transactionAmount = $glTransactions[0]->credit_value;
-                                            }
-                                        }
-                                        
-                                        $claimAmount = $transactionAmount;
-                                        
-                                        $data = array(
-											'status' => "Closed",
-											'actioned_user_id' => $this->user_id,
-											'action_date' => $this->date,
-											'last_action_status' => 'added'
-										);
-                                        
-                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $data);
-                                        
-                                        $otherReferenceTransactionDeductionAmountTotal = $otherReferenceTransactionDeductionAmountTotal + $transactionAmount;
-                                        
-                                        $claimTransaction = array('0' => $journalEntryId, '1' => $claimAmount, '2' => '');
-                                        $claimTransactionList[] = $claimTransaction;
-                                        
-                                        $referenceTransactionNote = "Deduction";
-                                    }
-                                }
-                                
-                                $data = array(
-                                    'make_payment_id' => $makePaymentId,
-                                    'reference_transaction_type_id' => $referenceTransactionData[$x][0][$y],
-                                    'reference_transaction_id' => $referenceTransactionData[$x][1][$y],
-                                    'reference_transaction_note' => $referenceTransactionNote,
-                                    'reference_journal_entry_id' => $referenceTransactionData[$x][2][$y],
-                                    'claim_amount' => $claimAmount,
-                                    'actioned_user_id' => $this->user_id,
-                                    'action_date' => $this->date,
-                                    'last_action_status' => 'added'
-                                );
-
-                                $this->make_payment_model->addMakePaymentReferenceTransaction($data);
-							}
-						}
-					}
-				}
-                
-                $makePaymentClaimAmountTotal = $salesNoteAmountTotal + $supplierReturnNoteAmountTotal + $otherReferenceTransactionDeductionAmountTotal;
-                $pendingClaimAmountTotalForPurchaseNotes = $supplierReturnNoteAmountTotal + $otherReferenceTransactionDeductionAmountTotal;
-                $pendingClaimAmountTotalForCustomerReturnNotes = $salesNoteAmountTotal + $otherReferenceTransactionDeductionAmountTotal;
-                
-                if ($paymentMethodData && sizeof($paymentMethodData) > 0) {
-
-                    $totalPaid = 0;
-                    
-					for($x = 0; $x < $paymentMethodCount; $x++) {
-
-						if (isset($paymentMethodData[$x])) {
-							$rowCount = sizeof($paymentMethodData[$x][0]);
-
-                            $remainingPaymentAmount = 0;
-                            
-							for($y = 1; $y <= $rowCount; $y++) {
-                                
-								$paymentMethod = $paymentMethodData[$x][0][$y];
-                                $paymentAccountId = $paymentMethodData[$x][1][$y];
-                                $chequeId = $paymentMethodData[$x][2][$y];
-                                $bankId = $paymentMethodData[$x][3][$y];
-                                $chequeNumber = $paymentMethodData[$x][4][$y];
-                                $chequeDate = $paymentMethodData[$x][5][$y];
-								$amount = $paymentMethodData[$x][6][$y];
-                                
-                                $remainingPaymentAmount = $amount;
-                                
-                                $paymentId = 0;
-                                $chequeType = '';
-                                
-                                $referenceTransactionTypeId = '';
-                                $referenceTransactionId = '';
-                                $referenceJournalEntryId = '';
-                                
-                                if ($referenceTransactionData && sizeof($referenceTransactionData) > 0) {
-                                    
-                                    for($p = 0; $p < $referenceTransactionCount; $p++) {
-
-                                        if (isset($referenceTransactionData[$p])) {
-                                            $rowCountInner = sizeof($referenceTransactionData[$p][0]);
-
-                                            for($q = 1; $q <= $rowCountInner; $q++) {
-                                                
-                                                $today = date("Y-m-d");
-                                                
-                                                if ($referenceTransactionData[$p][0][$q] == '1') {
-                                                    //Purchase Note
-                                                    $journalEntryId = $referenceTransactionData[$p][2][$q];
-                                                    $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
-                                                    
-                                                    $purchaseNoteReferenceNo = $journalEntry[0]->reference_no;
-                                                    $purchaseNote = $this->purchase_note_model->getPurchaseNoteByReferenceNo($purchaseNoteReferenceNo, '');
-
-                                                    if ($purchaseNote && sizeof($purchaseNote) > 0) {
-
-                                                        $purchaseNoteId = $purchaseNote[0]->purchase_note_id;
-                                                        
-                                                        $referenceTransactionTypeId = '1';
-                                                        $referenceTransactionId = $purchaseNoteId;
-                                                        $referenceJournalEntryId = $journalEntryId;
-                                                        
-                                                        $totalAmount = $purchaseNote[0]->amount;
-                                                        $paidCashAmount = $purchaseNote[0]->cash_payment_amount;
-                                                        $paidChequeAmount = $purchaseNote[0]->cheque_payment_amount;
-                                                        $paidCreditCardAmount = $purchaseNote[0]->credit_card_payment_amount;
-                                                        $supplierReturnAmountClaimed = $purchaseNote[0]->supplier_return_note_claimed;
-                                                        $totalPaid = $paidCashAmount + $paidChequeAmount + $paidCreditCardAmount + $supplierReturnAmountClaimed;
-                                                        
-                                                        $currentBalancePayment = $totalAmount - $totalPaid;
-                                                        
-                                                        if (round($currentBalancePayment) > 0) {
-                                                        
-                                                            $amountToClaimFromPayment = 0;
-                                                            $amountToClaimFromPurchaseNoteAmount = 0;
-
-                                                            if ($pendingClaimAmountTotalForPurchaseNotes > 0) {
-
-                                                                if ($currentBalancePayment >= $pendingClaimAmountTotalForPurchaseNotes) {
-                                                                    $amountToClaimFromPayment = $currentBalancePayment - $pendingClaimAmountTotalForPurchaseNotes;
-
-                                                                    if ($amountToClaimFromPayment > $remainingPaymentAmount) {
-                                                                        $amountToClaimFromPayment = $remainingPaymentAmount;
-                                                                    }
-
-                                                                    $amountToClaimFromPurchaseNoteAmount = $pendingClaimAmountTotalForPurchaseNotes;
-                                                                    $newBalancePayment = $totalAmount - ($totalPaid + $amountToClaimFromPayment + $pendingClaimAmountTotalForPurchaseNotes);
-                                                                    $remainingPaymentAmount = $remainingPaymentAmount - $amountToClaimFromPayment;
-                                                                    $pendingClaimAmountTotalForPurchaseNotes = 0;
-                                                                } else {
-                                                                    $amountToClaimFromPurchaseNoteAmount = $currentBalancePayment;
-                                                                    $newBalancePayment = $totalAmount - ($totalPaid + $amountToClaimFromPurchaseNoteAmount);
-                                                                    $pendingClaimAmountTotalForPurchaseNotes = $pendingClaimAmountTotalForPurchaseNotes - $amountToClaimFromPurchaseNoteAmount;
-                                                                }
-                                                            } else {
-                                                                $newBalancePayment = $totalAmount - ($totalPaid + $remainingPaymentAmount);
-                                                            }
-
-                                                            $paidAmount = 0;
-
-                                                            if ($newBalancePayment < 0) {
-                                                                $newBalancePayment = 0;
-                                                            }
-
-                                                            $status = "Open";
-                                                            $paymentMethodFullyConsumed = false;
-
-                                                            if ($newBalancePayment == 0) {
-                                                                $status = "Claimed";
-                                                            } else {
-                                                                $paymentMethodFullyConsumed = true;
-                                                            }
-
-                                                            if ($amountToClaimFromPurchaseNoteAmount > 0) {
-                                                                if ($paymentMethod == 'Cash Payment') {
-                                                                    $paidAmount = $amountToClaimFromPayment;
-
-                                                                    $data = array(
-                                                                        'cash_payment_amount' => $paidCashAmount + $amountToClaimFromPayment,
-                                                                        'balance_payment' => $newBalancePayment,
-                                                                        'supplier_return_note_claimed' => $amountToClaimFromPurchaseNoteAmount + $supplierReturnAmountClaimed,
-                                                                        'status' => $status,
-                                                                        'actioned_user_id' => $this->user_id,
-                                                                        'action_date' => $this->date,
-                                                                        'last_action_status' => 'edited'
-                                                                    );
-
-                                                                    $cashPaymentData = array(
-                                                                        'transaction_type' => 'Purchase Note',
-                                                                        'transaction_id' => $purchaseNoteId,
-                                                                        'date' => $makePaymentDate,
-                                                                        'amount' => $amountToClaimFromPayment,
-                                                                        'actioned_user_id' => $this->user_id,
-                                                                        'action_date' => $this->date,
-                                                                        'last_action_status' => 'edited'
-                                                                    );
-
-                                                                    $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
-                                                                } else if ($paymentMethod == 'Cheque Payment') {
-
-                                                                    $chequeType = "Expense Cheque";
-                                                                    $paidAmount = $amountToClaimFromPayment;
-
-                                                                    $data = array(
-                                                                        'cheque_payment_amount' => $paidChequeAmount + $amountToClaimFromPayment,
-                                                                        'balance_payment' => $newBalancePayment,
-                                                                        'supplier_return_note_claimed' => $amountToClaimFromPurchaseNoteAmount + $supplierReturnAmountClaimed,
-                                                                        'status' => $status,
-                                                                        'actioned_user_id' => $this->user_id,
-                                                                        'action_date' => $this->date,
-                                                                        'last_action_status' => 'edited'
-                                                                    );
-
-                                                                    $expenseChequeData = array(
-                                                                        'transaction_type' => 'Purchase Note',
-                                                                        'transaction_id' => $purchaseNoteId,
-                                                                        'date' => $makePaymentDate,
-                                                                        'payee_id' => $payeeId,
-                                                                        'location_id' => $locationId,
-                                                                        'reference_no' => $purchaseNoteReferenceNo,
-                                                                        'cheque_number' => $chequeNumber,
-                                                                        'bank' => $bankId,
-                                                                        'cheque_date' => $chequeDate,
-                                                                        'amount' => $amountToClaimFromPayment,
-                                                                        'cheque_payment_prime_entry_book_id' => $paymentAccountId,
-                                                                        'status' => "Open",
-                                                                        'actioned_user_id' => $this->user_id,
-                                                                        'action_date' => $this->date,
-                                                                        'last_action_status' => 'added'
-                                                                    );
-
-                                                                    $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
-                                                                } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
-
-                                                                    $chequeType = "Expense Cheque";
-                                                                    $paidAmount = $amountToClaimFromPayment;
-
-                                                                    $data = array(
-                                                                        'cheque_payment_amount' => $paidChequeAmount + $amountToClaimFromPayment,
-                                                                        'balance_payment' => $newBalancePayment,
-                                                                        'supplier_return_note_claimed' => $amountToClaimFromPurchaseNoteAmount + $supplierReturnAmountClaimed,
-                                                                        'status' => $status,
-                                                                        'actioned_user_id' => $this->user_id,
-                                                                        'action_date' => $this->date,
-                                                                        'last_action_status' => 'edited'
-                                                                    );
-
-                                                                    //Mark second party/third party cheque as paid
-
-                                                                    $incomeChequeData = array(
-                                                                        'status' => "Paid",
-                                                                        'actioned_user_id' => $this->user_id,
-                                                                        'action_date' => $this->date,
-                                                                        'last_action_status' => 'edited'
-                                                                    );
-
-                                                                    $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
-
-                                                                    $makePaymentInSecondOrThirdPartyPrimeEntryBook = $this->system_configurations_model->getMakePaymentSecondOrThirdPartyChequeAccountsPrimeEntryBooks();
-
-                                                                    $makePaymentInSecondOrThirdPartyPrimeEntryBookId = '';
-                                                                    $primeEntryBooksToUpdate = '';
-                                                                    if ($makePaymentInSecondOrThirdPartyPrimeEntryBook && sizeof($makePaymentInSecondOrThirdPartyPrimeEntryBook) > 0) {
-                                                                        $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $makePaymentInSecondOrThirdPartyPrimeEntryBook[0]->config_filed_value;
-                                                                        $primeEntryBooksToUpdate = $this->prime_entry_book_model->getPrimeEntryBookById($makePaymentInSecondOrThirdPartyPrimeEntryBookId);
-                                                                    }
-
-                                                                    //Add a new expense cheque using party/third party cheque
-                                                                    $expenseChequeData = array(
-                                                                        'transaction_type' => 'Purchase Note',
-                                                                        'transaction_id' => $purchaseNoteId,
-                                                                        'date' => $makePaymentDate,
-                                                                        'payee_id' => $payeeId,
-                                                                        'location_id' => $locationId,
-                                                                        'reference_no' => $purchaseNoteReferenceNo,
-                                                                        'cheque_number' => $chequeNumber,
-                                                                        'bank' => $bankId,
-                                                                        'cheque_date' => $chequeDate,
-                                                                        'amount' => $amountToClaimFromPayment,
-                                                                        'cheque_payment_prime_entry_book_id' => $makePaymentInSecondOrThirdPartyPrimeEntryBookId,
-                                                                        'status' => "Open",
-                                                                        'actioned_user_id' => $this->user_id,
-                                                                        'action_date' => $this->date,
-                                                                        'last_action_status' => 'added'
-                                                                    );
-
-                                                                    $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
-
-                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = true;
-
-                                                                    if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                                                                        foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                            $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
-                                                                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                                                            if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                                                                $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                            }
-                                                                        }
-                                                                    } else {
-                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                    }
-
-                                                                    if ($correctChartOfAccountsFoundInPrimeEntryBooks) {
-                                                                        foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                            $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
-
-                                                                            $journalEntry = array(
-                                                                                'prime_entry_book_id' => $primeEntryBookId,
-                                                                                'transaction_date' => $today,
-                                                                                'reference_no' => $chequeNumber,
-                                                                                'should_have_a_payment_journal_entry' => "No",
-                                                                                'location_id' => $locationId,
-                                                                                'payee_payer_type' => $payeeType,
-                                                                                'payee_payer_id' => $payeeId,
-                                                                                'description' => $this->lang->line('Journal entry for second or third party cheque payment for Cheque number : ') . $chequeNumber,
-                                                                                'post_type' => "Indirect",
-                                                                                'actioned_user_id' => $this->user_id,
-                                                                                'action_date' => $this->date,
-                                                                                'last_action_status' => 'added'
-                                                                            );
-
-                                                                            $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
-
-                                                                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-                                                                            $amount = str_replace(',', '', $amount);
-
-                                                                            foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-
-                                                                                $transactionStatus = "No";
-
-                                                                                if ($chartOfAccount->debit_or_credit == "debit") {
-                                                                                    $generalLedgerTransaction = array(
-                                                                                        'journal_entry_id' => $journalEntryId,
-                                                                                        'prime_entry_book_id' => $primeEntryBookId,
-                                                                                        'transaction_date' => $today,
-                                                                                        'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                                        'debit_value' => $amountToClaimFromPayment,
-                                                                                        'transaction_complete' => $transactionStatus,
-                                                                                        'actioned_user_id' => $this->user_id,
-                                                                                        'action_date' => $this->date,
-                                                                                        'last_action_status' => 'added'
-                                                                                    );
-                                                                                } else if ($chartOfAccount->debit_or_credit == "credit") {
-                                                                                    $generalLedgerTransaction = array(
-                                                                                        'journal_entry_id' => $journalEntryId,
-                                                                                        'prime_entry_book_id' => $primeEntryBookId,
-                                                                                        'transaction_date' => $today,
-                                                                                        'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                                        'credit_value' => $amountToClaimFromPayment,
-                                                                                        'transaction_complete' => $transactionStatus,
-                                                                                        'actioned_user_id' => $this->user_id,
-                                                                                        'action_date' => $this->date,
-                                                                                        'last_action_status' => 'added'
-                                                                                    );
-                                                                                }
-
-                                                                                $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
-
-                                                                                //Same time add the data to previous years record table.
-                                                                                $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-
-                                                                $this->purchase_note_model->editPurchaseNoteData($purchaseNote[0]->purchase_note_id, $data);
-                                                            } else {
-                                                                if ($currentBalancePayment > $remainingPaymentAmount && $remainingPaymentAmount > 0) {
-
-                                                                    if ($paymentMethod == 'Cash Payment') {
-                                                                        $paidAmount = $remainingPaymentAmount;
-
-                                                                        $data = array(
-                                                                            'cash_payment_amount' => $paidCashAmount + $remainingPaymentAmount,
-                                                                            'balance_payment' => $newBalancePayment,
-                                                                            'status' => $status,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        $cashPaymentData = array(
-                                                                            'transaction_type' => 'Purchase Note',
-                                                                            'transaction_id' => $purchaseNoteId,
-                                                                            'date' => $makePaymentDate,
-                                                                            'amount' => $remainingPaymentAmount,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
-                                                                    } else if ($paymentMethod == 'Cheque Payment') {
-                                                                        $paidAmount = $remainingPaymentAmount;
-
-                                                                        $data = array(
-                                                                            'cheque_payment_amount' => $paidChequeAmount + $remainingPaymentAmount,
-                                                                            'balance_payment' => $newBalancePayment,
-                                                                            'status' => $status,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        $expenseChequeData = array(
-                                                                            'transaction_type' => 'Purchase Note',
-                                                                            'transaction_id' => $purchaseNoteId,
-                                                                            'date' => $makePaymentDate,
-                                                                            'payee_id' => $payeeId,
-                                                                            'location_id' => $locationId,
-                                                                            'reference_no' => $purchaseNoteReferenceNo,
-                                                                            'cheque_number' => $chequeNumber,
-                                                                            'bank' => $bankId,
-                                                                            'cheque_date' => $chequeDate,
-                                                                            'amount' => $remainingPaymentAmount,
-                                                                            'cheque_payment_prime_entry_book_id' => $paymentAccountId,
-                                                                            'status' => "Open",
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'added'
-                                                                        );
-
-                                                                        $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
-                                                                    } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
-
-                                                                        $chequeType = "Expense Cheque";
-                                                                        $paidAmount = $remainingPaymentAmount;
-
-                                                                        $data = array(
-                                                                            'cheque_payment_amount' => $paidChequeAmount + $remainingPaymentAmount,
-                                                                            'balance_payment' => $newBalancePayment,
-                                                                            'status' => $status,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        //Mark second party/third party cheque as paid
-
-                                                                        $incomeChequeData = array(
-                                                                            'status' => "Paid",
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
-
-                                                                        $makePaymentInSecondOrThirdPartyPrimeEntryBook = $this->system_configurations_model->getMakePaymentSecondOrThirdPartyChequeAccountsPrimeEntryBooks();
-
-                                                                        $makePaymentInSecondOrThirdPartyPrimeEntryBookId = '';
-                                                                        $primeEntryBooksToUpdate = '';
-                                                                        if ($makePaymentInSecondOrThirdPartyPrimeEntryBook && sizeof($makePaymentInSecondOrThirdPartyPrimeEntryBook) > 0) {
-                                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $makePaymentInSecondOrThirdPartyPrimeEntryBook[0]->config_filed_value;
-                                                                            $primeEntryBooksToUpdate = $this->prime_entry_book_model->getPrimeEntryBookById($makePaymentInSecondOrThirdPartyPrimeEntryBookId);
-                                                                        }
-
-                                                                        //Add a new expense cheque using party/third party cheque
-                                                                        $expenseChequeData = array(
-                                                                            'transaction_type' => 'Purchase Note',
-                                                                            'transaction_id' => $purchaseNoteId,
-                                                                            'date' => $makePaymentDate,
-                                                                            'payee_id' => $payeeId,
-                                                                            'location_id' => $locationId,
-                                                                            'reference_no' => $purchaseNoteReferenceNo,
-                                                                            'cheque_number' => $chequeNumber,
-                                                                            'bank' => $bankId,
-                                                                            'cheque_date' => $chequeDate,
-                                                                            'amount' => $remainingPaymentAmount,
-                                                                            'cheque_payment_prime_entry_book_id' => $makePaymentInSecondOrThirdPartyPrimeEntryBookId,
-                                                                            'status' => "Open",
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'added'
-                                                                        );
-
-                                                                        $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
-
-                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = true;
-
-                                                                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                                $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
-                                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                                                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                                }
-                                                                            }
-                                                                        } else {
-                                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                        }
-
-                                                                        if ($correctChartOfAccountsFoundInPrimeEntryBooks) {
-                                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                                $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
-
-                                                                                $journalEntry = array(
-                                                                                    'prime_entry_book_id' => $primeEntryBookId,
-                                                                                    'transaction_date' => $today,
-                                                                                    'reference_no' => $chequeNumber,
-                                                                                    'should_have_a_payment_journal_entry' => "No",
-                                                                                    'location_id' => $locationId,
-                                                                                    'payee_payer_type' => $payeeType,
-                                                                                    'payee_payer_id' => $payeeId,
-                                                                                    'description' => $this->lang->line('Journal entry for second or third party cheque payment for Cheque number : ') . $chequeNumber,
-                                                                                    'post_type' => "Indirect",
-                                                                                    'actioned_user_id' => $this->user_id,
-                                                                                    'action_date' => $this->date,
-                                                                                    'last_action_status' => 'added'
-                                                                                );
-
-                                                                                $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
-
-                                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-                                                                                $amount = str_replace(',', '', $amount);
-
-                                                                                foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-
-                                                                                    $transactionStatus = "No";
-
-                                                                                    if ($chartOfAccount->debit_or_credit == "debit") {
-                                                                                        $generalLedgerTransaction = array(
-                                                                                            'journal_entry_id' => $journalEntryId,
-                                                                                            'prime_entry_book_id' => $primeEntryBookId,
-                                                                                            'transaction_date' => $today,
-                                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                                            'debit_value' => $remainingPaymentAmount,
-                                                                                            'transaction_complete' => $transactionStatus,
-                                                                                            'actioned_user_id' => $this->user_id,
-                                                                                            'action_date' => $this->date,
-                                                                                            'last_action_status' => 'added'
-                                                                                        );
-                                                                                    } else if ($chartOfAccount->debit_or_credit == "credit") {
-                                                                                        $generalLedgerTransaction = array(
-                                                                                            'journal_entry_id' => $journalEntryId,
-                                                                                            'prime_entry_book_id' => $primeEntryBookId,
-                                                                                            'transaction_date' => $today,
-                                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                                            'credit_value' => $remainingPaymentAmount,
-                                                                                            'transaction_complete' => $transactionStatus,
-                                                                                            'actioned_user_id' => $this->user_id,
-                                                                                            'action_date' => $this->date,
-                                                                                            'last_action_status' => 'added'
-                                                                                        );
-                                                                                    }
-
-                                                                                    $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
-
-                                                                                    //Same time add the data to previous years record table.
-                                                                                    $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-
-                                                                    $this->purchase_note_model->editPurchaseNoteData($purchaseNote[0]->purchase_note_id, $data);
-
-                                                                    $remainingPaymentAmount = 0;
-                                                                } else if ($currentBalancePayment > 0 && $currentBalancePayment <= $remainingPaymentAmount) {
-                                                                    if ($paymentMethod == 'Cash Payment') {
-                                                                        $paidAmount = $currentBalancePayment;
-
-                                                                        $data = array(
-                                                                            'cash_payment_amount' => $paidCashAmount + $currentBalancePayment,
-                                                                            'balance_payment' => $newBalancePayment,
-                                                                            'status' => $status,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        $cashPaymentData = array(
-                                                                            'transaction_type' => 'Purchase Note',
-                                                                            'transaction_id' => $purchaseNoteId,
-                                                                            'date' => $makePaymentDate,
-                                                                            'amount' => $currentBalancePayment,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
-                                                                    } else if ($paymentMethod == 'Cheque Payment') {
-                                                                        $paidAmount = $currentBalancePayment;
-
-                                                                        $data = array(
-                                                                            'cheque_payment_amount' => $paidChequeAmount + $currentBalancePayment,
-                                                                            'balance_payment' => $newBalancePayment,
-                                                                            'status' => $status,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        $expenseChequeData = array(
-                                                                            'transaction_type' => 'Purchase Note',
-                                                                            'transaction_id' => $purchaseNoteId,
-                                                                            'date' => $makePaymentDate,
-                                                                            'payee_id' => $payeeId,
-                                                                            'location_id' => $locationId,
-                                                                            'reference_no' => $purchaseNoteReferenceNo,
-                                                                            'cheque_number' => $chequeNumber,
-                                                                            'bank' => $bankId,
-                                                                            'cheque_date' => $chequeDate,
-                                                                            'amount' => $currentBalancePayment,
-                                                                            'cheque_payment_prime_entry_book_id' => $paymentAccountId,
-                                                                            'status' => "Open",
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'added'
-                                                                        );
-
-                                                                        $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
-                                                                    } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
-
-                                                                        $chequeType = "Expense Cheque";
-                                                                        $paidAmount = $currentBalancePayment;
-
-                                                                        $data = array(
-                                                                            'cheque_payment_amount' => $paidChequeAmount + $currentBalancePayment,
-                                                                            'balance_payment' => $newBalancePayment,
-                                                                            'status' => $status,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        //Mark second party/third party cheque as paid
-
-                                                                        $incomeChequeData = array(
-                                                                            'status' => "Paid",
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
-
-                                                                        $makePaymentInSecondOrThirdPartyPrimeEntryBook = $this->system_configurations_model->getMakePaymentSecondOrThirdPartyChequeAccountsPrimeEntryBooks();
-
-                                                                        $makePaymentInSecondOrThirdPartyPrimeEntryBookId = '';
-                                                                        $primeEntryBooksToUpdate = '';
-                                                                        if ($makePaymentInSecondOrThirdPartyPrimeEntryBook && sizeof($makePaymentInSecondOrThirdPartyPrimeEntryBook) > 0) {
-                                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $makePaymentInSecondOrThirdPartyPrimeEntryBook[0]->config_filed_value;
-                                                                            $primeEntryBooksToUpdate = $this->prime_entry_book_model->getPrimeEntryBookById($makePaymentInSecondOrThirdPartyPrimeEntryBookId);
-                                                                        }
-
-                                                                        //Add a new expense cheque using party/third party cheque
-                                                                        $expenseChequeData = array(
-                                                                            'transaction_type' => 'Purchase Note',
-                                                                            'transaction_id' => $purchaseNoteId,
-                                                                            'date' => $makePaymentDate,
-                                                                            'payee_id' => $payeeId,
-                                                                            'location_id' => $locationId,
-                                                                            'reference_no' => $purchaseNoteReferenceNo,
-                                                                            'cheque_number' => $chequeNumber,
-                                                                            'bank' => $bankId,
-                                                                            'cheque_date' => $chequeDate,
-                                                                            'amount' => $currentBalancePayment,
-                                                                            'cheque_payment_prime_entry_book_id' => $makePaymentInSecondOrThirdPartyPrimeEntryBookId,
-                                                                            'status' => "Open",
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'added'
-                                                                        );
-
-                                                                        $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
-
-                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = true;
-
-                                                                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                                $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
-                                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                                                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                                }
-                                                                            }
-                                                                        } else {
-                                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                        }
-
-                                                                        if ($correctChartOfAccountsFoundInPrimeEntryBooks) {
-                                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                                $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
-
-                                                                                $journalEntry = array(
-                                                                                    'prime_entry_book_id' => $primeEntryBookId,
-                                                                                    'transaction_date' => $today,
-                                                                                    'reference_no' => $chequeNumber,
-                                                                                    'should_have_a_payment_journal_entry' => "No",
-                                                                                    'location_id' => $locationId,
-                                                                                    'payee_payer_type' => $payeeType,
-                                                                                    'payee_payer_id' => $payeeId,
-                                                                                    'description' => $this->lang->line('Journal entry for second or third party cheque payment for Cheque number : ') . $chequeNumber,
-                                                                                    'post_type' => "Indirect",
-                                                                                    'actioned_user_id' => $this->user_id,
-                                                                                    'action_date' => $this->date,
-                                                                                    'last_action_status' => 'added'
-                                                                                );
-
-                                                                                $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
-
-                                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-                                                                                $amount = str_replace(',', '', $amount);
-
-                                                                                foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-
-                                                                                    $transactionStatus = "No";
-
-                                                                                    if ($chartOfAccount->debit_or_credit == "debit") {
-                                                                                        $generalLedgerTransaction = array(
-                                                                                            'journal_entry_id' => $journalEntryId,
-                                                                                            'prime_entry_book_id' => $primeEntryBookId,
-                                                                                            'transaction_date' => $today,
-                                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                                            'debit_value' => $currentBalancePayment,
-                                                                                            'transaction_complete' => $transactionStatus,
-                                                                                            'actioned_user_id' => $this->user_id,
-                                                                                            'action_date' => $this->date,
-                                                                                            'last_action_status' => 'added'
-                                                                                        );
-                                                                                    } else if ($chartOfAccount->debit_or_credit == "credit") {
-                                                                                        $generalLedgerTransaction = array(
-                                                                                            'journal_entry_id' => $journalEntryId,
-                                                                                            'prime_entry_book_id' => $primeEntryBookId,
-                                                                                            'transaction_date' => $today,
-                                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                                            'credit_value' => $currentBalancePayment,
-                                                                                            'transaction_complete' => $transactionStatus,
-                                                                                            'actioned_user_id' => $this->user_id,
-                                                                                            'action_date' => $this->date,
-                                                                                            'last_action_status' => 'added'
-                                                                                        );
-                                                                                    }
-
-                                                                                    $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
-
-                                                                                    //Same time add the data to previous years record table.
-                                                                                    $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-
-                                                                    $this->purchase_note_model->editPurchaseNoteData($purchaseNote[0]->purchase_note_id, $data);
-
-                                                                    $remainingPaymentAmount = $remainingPaymentAmount - $currentBalancePayment;
-                                                                }
-                                                            }
-
-                                                            $claimAmount = 0;
-
-                                                            if ($makePaymentClaimAmountTotal >= $amountToClaimFromPurchaseNoteAmount) {
-                                                                $claimAmount = $amountToClaimFromPurchaseNoteAmount;
-                                                                $makePaymentClaimAmountTotal = $makePaymentClaimAmountTotal - $amountToClaimFromPurchaseNoteAmount;
-                                                            } else if ($makePaymentClaimAmountTotal > 0) {
-                                                                $claimAmount = $makePaymentClaimAmountTotal;
-                                                                $makePaymentClaimAmountTotal = 0;
-                                                            }
-
-                                                            $primeEntryBooksToUpdateForSupplierReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForMakePaymentTransactionClaim();
-
-                                                            //Post journal entry for supplier return note claim for purchase note
-                                                            if ($claimAmount > 0 && $journalEntryId != '') {
-
-                                                                if ($claimTransactionList && sizeof($claimTransactionList) > 0) {
-                                                                    $count = 0;
-                                                                    $arrayElementsToUnset = array();
-                                                                    foreach($claimTransactionList as $claimTransactionRow) {
-                                                                        if ($claimTransactionRow[1] <= $claimAmount) {
-
-                                                                            $claimReferenceJournalEntryId = $this->postReferenceJournalEntries($primeEntryBooksToUpdateForSupplierReturnNoteClaim, '', $makePaymentDate, 
-                                                                                    $purchaseNoteReferenceNo, '1', $purchaseNoteId, $journalEntryId, $claimTransactionRow[2], $locationId, "Supplier", $payeeId, 
-                                                                                    $claimTransactionRow[1], true);
-
-                                                                            if ($claimReferenceJournalEntryId != '') {
-                                                                                $data = array(
-                                                                                    'journal_entry_id' => $claimTransactionRow[0],
-                                                                                    'claim_reference_journal_entry_id' => $claimReferenceJournalEntryId,
-                                                                                    'actioned_user_id' => $this->user_id,
-                                                                                    'action_date' => $this->date,
-                                                                                    'last_action_status' => 'added'
-                                                                                );
-
-                                                                                $this->journal_entries_model->addJournalEntryClaimReference($data);
-                                                                            }
-
-                                                                            $arrayElementsToUnset[] = $count;
-                                                                            $claimAmount = $claimAmount - $claimTransactionRow[1];
-                                                                        } else {
-                                                                            $claimReferenceJournalEntryId = $this->postReferenceJournalEntries($primeEntryBooksToUpdateForSupplierReturnNoteClaim, '', $makePaymentDate, 
-                                                                                    $purchaseNoteReferenceNo, '1', $purchaseNoteId, $journalEntryId, $claimTransactionRow[2], $locationId, "Supplier", $payeeId, 
-                                                                                    $claimAmount, true);
-
-                                                                            if ($claimReferenceJournalEntryId != '') {
-                                                                                $data = array(
-                                                                                    'journal_entry_id' => $claimTransactionRow[0],
-                                                                                    'claim_reference_journal_entry_id' => $claimReferenceJournalEntryId,
-                                                                                    'actioned_user_id' => $this->user_id,
-                                                                                    'action_date' => $this->date,
-                                                                                    'last_action_status' => 'added'
-                                                                                );
-
-                                                                                $this->journal_entries_model->addJournalEntryClaimReference($data);
-                                                                            }
-
-                                                                            $claimTransactionRow[1] = $claimTransactionRow[1] - $claimAmount;
-                                                                            $claimAmount = 0;
-                                                                        }
-
-                                                                        $count++;
-                                                                    }
-
-                                                                    if ($arrayElementsToUnset && sizeof($arrayElementsToUnset) > 0) {
-                                                                        foreach($arrayElementsToUnset as $row) {
-                                                                            unset($claimTransactionList[$row]);
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            $cashPaymentId = 0;
-
-                                                            if ($paymentMethod == 'Cash Payment') {
-                                                                $cashPaymentId = $paymentId;
-                                                            }
-
-                                                            $makePaymentMethodRecordData = array(
-                                                                'make_payment_id' => $makePaymentId,
-                                                                'payment_method' => $paymentMethod,
-                                                                'cash_payment_id' => $cashPaymentId,
-                                                                'payment_account_id' => $paymentAccountId,
-                                                                'cheque_type' => $chequeType,
-                                                                'cheque_id' => $chequeId,
-                                                                'actioned_user_id' => $this->user_id,
-                                                                'action_date' => $this->date,
-                                                                'last_action_status' => 'added'
-                                                            );
-
-                                                            $makePaymentMethodId = $this->make_payment_model->addMakePaymentMethodRecord($makePaymentMethodRecordData);
-
-                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = true;
-
-                                                            $primeEntryBookIds = '';
-                                                            if ($paymentMethod == "Cash Payment") {
-                                                                $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForMakePaymentCashTransaction();
-
-                                                                if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                                                                    foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                        $primeEntryBookId = $primeEntryBook->config_filed_value;
-                                                                        $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                                                        if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                        } else {
-                                                                            $primeEntryBookIds[] = $primeEntryBookId;
-                                                                        }
-                                                                    }
-                                                                }
-                                                            } else if ($paymentMethod == "Cheque Payment") {
-
-                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($paymentAccountId);
-
-                                                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                } else {
-                                                                    $primeEntryBookIds[] = $paymentAccountId;
-                                                                }
-                                                            } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
-                                                                $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForMakePaymentSecondOrThirdPartyChequeTransaction();
-
-                                                                if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                                                                    foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                        $primeEntryBookId = $primeEntryBook->config_filed_value;
-                                                                        $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                                                        if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                        } else {
-                                                                            $primeEntryBookIds[] = $primeEntryBookId;
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-                                                                if ($primeEntryBookIds && sizeof($primeEntryBookIds) > 0) {
-
-                                                                    foreach ($primeEntryBookIds as $primeEntryBookId) {
-
-                                                                        $journalEntry = array(
-                                                                            'prime_entry_book_id' => $primeEntryBookId,
-                                                                            'transaction_date' => $makePaymentDate,
-                                                                            'reference_no' => $chequeNumber,
-                                                                            'should_have_a_payment_journal_entry' => "No",
-                                                                            'location_id' => $locationId,
-                                                                            'payee_payer_type' => $payeeType,
-                                                                            'payee_payer_id' => $payeeId,
-                                                                            'reference_transaction_type_id' => $referenceTransactionTypeId,
-                                                                            'reference_transaction_id' => $referenceTransactionId,
-                                                                            'reference_journal_entry_id' => $referenceJournalEntryId,
-                                                                            'description' => $this->lang->line('Journal entry for Make Payment number : ') . $makePaymentReferenceNo,
-                                                                            'post_type' => "Indirect",
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'added'
-                                                                        );
-
-                                                                        $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
-
-                                                                        $makePaymentJournalEntry = array(
-                                                                            'make_payment_id' => $makePaymentId,
-                                                                            'make_payment_method_id' => $makePaymentMethodId,
-                                                                            'prime_entry_book_id' => $primeEntryBookId,
-                                                                            'journal_entry_id' => $journalEntryId,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'added'
-                                                                        );
-
-                                                                        $this->make_payment_model->addMakePaymentJournalEntry($makePaymentJournalEntry);
-
-                                                                        $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-                                                                        $amount = str_replace(',', '', $amount);
-
-                                                                        foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-
-                                                                            if ($paymentMethod == "Cheque Payment") {
-                                                                                $transactionStatus = "No";
-                                                                            } else {
-                                                                                $transactionStatus = "Yes";
-                                                                            }
-
-                                                                            if ($chartOfAccount->debit_or_credit == "debit") {
-                                                                                $generalLedgerTransaction = array(
-                                                                                    'journal_entry_id' => $journalEntryId,
-                                                                                    'prime_entry_book_id' => $primeEntryBookId,
-                                                                                    'transaction_date' => $makePaymentDate,
-                                                                                    'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                                    'debit_value' => $paidAmount,
-                                                                                    'transaction_complete' => $transactionStatus,
-                                                                                    'actioned_user_id' => $this->user_id,
-                                                                                    'action_date' => $this->date,
-                                                                                    'last_action_status' => 'added'
-                                                                                );
-                                                                            } else if ($chartOfAccount->debit_or_credit == "credit") {
-                                                                                $generalLedgerTransaction = array(
-                                                                                    'journal_entry_id' => $journalEntryId,
-                                                                                    'prime_entry_book_id' => $primeEntryBookId,
-                                                                                    'transaction_date' => $makePaymentDate,
-                                                                                    'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                                    'credit_value' => $paidAmount,
-                                                                                    'transaction_complete' => $transactionStatus,
-                                                                                    'actioned_user_id' => $this->user_id,
-                                                                                    'action_date' => $this->date,
-                                                                                    'last_action_status' => 'added'
-                                                                                );
-                                                                            }
-
-                                                                            $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
-
-                                                                            //Same time add the data to previous years record table.
-                                                                            $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
-                                                                        }
-                                                                    }
-                                                                } 
-
-                                                                $result = 'ok';
-                                                            } else {
-                                                                $result = 'incorrect_prime_entry_book_selected_for_make_payment_transaction';
-                                                                break;
-                                                            }
-
-                                                            if ($paymentMethodFullyConsumed == true) {
-                                                                break;
-                                                            }
-                                                        }
-                                                    }
-                                                } else if ($referenceTransactionData[$p][0][$q] == '4') {
-                                                    //Customer Return Note
-                                                    $journalEntryId = $referenceTransactionData[$p][2][$q];
-                                                    $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
-                                                    
-                                                    $customerReturnNoteReferenceNo = $journalEntry[0]->reference_no;
-                                                    $customerReturnNote = $this->customer_return_note_model->getCustomerReturnNoteByReferenceNo($customerReturnNoteReferenceNo);
-
-                                                    if ($customerReturnNote && sizeof($customerReturnNote) > 0) {
-
-                                                        $customerReturnNoteId = $customerReturnNote[0]->customer_return_note_id;
-                                                        
-                                                        $referenceTransactionTypeId = '4';
-                                                        $referenceTransactionId = $customerReturnNoteId;
-                                                        $referenceJournalEntryId = $journalEntryId;
-                                                        
-                                                        $totalAmount = $customerReturnNote[0]->amount;
-                                                        $paidCashAmount = $customerReturnNote[0]->cash_payment_amount;
-                                                        $paidChequeAmount = $customerReturnNote[0]->cheque_payment_amount;
-                                                        $paidCreditCardAmount = $customerReturnNote[0]->credit_card_payment_amount;
-                                                        $salesAmountClaimed = $customerReturnNote[0]->sales_note_claimed;
-                                                        $totalReceivable = $totalAmount;
-                                                        $totalReceived = $paidCashAmount + $paidChequeAmount + $paidCreditCardAmount + $salesAmountClaimed;
-                                                        
-                                                        $currentBalancePayment = $totalReceivable - $totalReceived;
-                                                        
-                                                        if (round($currentBalancePayment) > 0) {
-                                                        
-                                                            $amountToClaimFromPayment = 0;
-                                                            $amountToClaimFromCustomerReturnAmount = 0;
-
-                                                            if ($pendingClaimAmountTotalForCustomerReturnNotes > 0) {
-
-                                                                if ($currentBalancePayment >= $pendingClaimAmountTotalForCustomerReturnNotes) {
-                                                                    $amountToClaimFromPayment = $currentBalancePayment - $pendingClaimAmountTotalForCustomerReturnNotes;
-
-                                                                    if ($amountToClaimFromPayment > $remainingPaymentAmount) {
-                                                                        $amountToClaimFromPayment = $remainingPaymentAmount;
-                                                                    }
-
-                                                                    $amountToClaimFromCustomerReturnAmount = $pendingClaimAmountTotalForCustomerReturnNotes;
-                                                                    $newBalancePayment = $totalReceivable - ($totalReceived + $amountToClaimFromPayment + $pendingClaimAmountTotalForCustomerReturnNotes);
-                                                                    $remainingPaymentAmount = $remainingPaymentAmount - $amountToClaimFromPayment;
-                                                                    $pendingClaimAmountTotalForCustomerReturnNotes = 0;
-                                                                } else {
-                                                                    $amountToClaimFromCustomerReturnAmount = $currentBalancePayment;
-                                                                    $newBalancePayment = $totalReceivable - ($totalReceived + $amountToClaimFromCustomerReturnAmount);
-                                                                    $pendingClaimAmountTotalForCustomerReturnNotes = $pendingClaimAmountTotalForCustomerReturnNotes - $amountToClaimFromCustomerReturnAmount;
-                                                                }
-                                                            } else {
-                                                                $newBalancePayment = $totalReceivable - ($totalReceived + $remainingPaymentAmount);
-                                                            }
-
-                                                            $paidAmount = 0;
-
-                                                            if ($newBalancePayment < 0) {
-                                                                $newBalancePayment = 0;
-                                                            }
-
-                                                            $status = "Open";
-                                                            $paymentMethodFullyConsumed = false;
-
-                                                            if ($newBalancePayment == 0) {
-                                                                $status = "Claimed";
-                                                            } else {
-                                                                $paymentMethodFullyConsumed = true;
-                                                            }
-
-                                                            if ($amountToClaimFromCustomerReturnAmount > 0) {
-                                                                if ($paymentMethod == 'Cash Payment') {
-                                                                    $paidAmount = $amountToClaimFromPayment;
-
-                                                                    $data = array(
-                                                                        'cash_payment_amount' => $paidCashAmount + $amountToClaimFromPayment,
-                                                                        'balance_payment' => $newBalancePayment,
-                                                                        'sales_note_claimed' => $amountToClaimFromCustomerReturnAmount + $salesAmountClaimed,
-                                                                        'status' => $status,
-                                                                        'actioned_user_id' => $this->user_id,
-                                                                        'action_date' => $this->date,
-                                                                        'last_action_status' => 'edited'
-                                                                    );
-
-                                                                    $cashPaymentData = array(
-                                                                        'transaction_type' => 'Customer Return Note',
-                                                                        'transaction_id' => $customerReturnNoteId,
-                                                                        'date' => $makePaymentDate,
-                                                                        'amount' => $amountToClaimFromPayment,
-                                                                        'actioned_user_id' => $this->user_id,
-                                                                        'action_date' => $this->date,
-                                                                        'last_action_status' => 'edited'
-                                                                    );
-
-                                                                    $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
-                                                                } else if ($paymentMethod == 'Cheque Payment') {
-                                                                    $paidAmount = $amountToClaimFromPayment;
-
-                                                                    $data = array(
-                                                                        'cheque_payment_amount' => $paidChequeAmount + $amountToClaimFromPayment,
-                                                                        'balance_payment' => $newBalancePayment,
-                                                                        'sales_note_claimed' => $amountToClaimFromCustomerReturnAmount + $salesAmountClaimed,
-                                                                        'status' => $status,
-                                                                        'actioned_user_id' => $this->user_id,
-                                                                        'action_date' => $this->date,
-                                                                        'last_action_status' => 'edited'
-                                                                    );
-
-                                                                    $expenseChequeData = array(
-                                                                        'transaction_type' => 'Customer Return Note',
-                                                                        'transaction_id' => $customerReturnNoteId,
-                                                                        'date' => $makePaymentDate,
-                                                                        'payee_id' => $payeeId,
-                                                                        'location_id' => $locationId,
-                                                                        'reference_no' => $customerReturnNoteReferenceNo,
-                                                                        'cheque_number' => $chequeNumber,
-                                                                        'bank' => $bankId,
-                                                                        'cheque_date' => $chequeDate,
-                                                                        'amount' => $amountToClaimFromPayment,
-                                                                        'cheque_payment_prime_entry_book_id' => $paymentAccountId,
-                                                                        'status' => "Open",
-                                                                        'actioned_user_id' => $this->user_id,
-                                                                        'action_date' => $this->date,
-                                                                        'last_action_status' => 'added'
-                                                                    );
-
-                                                                    $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
-                                                                } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
-
-                                                                    $chequeType = "Expense Cheque";
-                                                                    $paidAmount = $amountToClaimFromPayment;
-
-                                                                    $data = array(
-                                                                        'cheque_payment_amount' => $paidChequeAmount + $amountToClaimFromPayment,
-                                                                        'balance_payment' => $newBalancePayment,
-                                                                        'sales_note_claimed' => $amountToClaimFromCustomerReturnAmount + $salesAmountClaimed,
-                                                                        'status' => $status,
-                                                                        'actioned_user_id' => $this->user_id,
-                                                                        'action_date' => $this->date,
-                                                                        'last_action_status' => 'edited'
-                                                                    );
-
-                                                                    //Mark second party/third party cheque as paid
-
-                                                                    $incomeChequeData = array(
-                                                                        'status' => "Paid",
-                                                                        'actioned_user_id' => $this->user_id,
-                                                                        'action_date' => $this->date,
-                                                                        'last_action_status' => 'edited'
-                                                                    );
-
-                                                                    $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
-
-                                                                    $makePaymentInSecondOrThirdPartyPrimeEntryBook = $this->system_configurations_model->getMakePaymentSecondOrThirdPartyChequeAccountsPrimeEntryBooks();
-
-                                                                    $makePaymentInSecondOrThirdPartyPrimeEntryBookId = '';
-                                                                    $primeEntryBooksToUpdate = '';
-                                                                    if ($makePaymentInSecondOrThirdPartyPrimeEntryBook && sizeof($makePaymentInSecondOrThirdPartyPrimeEntryBook) > 0) {
-                                                                        $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $makePaymentInSecondOrThirdPartyPrimeEntryBook[0]->config_filed_value;
-                                                                        $primeEntryBooksToUpdate = $this->prime_entry_book_model->getPrimeEntryBookById($makePaymentInSecondOrThirdPartyPrimeEntryBookId);
-                                                                    }
-
-                                                                    //Add a new expense cheque using party/third party cheque
-                                                                    $expenseChequeData = array(
-                                                                        'transaction_type' => 'Customer Return Note',
-                                                                        'transaction_id' => $customerReturnNoteId,
-                                                                        'date' => $makePaymentDate,
-                                                                        'payee_id' => $payeeId,
-                                                                        'location_id' => $locationId,
-                                                                        'reference_no' => $customerReturnNoteReferenceNo,
-                                                                        'cheque_number' => $chequeNumber,
-                                                                        'bank' => $bankId,
-                                                                        'cheque_date' => $chequeDate,
-                                                                        'amount' => $amountToClaimFromPayment,
-                                                                        'cheque_payment_prime_entry_book_id' => $makePaymentInSecondOrThirdPartyPrimeEntryBookId,
-                                                                        'status' => "Open",
-                                                                        'actioned_user_id' => $this->user_id,
-                                                                        'action_date' => $this->date,
-                                                                        'last_action_status' => 'added'
-                                                                    );
-
-                                                                    $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
-
-                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = true;
-
-                                                                    if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                                                                        foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                            $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
-                                                                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                                                            if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                                                                $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                            }
-                                                                        }
-                                                                    } else {
-                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                    }
-
-                                                                    if ($correctChartOfAccountsFoundInPrimeEntryBooks) {
-                                                                        foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                            $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
-
-                                                                            $journalEntry = array(
-                                                                                'prime_entry_book_id' => $primeEntryBookId,
-                                                                                'transaction_date' => $today,
-                                                                                'reference_no' => $chequeNumber,
-                                                                                'should_have_a_payment_journal_entry' => "No",
-                                                                                'location_id' => $locationId,
-                                                                                'payee_payer_type' => $payeeType,
-                                                                                'payee_payer_id' => $payeeId,
-                                                                                'description' => $this->lang->line('Journal entry for second or third party cheque payment for Cheque number : ') . $chequeNumber,
-                                                                                'post_type' => "Indirect",
-                                                                                'actioned_user_id' => $this->user_id,
-                                                                                'action_date' => $this->date,
-                                                                                'last_action_status' => 'added'
-                                                                            );
-
-                                                                            $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
-
-                                                                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-                                                                            $amount = str_replace(',', '', $amount);
-
-                                                                            foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-
-                                                                                $transactionStatus = "No";
-
-                                                                                if ($chartOfAccount->debit_or_credit == "debit") {
-                                                                                    $generalLedgerTransaction = array(
-                                                                                        'journal_entry_id' => $journalEntryId,
-                                                                                        'prime_entry_book_id' => $primeEntryBookId,
-                                                                                        'transaction_date' => $today,
-                                                                                        'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                                        'debit_value' => $amountToClaimFromPayment,
-                                                                                        'transaction_complete' => $transactionStatus,
-                                                                                        'actioned_user_id' => $this->user_id,
-                                                                                        'action_date' => $this->date,
-                                                                                        'last_action_status' => 'added'
-                                                                                    );
-                                                                                } else if ($chartOfAccount->debit_or_credit == "credit") {
-                                                                                    $generalLedgerTransaction = array(
-                                                                                        'journal_entry_id' => $journalEntryId,
-                                                                                        'prime_entry_book_id' => $primeEntryBookId,
-                                                                                        'transaction_date' => $today,
-                                                                                        'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                                        'credit_value' => $amountToClaimFromPayment,
-                                                                                        'transaction_complete' => $transactionStatus,
-                                                                                        'actioned_user_id' => $this->user_id,
-                                                                                        'action_date' => $this->date,
-                                                                                        'last_action_status' => 'added'
-                                                                                    );
-                                                                                }
-
-                                                                                $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
-
-                                                                                //Same time add the data to previous years record table.
-                                                                                $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-
-                                                                $this->customer_return_note_model->editCustomerReturnNoteData($customerReturnNote[0]->customer_return_note_id, $data);
-                                                            } else {
-                                                                if ($currentBalancePayment > $remainingPaymentAmount && $remainingPaymentAmount > 0) {
-
-                                                                    if ($paymentMethod == 'Cash Payment') {
-                                                                        $paidAmount = $remainingPaymentAmount;
-
-                                                                        $data = array(
-                                                                            'cash_payment_amount' => $paidCashAmount + $remainingPaymentAmount,
-                                                                            'balance_payment' => $newBalancePayment,
-                                                                            'status' => $status,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        $cashPaymentData = array(
-                                                                            'transaction_type' => 'Customer Return Note',
-                                                                            'transaction_id' => $customerReturnNoteId,
-                                                                            'date' => $makePaymentDate,
-                                                                            'amount' => $remainingPaymentAmount,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
-                                                                    } else if ($paymentMethod == 'Cheque Payment') {
-                                                                        $paidAmount = $remainingPaymentAmount;
-
-                                                                        $data = array(
-                                                                            'cheque_payment_amount' => $paidChequeAmount + $remainingPaymentAmount,
-                                                                            'balance_payment' => $newBalancePayment,
-                                                                            'status' => $status,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        $expenseChequeData = array(
-                                                                            'transaction_type' => 'Customer Return Note',
-                                                                            'transaction_id' => $customerReturnNoteId,
-                                                                            'date' => $makePaymentDate,
-                                                                            'payee_id' => $payeeId,
-                                                                            'location_id' => $locationId,
-                                                                            'reference_no' => $customerReturnNoteReferenceNo,
-                                                                            'cheque_number' => $chequeNumber,
-                                                                            'bank' => $bankId,
-                                                                            'cheque_date' => $chequeDate,
-                                                                            'amount' => $remainingPaymentAmount,
-                                                                            'cheque_payment_prime_entry_book_id' => $paymentAccountId,
-                                                                            'status' => "Open",
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'added'
-                                                                        );
-
-                                                                        $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
-                                                                    } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
-
-                                                                        $chequeType = "Expense Cheque";
-                                                                        $paidAmount = $remainingPaymentAmount;
-
-                                                                        $data = array(
-                                                                            'cheque_payment_amount' => $paidChequeAmount + $remainingPaymentAmount,
-                                                                            'balance_payment' => $newBalancePayment,
-                                                                            'status' => $status,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        //Mark second party/third party cheque as paid
-
-                                                                        $incomeChequeData = array(
-                                                                            'status' => "Paid",
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
-
-                                                                        $makePaymentInSecondOrThirdPartyPrimeEntryBook = $this->system_configurations_model->getMakePaymentSecondOrThirdPartyChequeAccountsPrimeEntryBooks();
-
-                                                                        $makePaymentInSecondOrThirdPartyPrimeEntryBookId = '';
-                                                                        $primeEntryBooksToUpdate = '';
-                                                                        if ($makePaymentInSecondOrThirdPartyPrimeEntryBook && sizeof($makePaymentInSecondOrThirdPartyPrimeEntryBook) > 0) {
-                                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $makePaymentInSecondOrThirdPartyPrimeEntryBook[0]->config_filed_value;
-                                                                            $primeEntryBooksToUpdate = $this->prime_entry_book_model->getPrimeEntryBookById($makePaymentInSecondOrThirdPartyPrimeEntryBookId);
-                                                                        }
-
-                                                                        //Add a new expense cheque using party/third party cheque
-                                                                        $expenseChequeData = array(
-                                                                            'transaction_type' => 'Customer Return Note',
-                                                                            'transaction_id' => $customerReturnNoteId,
-                                                                            'date' => $makePaymentDate,
-                                                                            'payee_id' => $payeeId,
-                                                                            'location_id' => $locationId,
-                                                                            'reference_no' => $customerReturnNoteReferenceNo,
-                                                                            'cheque_number' => $chequeNumber,
-                                                                            'bank' => $bankId,
-                                                                            'cheque_date' => $chequeDate,
-                                                                            'amount' => $remainingPaymentAmount,
-                                                                            'cheque_payment_prime_entry_book_id' => $makePaymentInSecondOrThirdPartyPrimeEntryBookId,
-                                                                            'status' => "Open",
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'added'
-                                                                        );
-
-                                                                        $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
-
-                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = true;
-
-                                                                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                                $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
-                                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                                                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                                }
-                                                                            }
-                                                                        } else {
-                                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                        }
-
-                                                                        if ($correctChartOfAccountsFoundInPrimeEntryBooks) {
-                                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                                $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
-
-                                                                                $journalEntry = array(
-                                                                                    'prime_entry_book_id' => $primeEntryBookId,
-                                                                                    'transaction_date' => $today,
-                                                                                    'reference_no' => $chequeNumber,
-                                                                                    'should_have_a_payment_journal_entry' => "No",
-                                                                                    'location_id' => $locationId,
-                                                                                    'payee_payer_type' => $payeeType,
-                                                                                    'payee_payer_id' => $payeeId,
-                                                                                    'description' => $this->lang->line('Journal entry for second or third party cheque payment for Cheque number : ') . $chequeNumber,
-                                                                                    'post_type' => "Indirect",
-                                                                                    'actioned_user_id' => $this->user_id,
-                                                                                    'action_date' => $this->date,
-                                                                                    'last_action_status' => 'added'
-                                                                                );
-
-                                                                                $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
-
-                                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-                                                                                $amount = str_replace(',', '', $amount);
-
-                                                                                foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-
-                                                                                    $transactionStatus = "No";
-
-                                                                                    if ($chartOfAccount->debit_or_credit == "debit") {
-                                                                                        $generalLedgerTransaction = array(
-                                                                                            'journal_entry_id' => $journalEntryId,
-                                                                                            'prime_entry_book_id' => $primeEntryBookId,
-                                                                                            'transaction_date' => $today,
-                                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                                            'debit_value' => $remainingPaymentAmount,
-                                                                                            'transaction_complete' => $transactionStatus,
-                                                                                            'actioned_user_id' => $this->user_id,
-                                                                                            'action_date' => $this->date,
-                                                                                            'last_action_status' => 'added'
-                                                                                        );
-                                                                                    } else if ($chartOfAccount->debit_or_credit == "credit") {
-                                                                                        $generalLedgerTransaction = array(
-                                                                                            'journal_entry_id' => $journalEntryId,
-                                                                                            'prime_entry_book_id' => $primeEntryBookId,
-                                                                                            'transaction_date' => $today,
-                                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                                            'credit_value' => $remainingPaymentAmount,
-                                                                                            'transaction_complete' => $transactionStatus,
-                                                                                            'actioned_user_id' => $this->user_id,
-                                                                                            'action_date' => $this->date,
-                                                                                            'last_action_status' => 'added'
-                                                                                        );
-                                                                                    }
-
-                                                                                    $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
-
-                                                                                    //Same time add the data to previous years record table.
-                                                                                    $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-
-                                                                    $this->customer_return_note_model->editCustomerReturnNoteData($customerReturnNote[0]->customer_return_note_id, $data);
-
-                                                                    $remainingPaymentAmount = 0;
-                                                                } else if ($currentBalancePayment > 0 && $currentBalancePayment <= $remainingPaymentAmount) {
-                                                                    if ($paymentMethod == 'Cash Payment') {
-                                                                        $paidAmount = $currentBalancePayment;
-
-                                                                        $data = array(
-                                                                            'cash_payment_amount' => $paidCashAmount + $currentBalancePayment,
-                                                                            'balance_payment' => $newBalancePayment,
-                                                                            'status' => $status,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        $cashPaymentData = array(
-                                                                            'transaction_type' => 'Customer Return Note',
-                                                                            'transaction_id' => $customerReturnNoteId,
-                                                                            'date' => $makePaymentDate,
-                                                                            'amount' => $currentBalancePayment,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
-                                                                    } else if ($paymentMethod == 'Cheque Payment') {
-                                                                        $paidAmount = $currentBalancePayment;
-
-                                                                        $data = array(
-                                                                            'cheque_payment_amount' => $paidChequeAmount + $currentBalancePayment,
-                                                                            'balance_payment' => $newBalancePayment,
-                                                                            'status' => $status,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        $expenseChequeData = array(
-                                                                            'transaction_type' => 'Customer Return Note',
-                                                                            'transaction_id' => $customerReturnNoteId,
-                                                                            'date' => $makePaymentDate,
-                                                                            'payee_id' => $payeeId,
-                                                                            'location_id' => $locationId,
-                                                                            'reference_no' => $customerReturnNoteReferenceNo,
-                                                                            'cheque_number' => $chequeNumber,
-                                                                            'bank' => $bankId,
-                                                                            'cheque_date' => $chequeDate,
-                                                                            'amount' => $currentBalancePayment,
-                                                                            'cheque_payment_prime_entry_book_id' => $paymentAccountId,
-                                                                            'status' => "Open",
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'added'
-                                                                        );
-
-                                                                        $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
-                                                                    } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
-
-                                                                        $chequeType = "Expense Cheque";
-                                                                        $paidAmount = $currentBalancePayment;
-
-                                                                        $data = array(
-                                                                            'cheque_payment_amount' => $paidChequeAmount + $currentBalancePayment,
-                                                                            'balance_payment' => $newBalancePayment,
-                                                                            'status' => $status,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        //Mark second party/third party cheque as paid
-
-                                                                        $incomeChequeData = array(
-                                                                            'status' => "Paid",
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'edited'
-                                                                        );
-
-                                                                        $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
-
-                                                                        $makePaymentInSecondOrThirdPartyPrimeEntryBook = $this->system_configurations_model->getMakePaymentSecondOrThirdPartyChequeAccountsPrimeEntryBooks();
-
-                                                                        $makePaymentInSecondOrThirdPartyPrimeEntryBookId = '';
-                                                                        $primeEntryBooksToUpdate = '';
-                                                                        if ($makePaymentInSecondOrThirdPartyPrimeEntryBook && sizeof($makePaymentInSecondOrThirdPartyPrimeEntryBook) > 0) {
-                                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $makePaymentInSecondOrThirdPartyPrimeEntryBook[0]->config_filed_value;
-                                                                            $primeEntryBooksToUpdate = $this->prime_entry_book_model->getPrimeEntryBookById($makePaymentInSecondOrThirdPartyPrimeEntryBookId);
-                                                                        }
-
-                                                                        //Add a new expense cheque using party/third party cheque
-                                                                        $expenseChequeData = array(
-                                                                            'transaction_type' => 'Customer Return Note',
-                                                                            'transaction_id' => $customerReturnNoteId,
-                                                                            'date' => $makePaymentDate,
-                                                                            'payee_id' => $payeeId,
-                                                                            'location_id' => $locationId,
-                                                                            'reference_no' => $customerReturnNoteReferenceNo,
-                                                                            'cheque_number' => $chequeNumber,
-                                                                            'bank' => $bankId,
-                                                                            'cheque_date' => $chequeDate,
-                                                                            'amount' => $currentBalancePayment,
-                                                                            'cheque_payment_prime_entry_book_id' => $makePaymentInSecondOrThirdPartyPrimeEntryBookId,
-                                                                            'status' => "Open",
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'added'
-                                                                        );
-
-                                                                        $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
-
-                                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = true;
-
-                                                                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                                $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
-                                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                                                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                                }
-                                                                            }
-                                                                        } else {
-                                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                        }
-
-                                                                        if ($correctChartOfAccountsFoundInPrimeEntryBooks) {
-                                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                                $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
-
-                                                                                $journalEntry = array(
-                                                                                    'prime_entry_book_id' => $primeEntryBookId,
-                                                                                    'transaction_date' => $today,
-                                                                                    'reference_no' => $chequeNumber,
-                                                                                    'should_have_a_payment_journal_entry' => "No",
-                                                                                    'location_id' => $locationId,
-                                                                                    'payee_payer_type' => $payeeType,
-                                                                                    'payee_payer_id' => $payeeId,
-                                                                                    'description' => $this->lang->line('Journal entry for second or third party cheque payment for Cheque number : ') . $chequeNumber,
-                                                                                    'post_type' => "Indirect",
-                                                                                    'actioned_user_id' => $this->user_id,
-                                                                                    'action_date' => $this->date,
-                                                                                    'last_action_status' => 'added'
-                                                                                );
-
-                                                                                $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
-
-                                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-                                                                                $amount = str_replace(',', '', $amount);
-
-                                                                                foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-
-                                                                                    $transactionStatus = "No";
-
-                                                                                    if ($chartOfAccount->debit_or_credit == "debit") {
-                                                                                        $generalLedgerTransaction = array(
-                                                                                            'journal_entry_id' => $journalEntryId,
-                                                                                            'prime_entry_book_id' => $primeEntryBookId,
-                                                                                            'transaction_date' => $today,
-                                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                                            'debit_value' => $currentBalancePayment,
-                                                                                            'transaction_complete' => $transactionStatus,
-                                                                                            'actioned_user_id' => $this->user_id,
-                                                                                            'action_date' => $this->date,
-                                                                                            'last_action_status' => 'added'
-                                                                                        );
-                                                                                    } else if ($chartOfAccount->debit_or_credit == "credit") {
-                                                                                        $generalLedgerTransaction = array(
-                                                                                            'journal_entry_id' => $journalEntryId,
-                                                                                            'prime_entry_book_id' => $primeEntryBookId,
-                                                                                            'transaction_date' => $today,
-                                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                                            'credit_value' => $currentBalancePayment,
-                                                                                            'transaction_complete' => $transactionStatus,
-                                                                                            'actioned_user_id' => $this->user_id,
-                                                                                            'action_date' => $this->date,
-                                                                                            'last_action_status' => 'added'
-                                                                                        );
-                                                                                    }
-
-                                                                                    $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
-
-                                                                                    //Same time add the data to previous years record table.
-                                                                                    $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-
-                                                                    $this->customer_return_note_model->editCustomerReturnNoteData($customerReturnNote[0]->customer_return_note_id, $data);
-
-                                                                    $remainingPaymentAmount = $remainingPaymentAmount - $currentBalancePayment;
-                                                                }
-                                                            }
-
-                                                            $claimAmount = 0;
-
-                                                            if ($makePaymentClaimAmountTotal >= $amountToClaimFromCustomerReturnAmount) {
-                                                                $claimAmount = $amountToClaimFromCustomerReturnAmount;
-                                                                $makePaymentClaimAmountTotal = $makePaymentClaimAmountTotal - $amountToClaimFromCustomerReturnAmount;
-                                                            } else if ($makePaymentClaimAmountTotal > 0) {
-                                                                $claimAmount = $makePaymentClaimAmountTotal;
-                                                                $makePaymentClaimAmountTotal = 0;
-                                                            }
-
-                                                            $primeEntryBooksToUpdateForCustomerSalesNoteClaim = $this->getPrimeEntryBooksToUpdateForMakePaymentTransactionClaim();
-
-                                                            //Post journal entry for sales note claim for customer return note
-                                                            if ($claimAmount > 0 && $journalEntryId != '') {
-
-                                                                if ($claimTransactionList && sizeof($claimTransactionList) > 0) {
-                                                                    $count = 0;
-                                                                    $arrayElementsToUnset = array();
-                                                                    foreach($claimTransactionList as $claimTransactionRow) {
-                                                                        if ($claimTransactionRow[1] <= $claimAmount) {
-
-                                                                            $claimReferenceJournalEntryId = $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerSalesNoteClaim, '', $makePaymentDate, 
-                                                                                    $customerReturnNoteReferenceNo, '4', $customerReturnNoteId, $journalEntryId, $claimTransactionRow[2], $locationId, "Customer", $payeeId, 
-                                                                                    $claimTransactionRow[1], true);
-
-                                                                            if ($claimReferenceJournalEntryId != '') {
-                                                                                $data = array(
-                                                                                    'journal_entry_id' => $claimTransactionRow[0],
-                                                                                    'claim_reference_journal_entry_id' => $claimReferenceJournalEntryId,
-                                                                                    'actioned_user_id' => $this->user_id,
-                                                                                    'action_date' => $this->date,
-                                                                                    'last_action_status' => 'added'
-                                                                                );
-
-                                                                                $this->journal_entries_model->addJournalEntryClaimReference($data);
-                                                                            }
-
-                                                                            $arrayElementsToUnset[] = $count;
-                                                                            $claimAmount = $claimAmount - $claimTransactionRow[1];
-                                                                        } else {
-                                                                            $claimReferenceJournalEntryId = $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerSalesNoteClaim, '', $makePaymentDate, 
-                                                                                    $customerReturnNoteReferenceNo, '4', $customerReturnNoteId, $journalEntryId, $claimTransactionRow[2], $locationId, "Customer", $payeeId, 
-                                                                                    $claimAmount, true);
-
-                                                                            if ($claimReferenceJournalEntryId != '') {
-                                                                                $data = array(
-                                                                                    'journal_entry_id' => $claimTransactionRow[0],
-                                                                                    'claim_reference_journal_entry_id' => $claimReferenceJournalEntryId,
-                                                                                    'actioned_user_id' => $this->user_id,
-                                                                                    'action_date' => $this->date,
-                                                                                    'last_action_status' => 'added'
-                                                                                );
-
-                                                                                $this->journal_entries_model->addJournalEntryClaimReference($data);
-                                                                            }
-
-                                                                            $claimTransactionRow[1] = $claimTransactionRow[1] - $claimAmount;
-                                                                            $claimAmount = 0;
-                                                                        }
-
-                                                                        $count++;
-                                                                    }
-
-                                                                    if ($arrayElementsToUnset && sizeof($arrayElementsToUnset) > 0) {
-                                                                        foreach($arrayElementsToUnset as $row) {
-                                                                            unset($claimTransactionList[$row]);
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            $cashPaymentId = 0;
-
-                                                            if ($paymentMethod == 'Cash Payment') {
-                                                                $cashPaymentId = $paymentId;
-                                                            }
-
-                                                            $makePaymentMethodRecordData = array(
-                                                                'make_payment_id' => $makePaymentId,
-                                                                'payment_method' => $paymentMethod,
-                                                                'cash_payment_id' => $cashPaymentId,
-                                                                'payment_account_id' => $paymentAccountId,
-                                                                'cheque_type' => $chequeType,
-                                                                'cheque_id' => $chequeId,
-                                                                'actioned_user_id' => $this->user_id,
-                                                                'action_date' => $this->date,
-                                                                'last_action_status' => 'added'
-                                                            );
-
-                                                            $makePaymentMethodId = $this->make_payment_model->addMakePaymentMethodRecord($makePaymentMethodRecordData);
-
-                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = true;
-
-                                                            $primeEntryBookIds = '';
-                                                            if ($paymentMethod == "Cash Payment") {
-                                                                $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForMakePaymentCashTransaction();
-
-                                                                if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                                                                    foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                        $primeEntryBookId = $primeEntryBook->config_filed_value;
-                                                                        $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                                                        if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                        } else {
-                                                                            $primeEntryBookIds[] = $primeEntryBookId;
-                                                                        }
-                                                                    }
-                                                                }
-                                                            } else if ($paymentMethod == "Cheque Payment") {
-
-                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($paymentAccountId);
-
-                                                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                } else {
-                                                                    $primeEntryBookIds[] = $paymentAccountId;
-                                                                }
-                                                            } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
-                                                                $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForMakePaymentSecondOrThirdPartyChequeTransaction();
-
-                                                                if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                                                                    foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                        $primeEntryBookId = $primeEntryBook->config_filed_value;
-                                                                        $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                                                        if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                        } else {
-                                                                            $primeEntryBookIds[] = $primeEntryBookId;
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-                                                                if ($primeEntryBookIds && sizeof($primeEntryBookIds) > 0) {
-
-                                                                    foreach ($primeEntryBookIds as $primeEntryBookId) {
-
-                                                                        $journalEntry = array(
-                                                                            'prime_entry_book_id' => $primeEntryBookId,
-                                                                            'transaction_date' => $makePaymentDate,
-                                                                            'reference_no' => $chequeNumber,
-                                                                            'should_have_a_payment_journal_entry' => "No",
-                                                                            'location_id' => $locationId,
-                                                                            'payee_payer_type' => $payeeType,
-                                                                            'payee_payer_id' => $payeeId,
-                                                                            'reference_transaction_type_id' => $referenceTransactionTypeId,
-                                                                            'reference_transaction_id' => $referenceTransactionId,
-                                                                            'reference_journal_entry_id' => $referenceJournalEntryId,
-                                                                            'description' => $this->lang->line('Journal entry for Make Payment number : ') . $makePaymentReferenceNo,
-                                                                            'post_type' => "Indirect",
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'added'
-                                                                        );
-
-                                                                        $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
-
-                                                                        $makePaymentJournalEntry = array(
-                                                                            'make_payment_id' => $makePaymentId,
-                                                                            'make_payment_method_id' => $makePaymentMethodId,
-                                                                            'prime_entry_book_id' => $primeEntryBookId,
-                                                                            'journal_entry_id' => $journalEntryId,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'added'
-                                                                        );
-
-                                                                        $this->make_payment_model->addMakePaymentJournalEntry($makePaymentJournalEntry);
-
-                                                                        $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-                                                                        $amount = str_replace(',', '', $amount);
-
-                                                                        foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-
-                                                                            if ($paymentMethod == "Cheque Payment") {
-                                                                                $transactionStatus = "No";
-                                                                            } else {
-                                                                                $transactionStatus = "Yes";
-                                                                            }
-
-                                                                            if ($chartOfAccount->debit_or_credit == "debit") {
-                                                                                $generalLedgerTransaction = array(
-                                                                                    'journal_entry_id' => $journalEntryId,
-                                                                                    'prime_entry_book_id' => $primeEntryBookId,
-                                                                                    'transaction_date' => $makePaymentDate,
-                                                                                    'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                                    'debit_value' => $paidAmount,
-                                                                                    'transaction_complete' => $transactionStatus,
-                                                                                    'actioned_user_id' => $this->user_id,
-                                                                                    'action_date' => $this->date,
-                                                                                    'last_action_status' => 'added'
-                                                                                );
-                                                                            } else if ($chartOfAccount->debit_or_credit == "credit") {
-                                                                                $generalLedgerTransaction = array(
-                                                                                    'journal_entry_id' => $journalEntryId,
-                                                                                    'prime_entry_book_id' => $primeEntryBookId,
-                                                                                    'transaction_date' => $makePaymentDate,
-                                                                                    'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                                    'credit_value' => $paidAmount,
-                                                                                    'transaction_complete' => $transactionStatus,
-                                                                                    'actioned_user_id' => $this->user_id,
-                                                                                    'action_date' => $this->date,
-                                                                                    'last_action_status' => 'added'
-                                                                                );
-                                                                            }
-
-                                                                            $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
-
-                                                                            //Same time add the data to previous years record table.
-                                                                            $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
-                                                                        }
-                                                                    }
-                                                                } 
-
-                                                                $result = 'ok';
-                                                            } else {
-                                                                $result = 'incorrect_prime_entry_book_selected_for_make_payment_transaction';
-                                                                break;
-                                                            }
-
-                                                            if ($paymentMethodFullyConsumed == true) {
-                                                                break;
-                                                            }
-                                                        }
-                                                    }
-                                                } else if ($referenceTransactionData[$p][0][$q] == '5') {
-                                                    
-                                                    $journalEntryId = $referenceTransactionData[$p][2][$q];
-                                                    
-                                                    $referenceJournalEntryId = $journalEntryId;
-                                                    
-                                                    $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
-                                                    
-                                                    $balanceAmount = $journalEntry[0]->balance_amount;
-                                                    
-                                                    if ($balanceAmount == 0) {
-                                                        $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
-
-                                                        $transactionAmount = 0;
-                                                        if ($glTransactions && sizeof($glTransactions) > 0) {
-                                                            if ($glTransactions[0]->debit_value > 0) {
-                                                                $balanceAmount = $glTransactions[0]->debit_value;
-                                                            } else if ($glTransactions[0]->credit_value > 0) {
-                                                                $balanceAmount = $glTransactions[0]->credit_value;
-                                                            }
-                                                        }
-                                                    }
-                                                    
-                                                    $journalEntryStatus = "Open";
-                                                    $paymentMethodFullyConsumed = false;
-                                                    
-                                                    if ($balanceAmount > $remainingPaymentAmount) {
-                                                        $paidAmount = $remainingPaymentAmount;
-                                                        $balanceAmount = $balanceAmount - $paidAmount;
-                                                        $remainingPaymentAmount = 0;
-                                                        $paymentMethodFullyConsumed  =true;
-                                                    } else {
-                                                        $paidAmount = $balanceAmount;
-                                                        $balanceAmount = 0;
-                                                        $remainingPaymentAmount = $remainingPaymentAmount - $balanceAmount;
-                                                        
-                                                        $journalEntryStatus = "Closed";
-                                                    }
-                                                    
-                                                    $journalEntryData = array(
-                                                        'balance_amount' => $balanceAmount,
-                                                        'status' => $journalEntryStatus,
-                                                        'actioned_user_id' => $this->user_id,
-                                                        'action_date' => $this->date,
-                                                        'last_action_status' => 'edited'
-                                                    );
-
-                                                    $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
-                                                    
-                                                    if ($paymentMethod == 'Cash Payment') {
-                                                        
-                                                        $cashPaymentData = array(
-                                                            'date' => $makePaymentDate,
-                                                            'amount' => $amount,
-                                                            'actioned_user_id' => $this->user_id,
-                                                            'action_date' => $this->date,
-                                                            'last_action_status' => 'edited'
-                                                        );
-
-                                                        $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
-                                                    } else if ($paymentMethod == 'Cheque Payment') {
-                                                        
-                                                        $expenseChequeData = array(
-                                                            'date' => $makePaymentDate,
-                                                            'payee_id' => $payeeId,
-                                                            'location_id' => $locationId,
-                                                            'cheque_number' => $chequeNumber,
-                                                            'bank' => $bankId,
-                                                            'cheque_date' => $chequeDate,
-                                                            'amount' => $amount,
-                                                            'cheque_payment_prime_entry_book_id' => $paymentAccountId,
-                                                            'status' => "Open",
-                                                            'actioned_user_id' => $this->user_id,
-                                                            'action_date' => $this->date,
-                                                            'last_action_status' => 'added'
-                                                        );
-
-                                                        $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
-                                                    } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
-
-                                                        $chequeType = "Expense Cheque";
-                                                        
-                                                        //Mark second party/third party cheque as paid
-
-                                                        $incomeChequeData = array(
-                                                            'status' => "Paid",
-                                                            'actioned_user_id' => $this->user_id,
-                                                            'action_date' => $this->date,
-                                                            'last_action_status' => 'edited'
-                                                        );
-
-                                                        $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
-
-                                                        $makePaymentInSecondOrThirdPartyPrimeEntryBook = $this->system_configurations_model->getMakePaymentSecondOrThirdPartyChequeAccountsPrimeEntryBooks();
-
-                                                        $makePaymentInSecondOrThirdPartyPrimeEntryBookId = '';
-                                                        $primeEntryBooksToUpdate = '';
-                                                        if ($makePaymentInSecondOrThirdPartyPrimeEntryBook && sizeof($makePaymentInSecondOrThirdPartyPrimeEntryBook) > 0) {
-                                                            $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $makePaymentInSecondOrThirdPartyPrimeEntryBook[0]->config_filed_value;
-                                                            $primeEntryBooksToUpdate = $this->prime_entry_book_model->getPrimeEntryBookById($makePaymentInSecondOrThirdPartyPrimeEntryBookId);
-                                                        }
-
-                                                        //Add a new expense cheque using party/third party cheque
-                                                        $expenseChequeData = array(
-                                                            'date' => $makePaymentDate,
-                                                            'payee_id' => $payeeId,
-                                                            'location_id' => $locationId,
-                                                            'cheque_number' => $chequeNumber,
-                                                            'bank' => $bankId,
-                                                            'cheque_date' => $chequeDate,
-                                                            'amount' => $amount,
-                                                            'cheque_payment_prime_entry_book_id' => $makePaymentInSecondOrThirdPartyPrimeEntryBookId,
-                                                            'status' => "Open",
-                                                            'actioned_user_id' => $this->user_id,
-                                                            'action_date' => $this->date,
-                                                            'last_action_status' => 'added'
-                                                        );
-
-                                                        $chequeId = $this->payments_model->addExpenseCheque($expenseChequeData);
-
-                                                        $correctChartOfAccountsFoundInPrimeEntryBooks = true;
-
-                                                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
-                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                }
-                                                            }
-                                                        } else {
-                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                        }
-
-                                                        if ($correctChartOfAccountsFoundInPrimeEntryBooks) {
-                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
-
-                                                                $journalEntry = array(
-                                                                    'prime_entry_book_id' => $primeEntryBookId,
-                                                                    'transaction_date' => $today,
-                                                                    'reference_no' => $chequeNumber,
-                                                                    'should_have_a_payment_journal_entry' => "No",
-                                                                    'location_id' => $locationId,
-                                                                    'payee_payer_type' => $payeeType,
-                                                                    'payee_payer_id' => $payeeId,
-                                                                    'description' => $this->lang->line('Journal entry for second or third party cheque payment for Cheque number : ') . $chequeNumber,
-                                                                    'post_type' => "Indirect",
-                                                                    'actioned_user_id' => $this->user_id,
-                                                                    'action_date' => $this->date,
-                                                                    'last_action_status' => 'added'
-                                                                );
-
-                                                                $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
-
-                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-                                                                $amount = str_replace(',', '', $amount);
-
-                                                                foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-
-                                                                    $transactionStatus = "No";
-
-                                                                    if ($chartOfAccount->debit_or_credit == "debit") {
-                                                                        $generalLedgerTransaction = array(
-                                                                            'journal_entry_id' => $journalEntryId,
-                                                                            'prime_entry_book_id' => $primeEntryBookId,
-                                                                            'transaction_date' => $today,
-                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                            'debit_value' => $amount,
-                                                                            'transaction_complete' => $transactionStatus,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'added'
-                                                                        );
-                                                                    } else if ($chartOfAccount->debit_or_credit == "credit") {
-                                                                        $generalLedgerTransaction = array(
-                                                                            'journal_entry_id' => $journalEntryId,
-                                                                            'prime_entry_book_id' => $primeEntryBookId,
-                                                                            'transaction_date' => $today,
-                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                            'credit_value' => $amount,
-                                                                            'transaction_complete' => $transactionStatus,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'added'
-                                                                        );
-                                                                    }
-
-                                                                    $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
-
-                                                                    //Same time add the data to previous years record table.
-                                                                    $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                    
-                                                    $cashPaymentId = 0;
-
-                                                    if ($paymentMethod == 'Cash Payment') {
-                                                        $cashPaymentId = $paymentId;
-                                                    }
-
-                                                    $makePaymentMethodRecordData = array(
-                                                        'make_payment_id' => $makePaymentId,
-                                                        'payment_method' => $paymentMethod,
-                                                        'cash_payment_id' => $cashPaymentId,
-                                                        'payment_account_id' => $paymentAccountId,
-                                                        'cheque_type' => $chequeType,
-                                                        'cheque_id' => $chequeId,
-                                                        'actioned_user_id' => $this->user_id,
-                                                        'action_date' => $this->date,
-                                                        'last_action_status' => 'added'
-                                                    );
-
-                                                    $makePaymentMethodId = $this->make_payment_model->addMakePaymentMethodRecord($makePaymentMethodRecordData);
-
-                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = true;
-
-                                                    $primeEntryBookIds = '';
-                                                    if ($paymentMethod == "Cash Payment") {
-                                                        $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForMakePaymentCashTransaction();
-
-                                                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                $primeEntryBookId = $primeEntryBook->config_filed_value;
-                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                } else {
-                                                                    $primeEntryBookIds[] = $primeEntryBookId;
-                                                                }
-                                                            }
-                                                        }
-                                                    } else if ($paymentMethod == "Cheque Payment") {
-
-                                                        $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($paymentAccountId);
-
-                                                        if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                        } else {
-                                                            $primeEntryBookIds[] = $paymentAccountId;
-                                                        }
-                                                    } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
-                                                        $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForMakePaymentSecondOrThirdPartyChequeTransaction();
-
-                                                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                                                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                                                $primeEntryBookId = $primeEntryBook->config_filed_value;
-                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                                                } else {
-                                                                    $primeEntryBookIds[] = $primeEntryBookId;
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-
-                                                    if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-                                                        if ($primeEntryBookIds && sizeof($primeEntryBookIds) > 0) {
-
-                                                            foreach ($primeEntryBookIds as $primeEntryBookId) {
-
-                                                                $journalEntry = array(
-                                                                    'prime_entry_book_id' => $primeEntryBookId,
-                                                                    'transaction_date' => $makePaymentDate,
-                                                                    'reference_no' => $makePaymentReferenceNo,
-                                                                    'should_have_a_payment_journal_entry' => "No",
-                                                                    'location_id' => $locationId,
-                                                                    'payee_payer_type' => $payeeType,
-                                                                    'payee_payer_id' => $payeeId,
-                                                                    'reference_journal_entry_id' => $referenceJournalEntryId,
-                                                                    'description' => $this->lang->line('Journal entry for Make Payment number : ') . $makePaymentReferenceNo,
-                                                                    'post_type' => "Indirect",
-                                                                    'actioned_user_id' => $this->user_id,
-                                                                    'action_date' => $this->date,
-                                                                    'last_action_status' => 'added'
-                                                                );
-
-                                                                $journalEntryId = $this->journal_entries_model->addJournalEntry($journalEntry);
-
-                                                                $makePaymentJournalEntry = array(
-                                                                    'make_payment_id' => $makePaymentId,
-                                                                    'make_payment_method_id' => $makePaymentMethodId,
-                                                                    'prime_entry_book_id' => $primeEntryBookId,
-                                                                    'journal_entry_id' => $journalEntryId,
-                                                                    'actioned_user_id' => $this->user_id,
-                                                                    'action_date' => $this->date,
-                                                                    'last_action_status' => 'added'
-                                                                );
-
-                                                                $this->make_payment_model->addMakePaymentJournalEntry($makePaymentJournalEntry);
-
-                                                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-                                                                $amount = str_replace(',', '', $amount);
-
-                                                                foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-
-                                                                    if ($paymentMethod == "Cheque Payment") {
-                                                                        $transactionStatus = "No";
-                                                                    } else {
-                                                                        $transactionStatus = "Yes";
-                                                                    }
-
-                                                                    if ($chartOfAccount->debit_or_credit == "debit") {
-                                                                        $generalLedgerTransaction = array(
-                                                                            'journal_entry_id' => $journalEntryId,
-                                                                            'prime_entry_book_id' => $primeEntryBookId,
-                                                                            'transaction_date' => $makePaymentDate,
-                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                            'debit_value' => $paidAmount,
-                                                                            'transaction_complete' => $transactionStatus,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'added'
-                                                                        );
-                                                                    } else if ($chartOfAccount->debit_or_credit == "credit") {
-                                                                        $generalLedgerTransaction = array(
-                                                                            'journal_entry_id' => $journalEntryId,
-                                                                            'prime_entry_book_id' => $primeEntryBookId,
-                                                                            'transaction_date' => $makePaymentDate,
-                                                                            'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                                                            'credit_value' => $paidAmount,
-                                                                            'transaction_complete' => $transactionStatus,
-                                                                            'actioned_user_id' => $this->user_id,
-                                                                            'action_date' => $this->date,
-                                                                            'last_action_status' => 'added'
-                                                                        );
-                                                                    }
-
-                                                                    $this->journal_entries_model->addGeneralLedgerTransaction($generalLedgerTransaction);
-
-                                                                    //Same time add the data to previous years record table.
-                                                                    $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($generalLedgerTransaction);
-                                                                }
-                                                            }
-                                                        } 
-
-                                                        $result = 'ok';
-                                                    } else {
-                                                        $result = 'incorrect_prime_entry_book_selected_for_make_payment_transaction';
-                                                        break;
-                                                    }
-                                                    
-                                                    if ($paymentMethodFullyConsumed == true) {
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-							}
-						}
-					}
-				}
-			}
-			
-			if ($result == '') {
-				$result = 'ok';
-			}
-
-			echo json_encode(array('result' => $result, 'makePaymentId' => $makePaymentId));
-		}
-	}
-
-	//Delete Make Payment
-	public function deleteMakePayment() {
-		if(isset($this->data['ACM_Bookkeeping_Delete_Make_Payment_Permissions'])) {
-            
-			$makePaymentId = $this->db->escape_str($this->input->post('id'));
-			
-			$status = "deleted";
-            
-            $paymentReferenceList = $this->make_payment_model->getMakePaymentReferenceTransactionList($makePaymentId);
-            $paymentMethodList = $this->make_payment_model->getMakePaymentMethodList($makePaymentId);
-            $refundClaimAmountTotal = $this->make_payment_model->getMakePaymentClaimAmountTotal($makePaymentId);
-			
-            if ($paymentMethodList && sizeof($paymentMethodList) > 0) {
-
-                foreach ($paymentMethodList as $paymentMethodRecord) {
-
-                    $paymentMethod = $paymentMethodRecord->payment_method;
-                    $cashPaymentId = $paymentMethodRecord->cash_payment_id;
-                    $chequeId = $paymentMethodRecord->cheque_id;
-                    
-                    $cashAmount = 0;
-                    $chequeAmount = 0;
-                    $status = "deleted";
-
-                    if ($paymentMethod == "Cash Payment") {
-                        $cashPayment = $this->payments_model->getCashPaymentById($cashPaymentId);
-                        $cashAmount = $cashPayment[0]->amount;
-                        $this->payments_model->deleteCashPayment($cashPaymentId, $status, $this->user_id);
-                    } else if ($paymentMethod == "Cheque Payment") {
-                        $expenseCheque = $this->payments_model->getExpenseChequeById($chequeId);
-                        $chequeAmount = $expenseCheque[0]->amount;
-                        $chequeNumber = $expenseCheque[0]->cheque_number;
-                        $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $expenseCheque[0]->cheque_payment_prime_entry_book_id;
-
-                        $makePaymentInSecondOrThirdPartyJournalEntries = $this->journal_entries_model->getJournalEntryByPrimeEntryBookIdAndReferenceNo($makePaymentInSecondOrThirdPartyPrimeEntryBookId, $chequeNumber);
-
-                        if ($makePaymentInSecondOrThirdPartyJournalEntries && sizeof($makePaymentInSecondOrThirdPartyJournalEntries) > 0) {
-                            foreach($makePaymentInSecondOrThirdPartyJournalEntries as $makePaymentInSecondOrThirdPartyJournalEntry) {
-                                $journalEntryId = $makePaymentInSecondOrThirdPartyJournalEntry->journal_entry_id;
-
-                                $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId, '', "Yes");
-
-                                if ($glTransactions && sizeof($glTransactions) > 0) {
-                                    foreach($glTransactions as $glTransaction) {
-                                        $chartOfAccountId = $glTransaction->chart_of_account_id;
-
-                                        $generalLedgerTransaction = array(
-                                            'transaction_complete' => "No",
-                                            'actioned_user_id' => $this->user_id,
-                                            'action_date' => $this->date,
-                                            'last_action_status' => 'deleted'
-                                        );
-
-                                        $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $generalLedgerTransaction);
-                                    }
-                                }
-
-                                $journalEntry = array(
-                                    'actioned_user_id' => $this->user_id,
-                                    'action_date' => $this->date,
-                                    'last_action_status' => 'deleted'
-                                );
-
-                                $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntry);
-                            }
-                        }
-
-                        $this->payments_model->deleteExpenseCheque($chequeId, $status, $this->user_id);
-                    } else if ($paymentMethod == 'Second Party Cheque Payment' || $paymentMethod == 'Third Party Cheque Payment') {
-                        $expenseCheque = $this->payments_model->getExpenseChequeById($chequeId);
-                        $chequeAmount = $expenseCheque[0]->amount;
-                        $chequeNumber = $expenseCheque[0]->cheque_number;
-                        $makePaymentInSecondOrThirdPartyPrimeEntryBookId = $expenseCheque[0]->cheque_payment_prime_entry_book_id;
-
-                        $makePaymentInSecondOrThirdPartyJournalEntries = $this->journal_entries_model->getJournalEntryByPrimeEntryBookIdAndReferenceNo($makePaymentInSecondOrThirdPartyPrimeEntryBookId, $chequeNumber);
-
-                        if ($makePaymentInSecondOrThirdPartyJournalEntries && sizeof($makePaymentInSecondOrThirdPartyJournalEntries) > 0) {
-                            foreach($makePaymentInSecondOrThirdPartyJournalEntries as $makePaymentInSecondOrThirdPartyJournalEntry) {
-                                $journalEntryId = $makePaymentInSecondOrThirdPartyJournalEntry->journal_entry_id;
-
-                                $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId, '', "Yes");
-
-                                if ($glTransactions && sizeof($glTransactions) > 0) {
-                                    foreach($glTransactions as $glTransaction) {
-                                        $chartOfAccountId = $glTransaction->chart_of_account_id;
-
-                                        $generalLedgerTransaction = array(
-                                            'transaction_complete' => "No",
-                                            'actioned_user_id' => $this->user_id,
-                                            'action_date' => $this->date,
-                                            'last_action_status' => 'deleted'
-                                        );
-
-                                        $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $generalLedgerTransaction);
-                                    }
-                                }
-
-                                $journalEntry = array(
-                                    'actioned_user_id' => $this->user_id,
-                                    'action_date' => $this->date,
-                                    'last_action_status' => 'deleted'
-                                );
-
-                                $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntry);
-                            }
-                        }
-
-                        $this->payments_model->deleteExpenseCheque($chequeId, $status, $this->user_id);
-
-                        //Mark coresponding income cheque (if available) is In Hand
-                        $incomeCheque = $this->payments_model->getIncomeChequeByChequeNumber($chequeNumber);
-                        $chequeId = $incomeCheque[0]->cheque_id;
-
-                        if ($incomeCheque && sizeof($incomeCheque) > 0) {
-                            $incomeChequeData = array(
-                                'status' => "In_Hand",
-                                'actioned_user_id' => $this->user_id,
-                                'action_date' => $this->date,
-                                'last_action_status' => 'edited'
-                            );
-
-                            $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
-                        }
-                    }
-
-                    //Reverse current reference transactions changes from the receive payment
-                    if ($paymentReferenceList && sizeof($paymentReferenceList) > 0) {
-
-                        foreach ($paymentReferenceList as $paymentReference) {
-
-                            $referenceTransactionTypeId = $paymentReference->reference_transaction_type_id;
-                            $referenceTransactionId = $paymentReference->reference_transaction_id;
-
-                            if ($referenceTransactionTypeId == '1') {
-                                //Purchase Note
-                                $successfulTransaction = false;
-
-                                $purchaseNoteId = $referenceTransactionId;
-                                $purchaseNote = $this->purchase_note_model->getPurchaseNoteById($purchaseNoteId);
-
-                                $currentCashPayment = $purchaseNote[0]->cash_payment_amount;
-                                $currentChequePayment = $purchaseNote[0]->cheque_payment_amount;
-                                $currentBalancePayment = $purchaseNote[0]->balance_payment;
-                                $claimAmountTotal = $purchaseNote[0]->supplier_return_note_claimed;
-
-                                $balancePaymentAdjustmentFromClaimAmount = 0;
-                                
-                                if ($refundClaimAmountTotal >= $claimAmountTotal) {
-                                    $balancePaymentAdjustmentFromClaimAmount = $claimAmountTotal;
-                                    $refundClaimAmountTotal = $refundClaimAmountTotal - $claimAmountTotal;
-                                    $claimAmountTotal = 0;
-                                } else {
-                                    $balancePaymentAdjustmentFromClaimAmount = $refundClaimAmountTotal;
-                                    $claimAmountTotal = $claimAmountTotal - $refundClaimAmountTotal;
-                                    $refundClaimAmountTotal = 0;
-                                }
-
-                                if ($currentCashPayment >= $cashAmount) {
-                                    $currentCashPayment = $currentCashPayment - $cashAmount;
-                                    $currentBalancePayment = $currentBalancePayment + $cashAmount;
-                                    $cashAmount = 0;
-                                    $successfulTransaction = true;
-                                } else if ($currentCashPayment < $cashAmount) {
-                                    $cashAmount = $cashAmount - $currentCashPayment;
-                                    $currentBalancePayment = $currentBalancePayment + $currentCashPayment;
-                                    $currentCashPayment = 0;
-                                    $successfulTransaction = true;
-                                }
-
-                                if ($currentChequePayment >= $chequeAmount) {
-                                    $currentChequePayment = $currentChequePayment - $chequeAmount;
-                                    $currentBalancePayment = $currentBalancePayment + $chequeAmount;
-                                    $chequeAmount = 0;
-                                    $successfulTransaction = true;
-                                } else if ($currentChequePayment < $chequeAmount) {
-                                    $chequeAmount = $chequeAmount - $currentChequePayment;
-                                    $currentBalancePayment = $currentBalancePayment + $currentChequePayment;
-                                    $currentChequePayment = 0;
-                                    $successfulTransaction = true;
-                                }
-
-                                if ($successfulTransaction) {
-                                    
-                                    $currentBalancePayment = $currentBalancePayment + $balancePaymentAdjustmentFromClaimAmount;
-
-                                    $purchaseNoteData = array(
-                                        'cash_payment_amount' => $currentCashPayment,
-                                        'cheque_payment_amount' => $currentChequePayment,
-                                        'balance_payment' => $currentBalancePayment,
-                                        'supplier_return_note_claimed' => $claimAmountTotal,
-                                        'status' => "Open",
-                                        'actioned_user_id' => $this->user_id,
-                                        'action_date' => $this->date,
-                                        'last_action_status' => 'edited'
-                                    );
-
-                                    $this->purchase_note_model->editPurchaseNoteData($referenceTransactionId, $purchaseNoteData);
-                                }
-                            } else if ($referenceTransactionTypeId == '2') {
-                                //Sales Note
-                                $salesNoteId = $referenceTransactionId;
-                                $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
-
-                                $status = $salesNote[0]->status;
-                                $amount = $salesNote[0]->amount;
-                                $currentBalancePayment = $salesNote[0]->balance_payment;
-
-                                if ($status == "Claimed" && $currentBalancePayment == "0.00") {
-                                    $salesNoteData = array(
-                                        'balance_payment' => $amount,
-                                        'status' => "Open",
-                                        'actioned_user_id' => $this->user_id,
-                                        'action_date' => $this->date,
-                                        'last_action_status' => 'edited'
-                                    );
-
-                                    $this->sales_note_model->editSalesNoteData($referenceTransactionId, $salesNoteData);
-                                }
-                                
-                                $salesNoteSalesEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId);
-                                    
-                                if ($salesNoteSalesEntryJournalEntries && sizeof($salesNoteSalesEntryJournalEntries) > 0) {
-                                    //Delete sales claim journal entries
-                                    foreach($salesNoteSalesEntryJournalEntries as $journalEntry) {
-                                        $journalEntryId = $journalEntry->journal_entry_id;
-
-                                        $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
-
-                                        if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
-                                            foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
-                                                $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
-                                                $this->journal_entries_model->deleteJournalEntry($claimReferenceJournalEntryId, 'deleted', $this->user_id);
-                                                $this->journal_entries_model->deleteGeneralLedgerTransactions($claimReferenceJournalEntryId, 'deleted', $this->user_id);
-                                            }
-                                        }
-                                    }
-                                }
-                            } else if ($referenceTransactionTypeId == '3') {
-                                //Supplier Return Note
-                                $supplierReturnNoteId = $referenceTransactionId;
-                                $supplierReturnNote = $this->supplier_return_note_model->getSupplierReturnNoteById($supplierReturnNoteId);
-
-                                $status = $supplierReturnNote[0]->status;
-                                $amount = $supplierReturnNote[0]->amount;
-                                $currentBalancePayment = $supplierReturnNote[0]->balance_payment;
-                                $supplierReturnType = $supplierReturnNote[0]->type;
-
-                                if ($status == "Claimed" && $currentBalancePayment == "0.00") {
-                                    $supplierReturnNoteData = array(
-                                        'balance_payment' => $amount,
-                                        'status' => "Open",
-                                        'actioned_user_id' => $this->user_id,
-                                        'action_date' => $this->date,
-                                        'last_action_status' => 'edited'
-                                    );
-
-                                    $this->supplier_return_note_model->editSupplierReturnNoteData($referenceTransactionId, $supplierReturnNoteData);
-                                }
-                                
-                                if ($supplierReturnType == 'saleable_return') {
-                                    $supplierReturnNoteSalesEntryJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '1');
-                                } else if ($supplierReturnType == 'market_return') {
-                                    $supplierReturnNoteSalesEntryJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '2');
-                                }
-
-                                if ($supplierReturnNoteSalesEntryJournalEntries && sizeof($supplierReturnNoteSalesEntryJournalEntries) > 0) {
-                                    //Delete supplier return claim journal entries
-                                    foreach($supplierReturnNoteSalesEntryJournalEntries as $journalEntry) {
-                                        $journalEntryId = $journalEntry->journal_entry_id;
-
-                                        $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
-
-                                        if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
-                                            foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
-                                                $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
-                                                $this->journal_entries_model->deleteJournalEntry($claimReferenceJournalEntryId, 'deleted', $this->user_id);
-                                                $this->journal_entries_model->deleteGeneralLedgerTransactions($claimReferenceJournalEntryId, 'deleted', $this->user_id);
-                                            }
-                                        }
-                                    }
-                                }
-                            } else if ($referenceTransactionTypeId == '4') {
-                                //Customer Return Note
-                                $successfulTransaction = false;
-
-                                $customerReturnNoteId = $referenceTransactionId;
-                                $customerReturnNote = $this->customer_return_note_model->getCustomerReturnNoteById($customerReturnNoteId);
-
-                                $currentCashPayment = $customerReturnNote[0]->cash_payment_amount;
-                                $currentChequePayment = $customerReturnNote[0]->cheque_payment_amount;
-                                $currentBalancePayment = $customerReturnNote[0]->balance_payment;
-                                $claimAmountTotal = $customerReturnNote[0]->purchase_note_claimed;
-
-                                if ($refundClaimAmountTotal >= $claimAmountTotal) {
-                                    $claimAmountTotal = $claimAmountTotal - $refundClaimAmountTotal;
-                                    $refundClaimAmountTotal = 0;
-                                } else {
-                                    $claimAmountTotal = 0;
-                                    $refundClaimAmountTotal = $refundClaimAmountTotal - $claimAmountTotal;
-                                }
-
-                                if ($currentCashPayment >= $cashAmount) {
-                                    $currentCashPayment = $currentCashPayment - $cashAmount;
-                                    $currentBalancePayment = $currentBalancePayment + $cashAmount;
-                                    $cashAmount = 0;
-                                    $successfulTransaction = true;
-                                } else if ($currentCashPayment < $cashAmount) {
-                                    $cashAmount = $cashAmount - $currentCashPayment;
-                                    $currentBalancePayment = $currentBalancePayment + $currentCashPayment;
-                                    $currentCashPayment = 0;
-                                    $successfulTransaction = true;
-                                }
-
-                                if ($currentChequePayment >= $chequeAmount) {
-                                    $currentChequePayment = $currentChequePayment - $chequeAmount;
-                                    $currentBalancePayment = $currentBalancePayment + $chequeAmount;
-                                    $chequeAmount = 0;
-                                    $successfulTransaction = true;
-                                } else if ($currentChequePayment < $chequeAmount) {
-                                    $chequeAmount = $chequeAmount - $currentChequePayment;
-                                    $currentBalancePayment = $currentBalancePayment + $currentChequePayment;
-                                    $currentChequePayment = 0;
-                                    $successfulTransaction = true;
-                                }
-
-                                if ($successfulTransaction) {
-
-                                    $customerReturnNoteData = array(
-                                        'cash_payment_amount' => $currentCashPayment,
-                                        'cheque_payment_amount' => $currentChequePayment,
-                                        'balance_payment' => $currentBalancePayment,
-                                        'purchase_note_claimed' => $claimAmountTotal,
-                                        'status' => "Open",
-                                        'actioned_user_id' => $this->user_id,
-                                        'action_date' => $this->date,
-                                        'last_action_status' => 'edited'
-                                    );
-
-                                    $this->customer_return_note_model->editCustomerReturnNoteData($referenceTransactionId, $customerReturnNoteData);
-                                }
-                            } else if ($referenceTransactionTypeId == '5') {
-                                $journalEntryId = $paymentReference->reference_journal_entry_id;
-                                $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
-
-                                $balanceAmount = $journalEntry[0]->balance_amount;
-
-                                $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
-
-                                $transactionAmount = 0;
-                                if ($glTransactions && sizeof($glTransactions) > 0) {
-                                    if ($glTransactions[0]->debit_value > 0) {
-                                        $transactionAmount = $glTransactions[0]->debit_value;
-                                    } else if ($glTransactions[0]->credit_value > 0) {
-                                        $transactionAmount = $glTransactions[0]->credit_value;
-                                    }
-                                }
-
-                                if ($cashAmount > 0) {
-                                    if (($transactionAmount - $balanceAmount) >= $cashAmount) {
-
-                                        $balanceAmount = $balanceAmount + $cashAmount;
-                                        $cashAmount = 0;
-
-                                        $journalEntryData = array(
-                                            'balance_amount' => $balanceAmount,
-                                            'status' => "Open",
-                                            'actioned_user_id' => $this->user_id,
-                                            'action_date' => $this->date,
-                                            'last_action_status' => 'edited'
-                                        );
-
-                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
-                                    } else if (($transactionAmount - $balanceAmount) < $cashAmount) {
-                                        $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
-                                        $cashAmount = $cashAmount - ($transactionAmount - $balanceAmount);
-
-                                        $journalEntryData = array(
-                                            'balance_amount' => $balanceAmount,
-                                            'status' => "Open",
-                                            'actioned_user_id' => $this->user_id,
-                                            'action_date' => $this->date,
-                                            'last_action_status' => 'edited'
-                                        );
-
-                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
-                                    }
-                                }
-
-                                if ($chequeAmount > 0) {
-                                    if (($transactionAmount - $balanceAmount) >= $chequeAmount) {
-
-                                        $balanceAmount = $balanceAmount + $chequeAmount;
-                                        $chequeAmount = 0;
-
-                                        $journalEntryData = array(
-                                            'balance_amount' => $balanceAmount,
-                                            'status' => "Open",
-                                            'actioned_user_id' => $this->user_id,
-                                            'action_date' => $this->date,
-                                            'last_action_status' => 'edited'
-                                        );
-
-                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
-                                    } else if (($transactionAmount - $balanceAmount) < $chequeAmount) {
-                                        $balanceAmount = $balanceAmount + ($transactionAmount - $balanceAmount);
-                                        $chequeAmount = $chequeAmount - ($transactionAmount - $balanceAmount);
-
-                                        $journalEntryData = array(
-                                            'balance_amount' => $balanceAmount,
-                                            'status' => "Open",
-                                            'actioned_user_id' => $this->user_id,
-                                            'action_date' => $this->date,
-                                            'last_action_status' => 'edited'
-                                        );
-
-                                        $this->journal_entries_model->editJournalEntry($journalEntryId, $journalEntryData);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    $this->make_payment_model->deleteMakePaymentReferenceTransactionsSoftly($makePaymentId, "deleted", $this->user_id);
+                if ($this->make_payment_model->deleteMakePayment($makePaymentId, "deleted", $this->user_id)) {
+                    $html = '<div class="alert alert-success alert-dismissable">
+                        <a class="close" href="#" data-dismiss="alert">x </a>
+                        <h4><i class="icon-ok-sign"></i>' . $this->lang->line('success') . '</h4>' .
+                        $this->lang->line('success_deleted') .
+                        '</div>';
                 }
+
+                echo json_encode(array("result" => "ok", "html" => $html));
+            } else {
+                echo json_encode(array("result" => "previous_financial_year_is_closed", "html" => $html));
             }
-            
-            $this->make_payment_model->deleteMakePaymentMethodRecordsSoftly($makePaymentId, "deleted", $this->user_id);
-                
-			$makePaymentJournalEntries = $this->make_payment_model->getMakePaymentJournalEntries($makePaymentId);
-
-			if ($makePaymentJournalEntries && sizeof($makePaymentJournalEntries) > 0) {
-				//Delete all journal entries of Make Payment
-				foreach($makePaymentJournalEntries as $makePaymentJournalEntry) {
-					$makePaymentJournalEntryId = $makePaymentJournalEntry->make_payment_journal_entry_id;
-					$journalEntryId = $makePaymentJournalEntry->journal_entry_id;
-					$this->make_payment_model->deleteMakePaymentJournalEntry($makePaymentJournalEntryId, "deleted", $this->user_id);
-					$this->journal_entries_model->deleteJournalEntry($journalEntryId, "deleted", $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, "deleted", $this->user_id);
-				}
-			}
-
-			if ($this->make_payment_model->deleteMakePayment($makePaymentId, "deleted", $this->user_id)) {
-				$html = '<div class="alert alert-success alert-dismissable">
-					<a class="close" href="#" data-dismiss="alert">x </a>
-					<h4><i class="icon-ok-sign"></i>' . $this->lang->line('success') . '</h4>' .
-					$this->lang->line('success_deleted') .
-					'</div>';
-			}
-			
-			echo $html;
 		}
 	}
 

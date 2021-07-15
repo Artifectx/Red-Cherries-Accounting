@@ -476,7 +476,7 @@
 						$("#reference_no_div").after(response.result);
 					}
 				}
-			})
+			});
 		},
 
 		//save GRN data
@@ -541,7 +541,7 @@
 						$(".save:input").attr('disabled', false);
 					}
 				}
-			})
+			});
 		},
 
 		editPurchaseNoteData: function (id) {
@@ -557,6 +557,13 @@
 				'<h4><i class="icon-info-sign"></i>' +
 				'<?php echo $this->lang->line('warning')?></h4>' +
 				'<?php echo $this->lang->line('no_changes_to_save')?>' +
+				'</div>';
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to edit is already closed!')?>' +
 				'</div>';
 
 			var type = "";
@@ -606,14 +613,21 @@
 						$(".save:input").attr('disabled', false);
 					} else {
 						$(".msg_data").show();
-						$(".msg_data").html(response.result);
+						$(".msg_data").html(msgError);
 						$(".save:input").attr('disabled', false);
 					}
 				}
-			})
+			});
 		},
 
 		deleteData: function (id) {
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to delete is already closed!')?>' +
+				'</div>';
 
 			var bConfirm = confirm("<?php echo $this->lang->line('Are you sure you want to delete this').$this->lang->line('Purchase Note') ?>?");
 			if (bConfirm) {
@@ -629,18 +643,23 @@
 						'<?php echo $this->security->get_csrf_token_name(); ?>':
 						'<?php echo $this->security->get_csrf_hash(); ?>'
 					},
-					dataType: 'html',
-					success:
-					function (response) {
-                        $(".msg_instant").hide();
-						$(".msg_delete").show();
-						$(".msg_delete").html(response);
-						$(".form").hide();
-						var year = $("#current_year").val();
-						var month = $("#current_month").val();
-						getTableData(year, month, "", "");
+					dataType: 'json',
+					success : function (response) {
+                        if (response.result == 'ok') {
+                            $(".msg_instant").hide();
+                            $(".msg_delete").show();
+                            $(".msg_delete").html(response);
+                            $(".form").hide();
+                            var year = $("#current_year").val();
+                            var month = $("#current_month").val();
+                            getTableData(year, month, "", "");
+                        } else {
+                            $(".msg_instant").hide();
+                            $(".msg_data").show();
+                            $(".msg_data").html(msgError);
+                        }
 					}
-				})
+				});
 			}
 		},
 
@@ -667,7 +686,7 @@
 						format: 'YYYY-MM-DD'
 					});
 				}
-			})
+			});
 		},
 
 		//get supplier drop down
@@ -692,7 +711,7 @@
 					$("#supplier_search_dropdown").find("#people_id").prop({ id: "supplier_search_id"});
 					$("#supplier_search_dropdown").find("#people_idError").prop({ id: "supplier_search_idError"});
 				}
-			})
+			});
 		},
 
 		//get unit conversions drop down
@@ -715,7 +734,7 @@
 					$("#location_search_dropdown").find("#people_id").prop({ id: "location_search_id"});
 					$("#location_search_dropdown").find("#people_idError").prop({ id: "location_search_idError"});
 				}
-			})
+			});
 		},
 
 		init : function () {
@@ -786,7 +805,7 @@
 					"iDisplayLength":<?php echo $default_row_count_for_table; ?>
 				});
 			}
-		})
+		});
 	}
 
 	function clearForm(){

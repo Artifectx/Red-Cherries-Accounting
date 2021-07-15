@@ -55,4 +55,17 @@ class Financial_year_ends_model extends CI_Model {
 			return true;
 		}
     }
+    
+    public function getFinancialYearOfSelectedTransaction($date) {
+        $this->db->where('financial_year_start_date <= ', $date);
+        $this->db->where('financial_year_end_date >= ', $date);
+		$this->db->where('last_action_status !=','deleted');
+        $this->db->limit(1);
+		$query = $this->db->get('acm_admin_financial_year_ends');
+		if ($query->num_rows() > 0) {
+			return $query->result();
+		} else {
+			return false;
+		}
+    }
 }

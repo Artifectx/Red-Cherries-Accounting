@@ -235,139 +235,149 @@ class Supplier_return_note_controller extends CI_Controller {
 				$supplierReturnNoteDateChanged = false;
 				$typeChanged = false;
 				$amountChanged = false;
-				$typeChanged = false;
 				$remarkChanged = false;
 
 				//Read New Supplier Return Note Data
 				$supplierReturnNoteId = $this->db->escape_str($this->input->post('id'));
-				$referenceNo = $this->db->escape_str($this->input->post('reference_no'));
-				$supplierReturnNoteDate = $this->db->escape_str($this->input->post('supplier_return_note_date'));
-				$supplierId = $this->db->escape_str($this->input->post('supplier_id'));
-				$locationId = $this->db->escape_str($this->input->post('location_id'));
-				$type = $this->db->escape_str($this->input->post('type'));
-				$amount = $this->db->escape_str($this->input->post('supplier_return_amount'));
-				$remark = $this->db->escape_str($this->input->post('remark'));
-				$remark = preg_replace('~\\\n~',"\r\n", $remark);
+                
+                $supplierReturnNote = $this->supplier_return_note_model->getSupplierReturnNoteById($supplierReturnNoteId);
+                $supplierReturnNoteTransactionDate = $supplierReturnNote[0]->date;
+                
+                $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($supplierReturnNoteTransactionDate);
+                
+                if ($financialYear[0]->year_end_process_status != "Closed") {
+                
+                    $referenceNo = $this->db->escape_str($this->input->post('reference_no'));
+                    $supplierReturnNoteDate = $this->db->escape_str($this->input->post('supplier_return_note_date'));
+                    $supplierId = $this->db->escape_str($this->input->post('supplier_id'));
+                    $locationId = $this->db->escape_str($this->input->post('location_id'));
+                    $type = $this->db->escape_str($this->input->post('type'));
+                    $amount = $this->db->escape_str($this->input->post('supplier_return_amount'));
+                    $remark = $this->db->escape_str($this->input->post('remark'));
+                    $remark = preg_replace('~\\\n~',"\r\n", $remark);
 
-				$supplierReturnNote = $this->supplier_return_note_model->getSupplierReturnNoteById($supplierReturnNoteId);
-				$oldAmount = $supplierReturnNote[0]->amount;
-				$costOldAmount = $oldAmount - ($oldAmount/100)*5;
-				$oldType = $supplierReturnNote[0]->type;
 
-				if ($supplierReturnNote[0]->reference_no != $referenceNo) {$referenceNoChanged = true;}
-				if ($supplierReturnNote[0]->supplier_id != $supplierId) {$supplierChanged = true;}
-				if ($supplierReturnNote[0]->location_id != $locationId) {$locationChanged = true;}
-				if ($supplierReturnNote[0]->date != $supplierReturnNoteDate) {$supplierReturnNoteDateChanged = true;}
-				if ($supplierReturnNote[0]->amount != $amount) {$amountChanged = true;}
-				if ($supplierReturnNote[0]->type != $type) {$typeChanged = true;}
-				if ($supplierReturnNote[0]->remark != $remark) {$remarkChanged = true;}
+                    $oldAmount = $supplierReturnNote[0]->amount;
+                    $costOldAmount = $oldAmount - ($oldAmount/100)*5;
+                    $oldType = $supplierReturnNote[0]->type;
 
-				if ($referenceNoChanged || $supplierChanged || $locationChanged || $supplierReturnNoteDateChanged || $typeChanged || $amountChanged || $remarkChanged) {
+                    if ($supplierReturnNote[0]->reference_no != $referenceNo) {$referenceNoChanged = true;}
+                    if ($supplierReturnNote[0]->supplier_id != $supplierId) {$supplierChanged = true;}
+                    if ($supplierReturnNote[0]->location_id != $locationId) {$locationChanged = true;}
+                    if ($supplierReturnNote[0]->date != $supplierReturnNoteDate) {$supplierReturnNoteDateChanged = true;}
+                    if ($supplierReturnNote[0]->amount != $amount) {$amountChanged = true;}
+                    if ($supplierReturnNote[0]->type != $type) {$typeChanged = true;}
+                    if ($supplierReturnNote[0]->remark != $remark) {$remarkChanged = true;}
 
-					$supplierReturnNoteDataHistory = array(
-						'supplier_return_note_id' => $supplierReturnNote[0]->supplier_return_note_id,
-						'reference_no' => $supplierReturnNote[0]->reference_no,
-						'supplier_id' => $supplierReturnNote[0]->supplier_id,
-						'location_id' => $supplierReturnNote[0]->location_id,
-						'date' => $supplierReturnNote[0]->date,
-						'amount' => $supplierReturnNote[0]->amount,
-                        'cash_payment_amount' => $supplierReturnNote[0]->cash_payment_amount,
-                        'cheque_payment_amount' => $supplierReturnNote[0]->cheque_payment_amount,
-                        'credit_card_payment_amount' => $supplierReturnNote[0]->credit_card_payment_amount,
-                        'balance_payment' => $supplierReturnNote[0]->balance_payment,
-                        'purchase_note_claimed' => $supplierReturnNote[0]->purchase_note_claimed,
-						'type' => $supplierReturnNote[0]->type,
-						'remark' => $supplierReturnNote[0]->remark,
-						'actioned_user_id' => $supplierReturnNote[0]->actioned_user_id,
-						'added_date' => $supplierReturnNote[0]->added_date,
-						'action_date' => $supplierReturnNote[0]->action_date,
-						'last_action_status' => $supplierReturnNote[0]->last_action_status,
-					);
+                    if ($referenceNoChanged || $supplierChanged || $locationChanged || $supplierReturnNoteDateChanged || $typeChanged || $amountChanged || $remarkChanged) {
 
-					$this->supplier_return_note_model->addSupplierReturnNoteDataToHistory($supplierReturnNoteDataHistory);
+                        $supplierReturnNoteDataHistory = array(
+                            'supplier_return_note_id' => $supplierReturnNote[0]->supplier_return_note_id,
+                            'reference_no' => $supplierReturnNote[0]->reference_no,
+                            'supplier_id' => $supplierReturnNote[0]->supplier_id,
+                            'location_id' => $supplierReturnNote[0]->location_id,
+                            'date' => $supplierReturnNote[0]->date,
+                            'amount' => $supplierReturnNote[0]->amount,
+                            'cash_payment_amount' => $supplierReturnNote[0]->cash_payment_amount,
+                            'cheque_payment_amount' => $supplierReturnNote[0]->cheque_payment_amount,
+                            'credit_card_payment_amount' => $supplierReturnNote[0]->credit_card_payment_amount,
+                            'balance_payment' => $supplierReturnNote[0]->balance_payment,
+                            'purchase_note_claimed' => $supplierReturnNote[0]->purchase_note_claimed,
+                            'type' => $supplierReturnNote[0]->type,
+                            'remark' => $supplierReturnNote[0]->remark,
+                            'actioned_user_id' => $supplierReturnNote[0]->actioned_user_id,
+                            'added_date' => $supplierReturnNote[0]->added_date,
+                            'action_date' => $supplierReturnNote[0]->action_date,
+                            'last_action_status' => $supplierReturnNote[0]->last_action_status,
+                        );
 
-                    $balancePayment = $supplierReturnNote[0]->balance_payment;
-                    $supplierReturnNoteAmountChange = $amount - $supplierReturnNote[0]->amount;
-                    $balancePayment = $balancePayment + $supplierReturnNoteAmountChange;
-                    
-					$supplierReturnNoteDatanew = array(
-						'reference_no' => $referenceNo,
-						'supplier_id' => $supplierId,
-						'location_id' => $locationId,
-						'date' => $supplierReturnNoteDate,
-						'amount' => $amount,
-                        'balance_payment' => $balancePayment,
-						'type' => $type,
-						'remark' => $remark,
-						'actioned_user_id' => $this->user_id,
-						'action_date' => $this->date,
-						'last_action_status' => 'edited'
-					);
+                        $this->supplier_return_note_model->addSupplierReturnNoteDataToHistory($supplierReturnNoteDataHistory);
 
-					$this->supplier_return_note_model->editSupplierReturnNoteData($supplierReturnNoteId, $supplierReturnNoteDatanew);
-					
-					if (!$typeChanged) {
-						if ($type == "saleable_return") {
-							$supplierSaleableReturnNoteJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '1');
+                        $balancePayment = $supplierReturnNote[0]->balance_payment;
+                        $supplierReturnNoteAmountChange = $amount - $supplierReturnNote[0]->amount;
+                        $balancePayment = $balancePayment + $supplierReturnNoteAmountChange;
 
-							$primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForSupplierSaleableReturnNoteTransaction();
+                        $supplierReturnNoteDatanew = array(
+                            'reference_no' => $referenceNo,
+                            'supplier_id' => $supplierId,
+                            'location_id' => $locationId,
+                            'date' => $supplierReturnNoteDate,
+                            'amount' => $amount,
+                            'balance_payment' => $balancePayment,
+                            'type' => $type,
+                            'remark' => $remark,
+                            'actioned_user_id' => $this->user_id,
+                            'action_date' => $this->date,
+                            'last_action_status' => 'edited'
+                        );
 
-							$description = $this->lang->line('Journal entry for saleable return for Supplier Return Note number : ') . $referenceNo;
-							$this->postJournalEntries($primeEntryBooksToUpdate, $supplierReturnNoteId, $supplierSaleableReturnNoteJournalEntries, '1', $supplierReturnNoteDate, $referenceNo, $locationId, $supplierId, $amount, $oldAmount, $description);
-						} else if ($type == "market_return") {
-							$supplierMarketReturnNoteSalesJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '2');
+                        $this->supplier_return_note_model->editSupplierReturnNoteData($supplierReturnNoteId, $supplierReturnNoteDatanew);
 
-							$primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForSupplierMarketReturnNoteTransaction();
+                        if (!$typeChanged) {
+                            if ($type == "saleable_return") {
+                                $supplierSaleableReturnNoteJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '1');
 
-							$description = $this->lang->line('Journal entry for market return for Supplier Return Note number : ') . $referenceNo;
-							$this->postJournalEntries($primeEntryBooksToUpdate, $supplierReturnNoteId, $supplierMarketReturnNoteSalesJournalEntries, '2', $supplierReturnNoteDate, $referenceNo, $locationId, $supplierId, $amount, $oldAmount, $description);
-						}
-					} else {
-						if ($oldType == "saleable_return") {
-							$supplierSaleableReturnNoteJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '1');
+                                $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForSupplierSaleableReturnNoteTransaction();
 
-							$status = "deleted";
-							if ($supplierSaleableReturnNoteJournalEntries && sizeof($supplierSaleableReturnNoteJournalEntries) > 0) {
-								//Delete all journal entries of Supplier Return Note
-								foreach($supplierSaleableReturnNoteJournalEntries as $supplierSaleableReturnNoteSalesEntryJournalEntry) {
-									$supplierSaleableReturnNoteSalesEntryJournalEntryId = $supplierSaleableReturnNoteSalesEntryJournalEntry->journal_entry_id;
-									$this->journal_entries_model->deleteJournalEntry($supplierSaleableReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
-									$this->journal_entries_model->deleteGeneralLedgerTransactions($supplierSaleableReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
-								}
-							}
+                                $description = $this->lang->line('Journal entry for saleable return for Supplier Return Note number : ') . $referenceNo;
+                                $this->postJournalEntries($primeEntryBooksToUpdate, $supplierReturnNoteId, $supplierSaleableReturnNoteJournalEntries, '1', $supplierReturnNoteDate, $referenceNo, $locationId, $supplierId, $amount, $oldAmount, $description);
+                            } else if ($type == "market_return") {
+                                $supplierMarketReturnNoteSalesJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '2');
 
-							$supplierMarketReturnNoteSalesJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '2');
+                                $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForSupplierMarketReturnNoteTransaction();
 
-							$primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForSupplierMarketReturnNoteTransaction();
+                                $description = $this->lang->line('Journal entry for market return for Supplier Return Note number : ') . $referenceNo;
+                                $this->postJournalEntries($primeEntryBooksToUpdate, $supplierReturnNoteId, $supplierMarketReturnNoteSalesJournalEntries, '2', $supplierReturnNoteDate, $referenceNo, $locationId, $supplierId, $amount, $oldAmount, $description);
+                            }
+                        } else {
+                            if ($oldType == "saleable_return") {
+                                $supplierSaleableReturnNoteJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '1');
 
-							$description = $this->lang->line('Journal entry for saleable return for Supplier Return Note number : ') . $referenceNo;
-							$this->postJournalEntries($primeEntryBooksToUpdate, $supplierReturnNoteId, $supplierMarketReturnNoteSalesJournalEntries, '2', $supplierReturnNoteDate, $referenceNo, $locationId, $supplierId, $amount, $oldAmount, $description);
-						} else if ($oldType == "market_return") {
-							$supplierMarketReturnNoteSalesJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '2');
+                                $status = "deleted";
+                                if ($supplierSaleableReturnNoteJournalEntries && sizeof($supplierSaleableReturnNoteJournalEntries) > 0) {
+                                    //Delete all journal entries of Supplier Return Note
+                                    foreach($supplierSaleableReturnNoteJournalEntries as $supplierSaleableReturnNoteSalesEntryJournalEntry) {
+                                        $supplierSaleableReturnNoteSalesEntryJournalEntryId = $supplierSaleableReturnNoteSalesEntryJournalEntry->journal_entry_id;
+                                        $this->journal_entries_model->deleteJournalEntry($supplierSaleableReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                                        $this->journal_entries_model->deleteGeneralLedgerTransactions($supplierSaleableReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                                    }
+                                }
 
-							$status = "deleted";
-							if ($supplierMarketReturnNoteSalesJournalEntries && sizeof($supplierMarketReturnNoteSalesJournalEntries) > 0) {
-								//Delete all journal entries of Supplier Return Note
-								foreach($supplierMarketReturnNoteSalesJournalEntries as $supplierMarketReturnNoteSalesEntryJournalEntry) {
-									$supplierMarketReturnNoteSalesEntryJournalEntryId = $supplierMarketReturnNoteSalesEntryJournalEntry->journal_entry_id;
-									$this->journal_entries_model->deleteJournalEntry($supplierMarketReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
-									$this->journal_entries_model->deleteGeneralLedgerTransactions($supplierMarketReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
-								}
-							}
+                                $supplierMarketReturnNoteSalesJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '2');
 
-							$supplierSaleableReturnNoteJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '1');
+                                $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForSupplierMarketReturnNoteTransaction();
 
-							$primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForSupplierSaleableReturnNoteTransaction();
+                                $description = $this->lang->line('Journal entry for saleable return for Supplier Return Note number : ') . $referenceNo;
+                                $this->postJournalEntries($primeEntryBooksToUpdate, $supplierReturnNoteId, $supplierMarketReturnNoteSalesJournalEntries, '2', $supplierReturnNoteDate, $referenceNo, $locationId, $supplierId, $amount, $oldAmount, $description);
+                            } else if ($oldType == "market_return") {
+                                $supplierMarketReturnNoteSalesJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '2');
 
-							$description = $this->lang->line('Journal entry for market return for Supplier Return Note number : ') . $referenceNo;
-							$this->postJournalEntries($primeEntryBooksToUpdate, $supplierReturnNoteId, $supplierSaleableReturnNoteJournalEntries, '1', $supplierReturnNoteDate, $referenceNo, $locationId, $supplierId, $amount, $oldAmount, $description);
-						}
-					}
+                                $status = "deleted";
+                                if ($supplierMarketReturnNoteSalesJournalEntries && sizeof($supplierMarketReturnNoteSalesJournalEntries) > 0) {
+                                    //Delete all journal entries of Supplier Return Note
+                                    foreach($supplierMarketReturnNoteSalesJournalEntries as $supplierMarketReturnNoteSalesEntryJournalEntry) {
+                                        $supplierMarketReturnNoteSalesEntryJournalEntryId = $supplierMarketReturnNoteSalesEntryJournalEntry->journal_entry_id;
+                                        $this->journal_entries_model->deleteJournalEntry($supplierMarketReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                                        $this->journal_entries_model->deleteGeneralLedgerTransactions($supplierMarketReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                                    }
+                                }
 
-					$result = 'ok';
-				} else {
-					$result = 'no_changes_to_save';
-				}
+                                $supplierSaleableReturnNoteJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '1');
+
+                                $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForSupplierSaleableReturnNoteTransaction();
+
+                                $description = $this->lang->line('Journal entry for market return for Supplier Return Note number : ') . $referenceNo;
+                                $this->postJournalEntries($primeEntryBooksToUpdate, $supplierReturnNoteId, $supplierSaleableReturnNoteJournalEntries, '1', $supplierReturnNoteDate, $referenceNo, $locationId, $supplierId, $amount, $oldAmount, $description);
+                            }
+                        }
+
+                        $result = 'ok';
+                    } else {
+                        $result = 'no_changes_to_save';
+                    }
+                } else {
+                    $result = "previous_financial_year_is_closed";
+                }
 			}
 
 			echo json_encode(array('result' => $result, 'salesNoteId' => $salesNoteId));
@@ -377,57 +387,69 @@ class Supplier_return_note_controller extends CI_Controller {
 	//Delete Supplier Return Note
 	public function deleteSupplierReturnNote() {
 		if(isset($this->data['ACM_Bookkeeping_Delete_Supplier_Return_Note_Permissions'])) {
+            
+            $html = '';
 			$supplierReturnNoteId = $this->db->escape_str($this->input->post('id'));
+            
 			$supplierReturnNote = $this->supplier_return_note_model->getSupplierReturnNoteById($supplierReturnNoteId);
-			$type = $supplierReturnNote[0]->type;
+            $supplierReturnNoteTransactionDate = $supplierReturnNote[0]->date;
+
+            $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($supplierReturnNoteTransactionDate);
+
+            if ($financialYear[0]->year_end_process_status != "Closed") {
             
-            $isReferenceTransactionUsedInMakePayments = $this->make_payment_model->isReferenceTransactionUsedInMakePayments('3', $supplierReturnNoteId);
-            $isReferenceTransactionUsedInReceivePayments = $this->receive_payment_model->isReferenceTransactionUsedInReceivePayments('3', $supplierReturnNoteId);
-			
-            if (!$isReferenceTransactionUsedInMakePayments && !$isReferenceTransactionUsedInReceivePayments) {
-                
-                if ($type == "saleable_return") {
-                    $supplierSaleableReturnNoteJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '1');
+                $type = $supplierReturnNote[0]->type;
 
-                    $status = "deleted";
-                    if ($supplierSaleableReturnNoteJournalEntries && sizeof($supplierSaleableReturnNoteJournalEntries) > 0) {
-                        //Delete all journal entries of Supplier Return Note
-                        foreach($supplierSaleableReturnNoteJournalEntries as $supplierSaleableReturnNoteSalesEntryJournalEntry) {
-                            $supplierSaleableReturnNoteSalesEntryJournalEntryId = $supplierSaleableReturnNoteSalesEntryJournalEntry->journal_entry_id;
-                            $this->journal_entries_model->deleteJournalEntry($supplierSaleableReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->deleteGeneralLedgerTransactions($supplierSaleableReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                $isReferenceTransactionUsedInMakePayments = $this->make_payment_model->isReferenceTransactionUsedInMakePayments('3', $supplierReturnNoteId);
+                $isReferenceTransactionUsedInReceivePayments = $this->receive_payment_model->isReferenceTransactionUsedInReceivePayments('3', $supplierReturnNoteId);
+
+                if (!$isReferenceTransactionUsedInMakePayments && !$isReferenceTransactionUsedInReceivePayments) {
+
+                    if ($type == "saleable_return") {
+                        $supplierSaleableReturnNoteJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '1');
+
+                        $status = "deleted";
+                        if ($supplierSaleableReturnNoteJournalEntries && sizeof($supplierSaleableReturnNoteJournalEntries) > 0) {
+                            //Delete all journal entries of Supplier Return Note
+                            foreach($supplierSaleableReturnNoteJournalEntries as $supplierSaleableReturnNoteSalesEntryJournalEntry) {
+                                $supplierSaleableReturnNoteSalesEntryJournalEntryId = $supplierSaleableReturnNoteSalesEntryJournalEntry->journal_entry_id;
+                                $this->journal_entries_model->deleteJournalEntry($supplierSaleableReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($supplierSaleableReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                            }
+                        }
+                    } else if ($type == "market_return") {
+                        $supplierMarketReturnNoteSalesJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '2');
+
+                        $status = "deleted";
+                        if ($supplierMarketReturnNoteSalesJournalEntries && sizeof($supplierMarketReturnNoteSalesJournalEntries) > 0) {
+                            //Delete all journal entries of Supplier Return Note
+                            foreach($supplierMarketReturnNoteSalesJournalEntries as $supplierMarketReturnNoteSalesEntryJournalEntry) {
+                                $supplierMarketReturnNoteSalesEntryJournalEntryId = $supplierMarketReturnNoteSalesEntryJournalEntry->journal_entry_id;
+                                $this->journal_entries_model->deleteJournalEntry($supplierMarketReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($supplierMarketReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                            }
                         }
                     }
-                } else if ($type == "market_return") {
-                    $supplierMarketReturnNoteSalesJournalEntries = $this->supplier_return_note_model->getSupplierReturnNoteJournalEntries($supplierReturnNoteId, '2');
 
-                    $status = "deleted";
-                    if ($supplierMarketReturnNoteSalesJournalEntries && sizeof($supplierMarketReturnNoteSalesJournalEntries) > 0) {
-                        //Delete all journal entries of Supplier Return Note
-                        foreach($supplierMarketReturnNoteSalesJournalEntries as $supplierMarketReturnNoteSalesEntryJournalEntry) {
-                            $supplierMarketReturnNoteSalesEntryJournalEntryId = $supplierMarketReturnNoteSalesEntryJournalEntry->journal_entry_id;
-                            $this->journal_entries_model->deleteJournalEntry($supplierMarketReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->deleteGeneralLedgerTransactions($supplierMarketReturnNoteSalesEntryJournalEntryId, $status, $this->user_id);
-                        }
-                    }
-                }
-
-                if ($this->supplier_return_note_model->deleteSupplierReturnNote($supplierReturnNoteId, $status,$this->user_id)) {
-                    $html = '<div class="alert alert-success alert-dismissable">
-                        <a class="close" href="#" data-dismiss="alert">x </a>
-                        <h4><i class="icon-ok-sign"></i>' . $this->lang->line('success') . '</h4>' .
-                        $this->lang->line('success_deleted') .
-                        '</div>';
-                }
-            } else {
-                $html = '<div class="alert alert-warning alert-dismissable">
+                    if ($this->supplier_return_note_model->deleteSupplierReturnNote($supplierReturnNoteId, $status,$this->user_id)) {
+                        $html = '<div class="alert alert-success alert-dismissable">
                             <a class="close" href="#" data-dismiss="alert">x </a>
-                            <h4><i class="icon-ok-sign"></i>' . $this->lang->line('warning') . '</h4>' .
-                            $this->lang->line('Supplier Return Note already used in make payment and receive payment transactions and cannot be deleted!') .
-                        '</div>';
+                            <h4><i class="icon-ok-sign"></i>' . $this->lang->line('success') . '</h4>' .
+                            $this->lang->line('success_deleted') .
+                            '</div>';
+                    }
+                } else {
+                    $html = '<div class="alert alert-warning alert-dismissable">
+                                <a class="close" href="#" data-dismiss="alert">x </a>
+                                <h4><i class="icon-ok-sign"></i>' . $this->lang->line('warning') . '</h4>' .
+                                $this->lang->line('Supplier Return Note already used in make payment and receive payment transactions and cannot be deleted!') .
+                            '</div>';
+                }
+
+                echo json_encode(array("result" => "ok", "html" => $html));
+            } else {
+                echo json_encode(array("result" => "previous_financial_year_is_closed", "html" => $html));
             }
-            
-			echo $html;
 		}
 	}
 

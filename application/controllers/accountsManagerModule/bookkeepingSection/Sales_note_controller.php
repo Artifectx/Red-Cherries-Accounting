@@ -258,258 +258,268 @@ class Sales_note_controller extends CI_Controller {
         
 		if(isset($this->data['ACM_Bookkeeping_Add_Sales_Note_Permissions'])) {
 			$salesNoteId = $this->db->escape_str($this->input->post('sales_note_id'));
-			$salesNoteDate = $this->db->escape_str($this->input->post('sales_note_date'));
-			$customerId = $this->db->escape_str($this->input->post('customer_id'));
-			$territoryId = $this->db->escape_str($this->input->post('territory_id'));
-			$locationId = $this->db->escape_str($this->input->post('location_id'));
-			$customerSaleableReturnAmount = $this->db->escape_str($this->input->post('customer_saleable_return_amount'));
-			$customerMarketReturnAmount = $this->db->escape_str($this->input->post('customer_market_return_amount'));
             
             $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
-            $salesNoteReferenceNo = $salesNote[0]->reference_no;
-			
-			$customerType = '';
-			$customer = $this->peoples_model->getById($customerId);
-			if ($customer && sizeof($customer) > 0) {
-				$customerType = $customer[0]->people_type;
-			}
-			
-			$salesProfitMargin = $this->getSalesProfitMargin();
-            
-            $primeEntryBookData = $this->system_configurations_model->getSalesNoteSalesEntryAccountsPrimeEntryBooks();
-        
-            $primeEntryBookId = '';
-            if ($primeEntryBookData && sizeof($primeEntryBookData) > 0) {
-                $primeEntryBookId = $primeEntryBookData[0]->config_filed_value;
-            }
-            
-            $referenceJournalEntry = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByPrimeEntryBookId($salesNoteReferenceNo, $primeEntryBookId);
-        
-            $salesNoteReferenceJournalEntryId = '';
-            if ($referenceJournalEntry && sizeof($referenceJournalEntry) > 0) {
-                $salesNoteReferenceJournalEntryId = $referenceJournalEntry[0]->journal_entry_id;
-            }
-			
-			//Add customer return data
-			$customerSaleableReturnId = '0';
-			if ($customerSaleableReturnAmount != '') {
-				
-				$referenceNo = $this->getNextCustomerReturnReferenceNo();
-				
-				$data = array(
-					'reference_no' => $referenceNo,
-					'date' => $salesNoteDate,
-					'customer_id' => $customerId,
-					'territory_id' => $territoryId,
-					'location_id' => $locationId,
-					'amount' => $customerSaleableReturnAmount,
-					'type' => "saleable_return",
-					'remark' => '',
-                    'status' => 'Claimed',
-					'actioned_user_id' => $this->user_id,
-					'added_date' => $this->date,
-					'action_date' => $this->date,
-					'last_action_status' => 'added'
-				);
-
-				$customerReturnNoteId = $this->customer_return_note_model->add($data);
-				$customerSaleableReturnId = $customerReturnNoteId;
-				
-				$correctChartOfAccountsFoundInPrimeEntryBooks = true;
-				$primeEntryBooksToUpdate = '';
-				
-				$customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
-				$customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
-
-				$primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteSalesEntryTransaction();
-				$primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteCostEntryTransaction();
-                $primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForReceivePaymentTransactionClaim();
+            $salesNoteTransactionDate = $salesNote[0]->date;
                 
-				if ($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry && $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry) {
-					$primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry);
-				}
-                
-                if ($primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim && sizeof($primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim) > 0) {
-                    $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdate, $primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim);
+            $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($salesNoteTransactionDate);
+
+            if ($financialYear[0]->year_end_process_status != "Closed") {
+            
+                $salesNoteDate = $this->db->escape_str($this->input->post('sales_note_date'));
+                $customerId = $this->db->escape_str($this->input->post('customer_id'));
+                $territoryId = $this->db->escape_str($this->input->post('territory_id'));
+                $locationId = $this->db->escape_str($this->input->post('location_id'));
+                $customerSaleableReturnAmount = $this->db->escape_str($this->input->post('customer_saleable_return_amount'));
+                $customerMarketReturnAmount = $this->db->escape_str($this->input->post('customer_market_return_amount'));
+
+                $salesNoteReferenceNo = $salesNote[0]->reference_no;
+
+                $customerType = '';
+                $customer = $this->peoples_model->getById($customerId);
+                if ($customer && sizeof($customer) > 0) {
+                    $customerType = $customer[0]->people_type;
                 }
-				
-				if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                    foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                        $primeEntryBookId = $primeEntryBook->config_filed_value;
-                        $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
 
-                        if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                        }
-                    }
-				}
-				
-				if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-					$description = $this->lang->line('Journal entry for saleable return sales entry for Customer Return Note number : ') . $referenceNo;
-					$referenceJournalEntryId = $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $customerReturnNoteId, 
-                            $customerSaleableReturnNoteSalesEntryJournalEntries, '1', $salesNoteDate, $referenceNo, $locationId, $customerId, 
-                            $customerSaleableReturnAmount, '0', $description);
-					$description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $referenceNo;
-					$salesCost = $customerSaleableReturnAmount - ($customerSaleableReturnAmount/100) * $salesProfitMargin;
-					$this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $customerReturnNoteId, 
-                            $customerSaleableReturnNoteCostEntryJournalEntries, '2', $salesNoteDate, $referenceNo, $locationId, $customerId, 
-                            $salesCost, '0', $description);
-                    
-                    //Post journal entry for customer return note claim for sales note
-                    if ($salesNoteReferenceJournalEntryId != '') {
-                        $claimReferenceJournalEntryId = $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim, '', $salesNoteDate, 
-                                $salesNoteReferenceNo, '2', $salesNoteId, $salesNoteReferenceJournalEntryId, $referenceNo, $locationId, $customerId, 
-                                $customerSaleableReturnAmount);
-                        
-                        if ($claimReferenceJournalEntryId != '') {
-                            $data = array(
-                                'journal_entry_id' => $referenceJournalEntryId,
-                                'claim_reference_journal_entry_id' => $claimReferenceJournalEntryId,
-                                'actioned_user_id' => $this->user_id,
-                                'action_date' => $this->date,
-                                'last_action_status' => 'added'
-                            );
-                            
-                            $this->journal_entries_model->addJournalEntryClaimReference($data);
-                        }
-                    }
-				} else {
-					$result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
-				}
-			}
-			
-			$customerMarketReturnId = '0';
-			if ($customerMarketReturnAmount != '') {
-				
-				$referenceNo = $this->getNextCustomerReturnReferenceNo();
-				
-				$data = array(
-					'reference_no' => $referenceNo,
-					'date' => $salesNoteDate,
-					'customer_id' => $customerId,
-					'territory_id' => $territoryId,
-					'location_id' => $locationId,
-					'amount' => $customerMarketReturnAmount,
-					'type' => "market_return",
-					'remark' => '',
-                    'status' => 'Claimed',
-					'actioned_user_id' => $this->user_id,
-					'added_date' => $this->date,
-					'action_date' => $this->date,
-					'last_action_status' => 'added'
-				);
+                $salesProfitMargin = $this->getSalesProfitMargin();
 
-				$customerReturnNoteId = $this->customer_return_note_model->add($data);
-				$customerMarketReturnId = $customerReturnNoteId;
-				
-				$correctChartOfAccountsFoundInPrimeEntryBooks = true;
-				$primeEntryBooksToUpdate = '';
-				
-				$customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '3');
-				$customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '4');
+                $primeEntryBookData = $this->system_configurations_model->getSalesNoteSalesEntryAccountsPrimeEntryBooks();
 
-				$primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteSalesEntryTransaction();
-				$primeEntryBooksToUpdateForCustomerMarketReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteCostEntryTransaction();
-                $primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForReceivePaymentTransactionClaim();
-                
-				if ($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry && $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry) {
-					$primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry);
-				}
-                
-                if ($primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim && sizeof($primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim) > 0) {
-                    $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdate, $primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim);
+                $primeEntryBookId = '';
+                if ($primeEntryBookData && sizeof($primeEntryBookData) > 0) {
+                    $primeEntryBookId = $primeEntryBookData[0]->config_filed_value;
                 }
-				
-				if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                    foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                        $primeEntryBookId = $primeEntryBook->config_filed_value;
-                        $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
 
-                        if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 3) {
-                            $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                $referenceJournalEntry = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByPrimeEntryBookId($salesNoteReferenceNo, $primeEntryBookId);
+
+                $salesNoteReferenceJournalEntryId = '';
+                if ($referenceJournalEntry && sizeof($referenceJournalEntry) > 0) {
+                    $salesNoteReferenceJournalEntryId = $referenceJournalEntry[0]->journal_entry_id;
+                }
+
+                //Add customer return data
+                $customerSaleableReturnId = '0';
+                if ($customerSaleableReturnAmount != '') {
+
+                    $referenceNo = $this->getNextCustomerReturnReferenceNo();
+
+                    $data = array(
+                        'reference_no' => $referenceNo,
+                        'date' => $salesNoteDate,
+                        'customer_id' => $customerId,
+                        'territory_id' => $territoryId,
+                        'location_id' => $locationId,
+                        'amount' => $customerSaleableReturnAmount,
+                        'type' => "saleable_return",
+                        'remark' => '',
+                        'status' => 'Claimed',
+                        'actioned_user_id' => $this->user_id,
+                        'added_date' => $this->date,
+                        'action_date' => $this->date,
+                        'last_action_status' => 'added'
+                    );
+
+                    $customerReturnNoteId = $this->customer_return_note_model->add($data);
+                    $customerSaleableReturnId = $customerReturnNoteId;
+
+                    $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+                    $primeEntryBooksToUpdate = '';
+
+                    $customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
+                    $customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
+
+                    $primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteSalesEntryTransaction();
+                    $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteCostEntryTransaction();
+                    $primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForReceivePaymentTransactionClaim();
+
+                    if ($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry && $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry) {
+                        $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry);
+                    }
+
+                    if ($primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim && sizeof($primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim) > 0) {
+                        $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdate, $primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim);
+                    }
+
+                    if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                        foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                            $primeEntryBookId = $primeEntryBook->config_filed_value;
+                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                            if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                            }
                         }
                     }
-				}
-				
-				if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-					$description = $this->lang->line('Journal entry for market return sales entry for Customer Return Note number : ') . $referenceNo;
-					$referenceJournalEntryId = $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $customerReturnNoteId, 
-                            $customerMarketReturnNoteSalesEntryJournalEntries, '3', $salesNoteDate, $referenceNo, $locationId, $customerId, 
-                            $customerMarketReturnAmount, '0', $description);
-					$description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $referenceNo;
-					
-					$profitPortion = "";
-					$salesCost = "";
-					$CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId = $this->system_configurations_model->getCustomerMarketReturnCostEntryProfitMarginCreditChartOfAccount();
-					if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
-						$profitPortion = ($customerMarketReturnAmount/100) * $salesProfitMargin;
-						$salesCost = $customerMarketReturnAmount;
-					} else {
-						$salesCost = $customerMarketReturnAmount - ($customerMarketReturnAmount/100) * $salesProfitMargin;
-					}
-					
-					$this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $customerReturnNoteId, 
-                            $customerMarketReturnNoteCostEntryJournalEntries, '4', $salesNoteDate, $referenceNo, $locationId, $customerId, 
-                            $salesCost, '0', $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, 
-                            $profitPortion, '0');
-                    
-                    //Post journal entry for customer return note claim for sales note
-                    if ($salesNoteReferenceJournalEntryId != '') {
-                        $claimReferenceJournalEntryId = $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim, '', $salesNoteDate, 
-                                $salesNoteReferenceNo, '2', $salesNoteId, $salesNoteReferenceJournalEntryId, $referenceNo, $locationId, $customerId, 
-                                $customerMarketReturnAmount);
-                        
-                        if ($claimReferenceJournalEntryId != '') {
-                            $data = array(
-                                'journal_entry_id' => $referenceJournalEntryId,
-                                'claim_reference_journal_entry_id' => $claimReferenceJournalEntryId,
-                                'actioned_user_id' => $this->user_id,
-                                'action_date' => $this->date,
-                                'last_action_status' => 'added'
-                            );
-                            
-                            $this->journal_entries_model->addJournalEntryClaimReference($data);
+
+                    if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                        $description = $this->lang->line('Journal entry for saleable return sales entry for Customer Return Note number : ') . $referenceNo;
+                        $referenceJournalEntryId = $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $customerReturnNoteId, 
+                                $customerSaleableReturnNoteSalesEntryJournalEntries, '1', $salesNoteDate, $referenceNo, $locationId, $customerId, 
+                                $customerSaleableReturnAmount, '0', $description);
+                        $description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $referenceNo;
+                        $salesCost = $customerSaleableReturnAmount - ($customerSaleableReturnAmount/100) * $salesProfitMargin;
+                        $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $customerReturnNoteId, 
+                                $customerSaleableReturnNoteCostEntryJournalEntries, '2', $salesNoteDate, $referenceNo, $locationId, $customerId, 
+                                $salesCost, '0', $description);
+
+                        //Post journal entry for customer return note claim for sales note
+                        if ($salesNoteReferenceJournalEntryId != '') {
+                            $claimReferenceJournalEntryId = $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim, '', $salesNoteDate, 
+                                    $salesNoteReferenceNo, '2', $salesNoteId, $salesNoteReferenceJournalEntryId, $referenceNo, $locationId, $customerId, 
+                                    $customerSaleableReturnAmount);
+
+                            if ($claimReferenceJournalEntryId != '') {
+                                $data = array(
+                                    'journal_entry_id' => $referenceJournalEntryId,
+                                    'claim_reference_journal_entry_id' => $claimReferenceJournalEntryId,
+                                    'actioned_user_id' => $this->user_id,
+                                    'action_date' => $this->date,
+                                    'last_action_status' => 'added'
+                                );
+
+                                $this->journal_entries_model->addJournalEntryClaimReference($data);
+                            }
+                        }
+                    } else {
+                        $result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
+                    }
+                }
+
+                $customerMarketReturnId = '0';
+                if ($customerMarketReturnAmount != '') {
+
+                    $referenceNo = $this->getNextCustomerReturnReferenceNo();
+
+                    $data = array(
+                        'reference_no' => $referenceNo,
+                        'date' => $salesNoteDate,
+                        'customer_id' => $customerId,
+                        'territory_id' => $territoryId,
+                        'location_id' => $locationId,
+                        'amount' => $customerMarketReturnAmount,
+                        'type' => "market_return",
+                        'remark' => '',
+                        'status' => 'Claimed',
+                        'actioned_user_id' => $this->user_id,
+                        'added_date' => $this->date,
+                        'action_date' => $this->date,
+                        'last_action_status' => 'added'
+                    );
+
+                    $customerReturnNoteId = $this->customer_return_note_model->add($data);
+                    $customerMarketReturnId = $customerReturnNoteId;
+
+                    $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+                    $primeEntryBooksToUpdate = '';
+
+                    $customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '3');
+                    $customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '4');
+
+                    $primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteSalesEntryTransaction();
+                    $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteCostEntryTransaction();
+                    $primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForReceivePaymentTransactionClaim();
+
+                    if ($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry && $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry) {
+                        $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry);
+                    }
+
+                    if ($primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim && sizeof($primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim) > 0) {
+                        $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdate, $primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim);
+                    }
+
+                    if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                        foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                            $primeEntryBookId = $primeEntryBook->config_filed_value;
+                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                            if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 3) {
+                                $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                            }
                         }
                     }
-				} else {
-					$result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
-				}
-			}
-            
-            $totalAmount = $salesNote[0]->sales_amount;
-            $discount = $salesNote[0]->discount;
-            $paidCashAmount = $salesNote[0]->cash_payment_amount;
-            $paidChequeAmount = $salesNote[0]->cheque_payment_amount;
-            $paidCreditCardAmount = $salesNote[0]->credit_card_payment_amount;
-            $customerReturnAmountClaimed = $salesNote[0]->customer_return_note_claimed;
-            $totalPayable = $totalAmount - $discount;
-            $totalPaid = $paidCashAmount + $paidChequeAmount + $paidCreditCardAmount + $customerReturnAmountClaimed;
 
-            $customerReturnAmountClaimed = $customerReturnAmountClaimed + ($customerSaleableReturnAmount + $customerMarketReturnAmount);
-            $newBalancePayment = $totalPayable - ($totalPaid + $customerSaleableReturnAmount + $customerMarketReturnAmount);
-            
-            if ($newBalancePayment < 0) {
-                $newBalancePayment = 0;
+                    if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                        $description = $this->lang->line('Journal entry for market return sales entry for Customer Return Note number : ') . $referenceNo;
+                        $referenceJournalEntryId = $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $customerReturnNoteId, 
+                                $customerMarketReturnNoteSalesEntryJournalEntries, '3', $salesNoteDate, $referenceNo, $locationId, $customerId, 
+                                $customerMarketReturnAmount, '0', $description);
+                        $description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $referenceNo;
+
+                        $profitPortion = "";
+                        $salesCost = "";
+                        $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId = $this->system_configurations_model->getCustomerMarketReturnCostEntryProfitMarginCreditChartOfAccount();
+                        if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
+                            $profitPortion = ($customerMarketReturnAmount/100) * $salesProfitMargin;
+                            $salesCost = $customerMarketReturnAmount;
+                        } else {
+                            $salesCost = $customerMarketReturnAmount - ($customerMarketReturnAmount/100) * $salesProfitMargin;
+                        }
+
+                        $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $customerReturnNoteId, 
+                                $customerMarketReturnNoteCostEntryJournalEntries, '4', $salesNoteDate, $referenceNo, $locationId, $customerId, 
+                                $salesCost, '0', $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, 
+                                $profitPortion, '0');
+
+                        //Post journal entry for customer return note claim for sales note
+                        if ($salesNoteReferenceJournalEntryId != '') {
+                            $claimReferenceJournalEntryId = $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim, '', $salesNoteDate, 
+                                    $salesNoteReferenceNo, '2', $salesNoteId, $salesNoteReferenceJournalEntryId, $referenceNo, $locationId, $customerId, 
+                                    $customerMarketReturnAmount);
+
+                            if ($claimReferenceJournalEntryId != '') {
+                                $data = array(
+                                    'journal_entry_id' => $referenceJournalEntryId,
+                                    'claim_reference_journal_entry_id' => $claimReferenceJournalEntryId,
+                                    'actioned_user_id' => $this->user_id,
+                                    'action_date' => $this->date,
+                                    'last_action_status' => 'added'
+                                );
+
+                                $this->journal_entries_model->addJournalEntryClaimReference($data);
+                            }
+                        }
+                    } else {
+                        $result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
+                    }
+                }
+
+                $totalAmount = $salesNote[0]->sales_amount;
+                $discount = $salesNote[0]->discount;
+                $paidCashAmount = $salesNote[0]->cash_payment_amount;
+                $paidChequeAmount = $salesNote[0]->cheque_payment_amount;
+                $paidCreditCardAmount = $salesNote[0]->credit_card_payment_amount;
+                $customerReturnAmountClaimed = $salesNote[0]->customer_return_note_claimed;
+                $totalPayable = $totalAmount - $discount;
+                $totalPaid = $paidCashAmount + $paidChequeAmount + $paidCreditCardAmount + $customerReturnAmountClaimed;
+
+                $customerReturnAmountClaimed = $customerReturnAmountClaimed + ($customerSaleableReturnAmount + $customerMarketReturnAmount);
+                $newBalancePayment = $totalPayable - ($totalPaid + $customerSaleableReturnAmount + $customerMarketReturnAmount);
+
+                if ($newBalancePayment < 0) {
+                    $newBalancePayment = 0;
+                }
+
+                $status = "Open";
+                if ($newBalancePayment == 0) {
+                    $status = "Claimed";
+                }
+
+                $salesNoteDatanew = array(
+                    'balance_payment' => $newBalancePayment,
+                    'customer_return_note_claimed' => $customerReturnAmountClaimed,
+                    'customer_saleable_return_id' => $customerSaleableReturnId,
+                    'customer_market_return_id' => $customerMarketReturnId,
+                    'status' => $status
+                );
+
+                $this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteDatanew);
+
+                if ($result == '') {
+                    $result = 'ok';
+                }
+            } else {
+                $result = "previous_financial_year_is_closed";
             }
-
-            $status = "Open";
-            if ($newBalancePayment == 0) {
-                $status = "Claimed";
-            }
-			
-			$salesNoteDatanew = array(
-                'balance_payment' => $newBalancePayment,
-                'customer_return_note_claimed' => $customerReturnAmountClaimed,
-				'customer_saleable_return_id' => $customerSaleableReturnId,
-				'customer_market_return_id' => $customerMarketReturnId,
-                'status' => $status
-			);
-
-			$this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteDatanew);
-			
-			if ($result == '') {
-				$result = 'ok';
-			}
 		}
 		
 		echo $result;
@@ -517,7 +527,9 @@ class Sales_note_controller extends CI_Controller {
 
 	public function editSalesNoteData() {
 		if(isset($this->data['ACM_Bookkeeping_Edit_Sales_Note_Permissions'])) {
+            
 			$salesNoteId = '';
+            
 			if ($this->form_validation->run() == FALSE) {echo "Test";die;
 				$result = validation_errors('<div class="alert alert-danger alert-dismissable">
 										<a class="close" data-dismiss="alert" href="#">&times;</a>
@@ -537,164 +549,104 @@ class Sales_note_controller extends CI_Controller {
 
 				//Read New Sales Note Data
 				$salesNoteId = $this->db->escape_str($this->input->post('id'));
-				$referenceNo = $this->db->escape_str($this->input->post('reference_no'));
-				$salesNoteDate = $this->db->escape_str($this->input->post('sales_note_date'));
-				$customerId = $this->db->escape_str($this->input->post('customer_id'));
-				$territoryId = $this->db->escape_str($this->input->post('territory_id'));
-				$locationId = $this->db->escape_str($this->input->post('location_id'));
-				$salesAmount = $this->db->escape_str($this->input->post('sales_amount'));
-				$discount = $this->db->escape_str($this->input->post('discount'));
-				$freeIssueAmount = $this->db->escape_str($this->input->post('free_issue_amount'));
-				$remark = $this->db->escape_str($this->input->post('remark'));
-				$remark = preg_replace('~\\\n~',"\r\n", $remark);
-
-				$salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
                 
-                $salesNoteReferenceNo = $salesNote[0]->reference_no;
-				$salesOldAmount = $salesNote[0]->sales_amount;
-				$salesCostOldAmount = $salesOldAmount - ($salesOldAmount/100)*5;
-				$discountOldAmount = $salesNote[0]->discount;
-				$freeIssueOldAmount = $salesNote[0]->free_issue_amount;
-                $customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
-                $customerMarketReturnId = $salesNote[0]->customer_market_return_id;
+                $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
+                $salesNoteTransactionDate = $salesNote[0]->date;
                 
-                $primeEntryBookData = $this->system_configurations_model->getSalesNoteSalesEntryAccountsPrimeEntryBooks();
-        
-                $primeEntryBookId = '';
-                if ($primeEntryBookData && sizeof($primeEntryBookData) > 0) {
-                    $primeEntryBookId = $primeEntryBookData[0]->config_filed_value;
-                }
+                $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($salesNoteTransactionDate);
 
-                $referenceJournalEntry = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByPrimeEntryBookId($salesNoteReferenceNo, $primeEntryBookId);
+                if ($financialYear[0]->year_end_process_status != "Closed") {
+                
+                    $referenceNo = $this->db->escape_str($this->input->post('reference_no'));
+                    $salesNoteDate = $this->db->escape_str($this->input->post('sales_note_date'));
+                    $customerId = $this->db->escape_str($this->input->post('customer_id'));
+                    $territoryId = $this->db->escape_str($this->input->post('territory_id'));
+                    $locationId = $this->db->escape_str($this->input->post('location_id'));
+                    $salesAmount = $this->db->escape_str($this->input->post('sales_amount'));
+                    $discount = $this->db->escape_str($this->input->post('discount'));
+                    $freeIssueAmount = $this->db->escape_str($this->input->post('free_issue_amount'));
+                    $remark = $this->db->escape_str($this->input->post('remark'));
+                    $remark = preg_replace('~\\\n~',"\r\n", $remark);
 
-                $salesNoteReferenceJournalEntryId = '';
-                if ($referenceJournalEntry && sizeof($referenceJournalEntry) > 0) {
-                    $salesNoteReferenceJournalEntryId = $referenceJournalEntry[0]->journal_entry_id;
-                }
+                    $salesNoteReferenceNo = $salesNote[0]->reference_no;
+                    $salesOldAmount = $salesNote[0]->sales_amount;
+                    $salesCostOldAmount = $salesOldAmount - ($salesOldAmount/100)*5;
+                    $discountOldAmount = $salesNote[0]->discount;
+                    $freeIssueOldAmount = $salesNote[0]->free_issue_amount;
+                    $customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
+                    $customerMarketReturnId = $salesNote[0]->customer_market_return_id;
 
-				if ($salesNote[0]->reference_no != $referenceNo) {$referenceNoChanged = true;}
-				if ($salesNote[0]->customer_id != $customerId) {$customerChanged = true;}
-				if ($salesNote[0]->territory_id != $territoryId) {$territoryChanged = true;}
-				if ($salesNote[0]->location_id != $locationId) {$locationChanged = true;}
-				if ($salesNote[0]->date != $salesNoteDate) {$salesNoteDateChanged = true;}
-				if ($salesNote[0]->sales_amount != $salesAmount) {$salesAmountChanged = true;}
-				if ($salesNote[0]->discount != $discount) {$discountChanged = true;}
-				if ($salesNote[0]->free_issue_amount != $freeIssueAmount) {$freeIssueAmountChanged = true;}
-				if ($salesNote[0]->remark != $remark) {$remarkChanged = true;}
+                    $primeEntryBookData = $this->system_configurations_model->getSalesNoteSalesEntryAccountsPrimeEntryBooks();
 
-				if ($referenceNoChanged || $customerChanged || $locationChanged || $salesNoteDateChanged || $typeChanged || $salesAmountChanged || 
-				    $discountChanged || $freeIssueAmountChanged || $remarkChanged) {
-
-                    $salesNoteReceiveChequePaymentIds = array();
-                    $salesNotesReceivePayments = array();
-                    
-                    //Update receive payment data
-                    $salesNoteReceivePayments = $this->sales_note_model->getSalesNoteReceivePaymentEntries($salesNoteId);
-                        
-                    if ($salesNoteReceivePayments && sizeof($salesNoteReceivePayments) > 0) {
-                        foreach($salesNoteReceivePayments as $salesNoteReceivePayment) {
-                            
-                            $receivePaymentId = '';
-                            
-                            if ($salesNoteReceivePayment->receive_cash_payment_method_id != '0') {
-                                $receivePaymentId = $salesNoteReceivePayment->receive_cash_payment_method_id;
-                                $salesNotesReceivePayments[] = $receivePaymentId;
-                            
-                                $receivePaymentDatanew = array(
-                                    'payer_id' => $customerId,
-                                    'location_id' => $locationId,
-                                    'actioned_user_id' => $this->user_id,
-                                    'action_date' => $this->date,
-                                    'last_action_status' => 'edited'
-                                );
-
-                                $this->receive_payment_model->editReceivePaymentData($receivePaymentId, $receivePaymentDatanew);
-                            }
-                            
-                            if ($salesNoteReceivePayment->receive_cheque_payment_method_id != '0') {
-                                $salesNoteReceiveChequePaymentIds[] = $salesNoteReceivePayment->receive_cheque_payment_method_id;
-                                
-                                $receivePaymentId = $salesNoteReceivePayment->receive_cheque_payment_method_id;
-                                $salesNotesReceivePayments[] = $receivePaymentId;
-                            
-                                $receivePaymentDatanew = array(
-                                    'payer_id' => $customerId,
-                                    'location_id' => $locationId,
-                                    'actioned_user_id' => $this->user_id,
-                                    'action_date' => $this->date,
-                                    'last_action_status' => 'edited'
-                                );
-
-                                $this->receive_payment_model->editReceivePaymentData($receivePaymentId, $receivePaymentDatanew);
-                            }
-                            
-                            $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentId);
-
-                            if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-                                //Get general ledger transactions to update new location
-                                foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
-
-                                    $receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
-
-                                    if ($customerChanged || $locationChanged || $salesNoteDateChanged) {
-
-                                        $journalEntry = $this->journal_entries_model->getJournalEntryById($receivePaymentJournalEntryId);
-
-                                        $journalEntryHistoryData = array(
-                                            'journal_entry_id' => $journalEntry[0]->journal_entry_id,
-                                            'prime_entry_book_id' => $journalEntry[0]->prime_entry_book_id,
-                                            'location_id' => $journalEntry[0]->location_id,
-                                            'payee_payer_type' => $journalEntry[0]->payee_payer_type,
-                                            'delivery_route_id' => $journalEntry[0]->delivery_route_id,
-                                            'payee_payer_id' => $journalEntry[0]->payee_payer_id,
-                                            'due_date' => $journalEntry[0]->due_date,
-                                            'transaction_date' => $journalEntry[0]->transaction_date,
-                                            'reference_no' => $journalEntry[0]->reference_no,
-                                            'should_have_a_payment_journal_entry' => $journalEntry[0]->should_have_a_payment_journal_entry,
-                                            'reference_transaction_type_id' => $journalEntry[0]->reference_transaction_type_id,
-                                            'reference_transaction_id' => $journalEntry[0]->reference_transaction_id,
-                                            'reference_journal_entry_id' => $journalEntry[0]->reference_journal_entry_id,
-                                            'description' => $journalEntry[0]->description,
-                                            'post_type' => $journalEntry[0]->post_type,
-                                            'actioned_user_id' => $journalEntry[0]->actioned_user_id,
-                                            'action_date' => $journalEntry[0]->action_date,
-                                            'last_action_status' => $journalEntry[0]->last_action_status
-                                        );
-
-                                        $this->journal_entries_model->addJournalEntryToHistory($journalEntryHistoryData);
-
-                                        $data = array(
-                                            'location_id' => $locationId,
-                                            'payee_payer_id' => $customerId,
-                                            'transaction_date' => $salesNoteDate,
-                                            'actioned_user_id' => $this->user_id,
-                                            'action_date' => $this->date,
-                                            'last_action_status' => 'edited'
-                                        );
-
-                                        $this->journal_entries_model->editJournalEntry($receivePaymentJournalEntryId, $data);
-                                    }
-                                }
-                            }
-                        }
+                    $primeEntryBookId = '';
+                    if ($primeEntryBookData && sizeof($primeEntryBookData) > 0) {
+                        $primeEntryBookId = $primeEntryBookData[0]->config_filed_value;
                     }
-                    
-                    $receivePaymentReferenceTransactionsForSalesNote = $this->receive_payment_model->getReferenceTransactionsOfSalesNote($salesNoteId);
-                    
-                    if ($receivePaymentReferenceTransactionsForSalesNote && sizeof($receivePaymentReferenceTransactionsForSalesNote) > 0) {
-                        foreach ($receivePaymentReferenceTransactionsForSalesNote as $receivePaymentReferenceTransaction) {
-                            if (!in_array($receivePaymentReferenceTransaction, $salesNotesReceivePayments)) {
-                                $receivePaymentDatanew = array(
-                                    'payer_id' => $customerId,
-                                    'location_id' => $locationId,
-                                    'actioned_user_id' => $this->user_id,
-                                    'action_date' => $this->date,
-                                    'last_action_status' => 'edited'
-                                );
 
-                                $this->receive_payment_model->editReceivePaymentData($receivePaymentReferenceTransaction, $receivePaymentDatanew);
-                                
-                                $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentReferenceTransaction);
+                    $referenceJournalEntry = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByPrimeEntryBookId($salesNoteReferenceNo, $primeEntryBookId);
+
+                    $salesNoteReferenceJournalEntryId = '';
+                    if ($referenceJournalEntry && sizeof($referenceJournalEntry) > 0) {
+                        $salesNoteReferenceJournalEntryId = $referenceJournalEntry[0]->journal_entry_id;
+                    }
+
+                    if ($salesNote[0]->reference_no != $referenceNo) {$referenceNoChanged = true;}
+                    if ($salesNote[0]->customer_id != $customerId) {$customerChanged = true;}
+                    if ($salesNote[0]->territory_id != $territoryId) {$territoryChanged = true;}
+                    if ($salesNote[0]->location_id != $locationId) {$locationChanged = true;}
+                    if ($salesNote[0]->date != $salesNoteDate) {$salesNoteDateChanged = true;}
+                    if ($salesNote[0]->sales_amount != $salesAmount) {$salesAmountChanged = true;}
+                    if ($salesNote[0]->discount != $discount) {$discountChanged = true;}
+                    if ($salesNote[0]->free_issue_amount != $freeIssueAmount) {$freeIssueAmountChanged = true;}
+                    if ($salesNote[0]->remark != $remark) {$remarkChanged = true;}
+
+                    if ($referenceNoChanged || $customerChanged || $locationChanged || $salesNoteDateChanged || $typeChanged || $salesAmountChanged || 
+                        $discountChanged || $freeIssueAmountChanged || $remarkChanged) {
+
+                        $salesNoteReceiveChequePaymentIds = array();
+                        $salesNotesReceivePayments = array();
+
+                        //Update receive payment data
+                        $salesNoteReceivePayments = $this->sales_note_model->getSalesNoteReceivePaymentEntries($salesNoteId);
+
+                        if ($salesNoteReceivePayments && sizeof($salesNoteReceivePayments) > 0) {
+                            foreach($salesNoteReceivePayments as $salesNoteReceivePayment) {
+
+                                $receivePaymentId = '';
+
+                                if ($salesNoteReceivePayment->receive_cash_payment_method_id != '0') {
+                                    $receivePaymentId = $salesNoteReceivePayment->receive_cash_payment_method_id;
+                                    $salesNotesReceivePayments[] = $receivePaymentId;
+
+                                    $receivePaymentDatanew = array(
+                                        'payer_id' => $customerId,
+                                        'location_id' => $locationId,
+                                        'actioned_user_id' => $this->user_id,
+                                        'action_date' => $this->date,
+                                        'last_action_status' => 'edited'
+                                    );
+
+                                    $this->receive_payment_model->editReceivePaymentData($receivePaymentId, $receivePaymentDatanew);
+                                }
+
+                                if ($salesNoteReceivePayment->receive_cheque_payment_method_id != '0') {
+                                    $salesNoteReceiveChequePaymentIds[] = $salesNoteReceivePayment->receive_cheque_payment_method_id;
+
+                                    $receivePaymentId = $salesNoteReceivePayment->receive_cheque_payment_method_id;
+                                    $salesNotesReceivePayments[] = $receivePaymentId;
+
+                                    $receivePaymentDatanew = array(
+                                        'payer_id' => $customerId,
+                                        'location_id' => $locationId,
+                                        'actioned_user_id' => $this->user_id,
+                                        'action_date' => $this->date,
+                                        'last_action_status' => 'edited'
+                                    );
+
+                                    $this->receive_payment_model->editReceivePaymentData($receivePaymentId, $receivePaymentDatanew);
+                                }
+
+                                $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentId);
 
                                 if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
                                     //Get general ledger transactions to update new location
@@ -702,7 +654,7 @@ class Sales_note_controller extends CI_Controller {
 
                                         $receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
 
-                                    if ($customerChanged || $locationChanged || $salesNoteDateChanged) {
+                                        if ($customerChanged || $locationChanged || $salesNoteDateChanged) {
 
                                             $journalEntry = $this->journal_entries_model->getJournalEntryById($receivePaymentJournalEntryId);
 
@@ -744,63 +696,130 @@ class Sales_note_controller extends CI_Controller {
                                 }
                             }
                         }
-                    }
-                    
-                    //Update customer return note data
-                    $customerReturnNoteAmountToAdd = 0;
-                    
-                    $receivePaymentReferenceTransactionsOfSalesNotes = $this->receive_payment_model->getReceivePaymentReferenceTransactionsOfSalesNote($salesNoteId);
-                    
-                    if ($receivePaymentReferenceTransactionsOfSalesNotes && sizeof($receivePaymentReferenceTransactionsOfSalesNotes) > 0) {
-                        foreach($receivePaymentReferenceTransactionsOfSalesNotes as $receivePaymentReferenceTransaction) {
-                            $receivePaymentId = $receivePaymentReferenceTransaction->receive_payment_id;
-                            $receivePaymentCustomerReturnNotes = $this->receive_payment_model->getReceivePaymentCustomerReturnNoteReferenceTransactions($receivePaymentId);
-                            
-                            if ($receivePaymentCustomerReturnNotes && sizeof($receivePaymentCustomerReturnNotes) > 0) {
-                                foreach($receivePaymentCustomerReturnNotes as $customerReturnNoteId) {
-                                    
-                                    $customerReturnNote = $this->customer_return_note_model->getCustomerReturnNoteById($customerReturnNoteId);
-                                    
-                                    $amount = $customerReturnNote[0]->amount;
-                                    $customerReturnNoteType = $customerReturnNote[0]->type;
-                                    $customerReturnNoteAmountToAdd = $customerReturnNoteAmountToAdd + $customerReturnNote[0]->amount;
-                                    
-                                    $customerReturnNoteDatanew = array(
-                                        'balance_payment' => $amount,
-                                        'status' => "Open",
+
+                        $receivePaymentReferenceTransactionsForSalesNote = $this->receive_payment_model->getReferenceTransactionsOfSalesNote($salesNoteId);
+
+                        if ($receivePaymentReferenceTransactionsForSalesNote && sizeof($receivePaymentReferenceTransactionsForSalesNote) > 0) {
+                            foreach ($receivePaymentReferenceTransactionsForSalesNote as $receivePaymentReferenceTransaction) {
+                                if (!in_array($receivePaymentReferenceTransaction, $salesNotesReceivePayments)) {
+                                    $receivePaymentDatanew = array(
+                                        'payer_id' => $customerId,
+                                        'location_id' => $locationId,
                                         'actioned_user_id' => $this->user_id,
                                         'action_date' => $this->date,
                                         'last_action_status' => 'edited'
                                     );
 
-                                    $this->customer_return_note_model->editCustomerReturnNoteData($customerReturnNoteId, $customerReturnNoteDatanew);
-                                    
-                                    $receivePaymentReferenceTransaction = $this->receive_payment_model->getReceivePaymentReferenceTransactionOfCustomerReturnNoteForReceivePayment($customerReturnNoteId, $receivePaymentId);
-                                    
-                                    if ($receivePaymentReferenceTransaction && sizeof($receivePaymentReferenceTransaction) > 0) {
-                                        $receivePaymentReferenceTransactionId = $receivePaymentReferenceTransaction[0]->receive_payment_reference_transaction_id;
-                                        $this->receive_payment_model->deleteReceivePaymentReferenceTransactionSoftly($receivePaymentReferenceTransactionId, "deleted", $this->user_id);
-                                    }
-                                    
-                                    $customerReturnNoteJournalEntries = '';
-                                    
-                                    if ($customerReturnNoteType == "saleable_return") {
-                                        $customerReturnNoteJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
-                                    } else if ($customerReturnNoteType == "market_return") {
-                                        $customerReturnNoteJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '3');
-                                    }
-                                        
-                                    if ($customerReturnNoteJournalEntries && sizeof($customerReturnNoteJournalEntries) > 0) {
-                                        foreach($customerReturnNoteJournalEntries as $customerReturnNoteJournalEntry) {
-                                            $journalEntryId = $customerReturnNoteJournalEntry->journal_entry_id;
+                                    $this->receive_payment_model->editReceivePaymentData($receivePaymentReferenceTransaction, $receivePaymentDatanew);
 
-                                            $claimReferenceJournalEntries = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
+                                    $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentReferenceTransaction);
 
-                                            if ($claimReferenceJournalEntries && sizeof($claimReferenceJournalEntries) > 0) {
-                                                foreach($claimReferenceJournalEntries as $claimReferenceJournalEntry) {
-                                                    $claimReferenceJournalEntryId = $claimReferenceJournalEntry->claim_reference_journal_entry_id;
-                                                    $this->journal_entries_model->deleteJournalEntry($claimReferenceJournalEntryId, "deleted", $this->user_id);
-                                                    $this->journal_entries_model->deleteGeneralLedgerTransactions($claimReferenceJournalEntryId, "deleted", $this->user_id);
+                                    if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                                        //Get general ledger transactions to update new location
+                                        foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
+
+                                            $receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
+
+                                        if ($customerChanged || $locationChanged || $salesNoteDateChanged) {
+
+                                                $journalEntry = $this->journal_entries_model->getJournalEntryById($receivePaymentJournalEntryId);
+
+                                                $journalEntryHistoryData = array(
+                                                    'journal_entry_id' => $journalEntry[0]->journal_entry_id,
+                                                    'prime_entry_book_id' => $journalEntry[0]->prime_entry_book_id,
+                                                    'location_id' => $journalEntry[0]->location_id,
+                                                    'payee_payer_type' => $journalEntry[0]->payee_payer_type,
+                                                    'delivery_route_id' => $journalEntry[0]->delivery_route_id,
+                                                    'payee_payer_id' => $journalEntry[0]->payee_payer_id,
+                                                    'due_date' => $journalEntry[0]->due_date,
+                                                    'transaction_date' => $journalEntry[0]->transaction_date,
+                                                    'reference_no' => $journalEntry[0]->reference_no,
+                                                    'should_have_a_payment_journal_entry' => $journalEntry[0]->should_have_a_payment_journal_entry,
+                                                    'reference_transaction_type_id' => $journalEntry[0]->reference_transaction_type_id,
+                                                    'reference_transaction_id' => $journalEntry[0]->reference_transaction_id,
+                                                    'reference_journal_entry_id' => $journalEntry[0]->reference_journal_entry_id,
+                                                    'description' => $journalEntry[0]->description,
+                                                    'post_type' => $journalEntry[0]->post_type,
+                                                    'actioned_user_id' => $journalEntry[0]->actioned_user_id,
+                                                    'action_date' => $journalEntry[0]->action_date,
+                                                    'last_action_status' => $journalEntry[0]->last_action_status
+                                                );
+
+                                                $this->journal_entries_model->addJournalEntryToHistory($journalEntryHistoryData);
+
+                                                $data = array(
+                                                    'location_id' => $locationId,
+                                                    'payee_payer_id' => $customerId,
+                                                    'transaction_date' => $salesNoteDate,
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'edited'
+                                                );
+
+                                                $this->journal_entries_model->editJournalEntry($receivePaymentJournalEntryId, $data);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        //Update customer return note data
+                        $customerReturnNoteAmountToAdd = 0;
+
+                        $receivePaymentReferenceTransactionsOfSalesNotes = $this->receive_payment_model->getReceivePaymentReferenceTransactionsOfSalesNote($salesNoteId);
+
+                        if ($receivePaymentReferenceTransactionsOfSalesNotes && sizeof($receivePaymentReferenceTransactionsOfSalesNotes) > 0) {
+                            foreach($receivePaymentReferenceTransactionsOfSalesNotes as $receivePaymentReferenceTransaction) {
+                                $receivePaymentId = $receivePaymentReferenceTransaction->receive_payment_id;
+                                $receivePaymentCustomerReturnNotes = $this->receive_payment_model->getReceivePaymentCustomerReturnNoteReferenceTransactions($receivePaymentId);
+
+                                if ($receivePaymentCustomerReturnNotes && sizeof($receivePaymentCustomerReturnNotes) > 0) {
+                                    foreach($receivePaymentCustomerReturnNotes as $customerReturnNoteId) {
+
+                                        $customerReturnNote = $this->customer_return_note_model->getCustomerReturnNoteById($customerReturnNoteId);
+
+                                        $amount = $customerReturnNote[0]->amount;
+                                        $customerReturnNoteType = $customerReturnNote[0]->type;
+                                        $customerReturnNoteAmountToAdd = $customerReturnNoteAmountToAdd + $customerReturnNote[0]->amount;
+
+                                        $customerReturnNoteDatanew = array(
+                                            'balance_payment' => $amount,
+                                            'status' => "Open",
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'edited'
+                                        );
+
+                                        $this->customer_return_note_model->editCustomerReturnNoteData($customerReturnNoteId, $customerReturnNoteDatanew);
+
+                                        $receivePaymentReferenceTransaction = $this->receive_payment_model->getReceivePaymentReferenceTransactionOfCustomerReturnNoteForReceivePayment($customerReturnNoteId, $receivePaymentId);
+
+                                        if ($receivePaymentReferenceTransaction && sizeof($receivePaymentReferenceTransaction) > 0) {
+                                            $receivePaymentReferenceTransactionId = $receivePaymentReferenceTransaction[0]->receive_payment_reference_transaction_id;
+                                            $this->receive_payment_model->deleteReceivePaymentReferenceTransactionSoftly($receivePaymentReferenceTransactionId, "deleted", $this->user_id);
+                                        }
+
+                                        $customerReturnNoteJournalEntries = '';
+
+                                        if ($customerReturnNoteType == "saleable_return") {
+                                            $customerReturnNoteJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
+                                        } else if ($customerReturnNoteType == "market_return") {
+                                            $customerReturnNoteJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '3');
+                                        }
+
+                                        if ($customerReturnNoteJournalEntries && sizeof($customerReturnNoteJournalEntries) > 0) {
+                                            foreach($customerReturnNoteJournalEntries as $customerReturnNoteJournalEntry) {
+                                                $journalEntryId = $customerReturnNoteJournalEntry->journal_entry_id;
+
+                                                $claimReferenceJournalEntries = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
+
+                                                if ($claimReferenceJournalEntries && sizeof($claimReferenceJournalEntries) > 0) {
+                                                    foreach($claimReferenceJournalEntries as $claimReferenceJournalEntry) {
+                                                        $claimReferenceJournalEntryId = $claimReferenceJournalEntry->claim_reference_journal_entry_id;
+                                                        $this->journal_entries_model->deleteJournalEntry($claimReferenceJournalEntryId, "deleted", $this->user_id);
+                                                        $this->journal_entries_model->deleteGeneralLedgerTransactions($claimReferenceJournalEntryId, "deleted", $this->user_id);
+                                                    }
                                                 }
                                             }
                                         }
@@ -808,300 +827,302 @@ class Sales_note_controller extends CI_Controller {
                                 }
                             }
                         }
-                    }
-                    
-                    //Update customer saleable return note added from sales note
-                    if ($customerSaleableReturnId != '0') {
-                        $customerSaleableReturnNote = $this->customer_return_note_model->getCustomerReturnNoteById($customerSaleableReturnId);
-                        $customerReturnNoteDate = $customerSaleableReturnNote[0]->date;
-                        $customerReturnAmount = $customerSaleableReturnNote[0]->amount;
-                        
-                        $salesProfitMargin = $this->getSalesProfitMargin();
-                        
-                        $salesCost = "";
-                        $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId = $this->system_configurations_model->getCustomerMarketReturnCostEntryProfitMarginCreditChartOfAccount();
-                        if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
-                            $salesCost = $customerReturnAmount;
-                        } else {
-                            $salesCost = $customerReturnAmount - ($customerReturnAmount/100) * $salesProfitMargin;
+
+                        //Update customer saleable return note added from sales note
+                        if ($customerSaleableReturnId != '0') {
+                            $customerSaleableReturnNote = $this->customer_return_note_model->getCustomerReturnNoteById($customerSaleableReturnId);
+                            $customerReturnNoteDate = $customerSaleableReturnNote[0]->date;
+                            $customerReturnAmount = $customerSaleableReturnNote[0]->amount;
+
+                            $salesProfitMargin = $this->getSalesProfitMargin();
+
+                            $salesCost = "";
+                            $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId = $this->system_configurations_model->getCustomerMarketReturnCostEntryProfitMarginCreditChartOfAccount();
+                            if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
+                                $salesCost = $customerReturnAmount;
+                            } else {
+                                $salesCost = $customerReturnAmount - ($customerReturnAmount/100) * $salesProfitMargin;
+                            }
+
+                            $customerSaleableReturnNoteDatanew = array(
+                                'customer_id' => $customerId,
+                                'location_id' => $locationId,
+                                'actioned_user_id' => $this->user_id,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'edited'
+                            );
+
+                            $this->customer_return_note_model->editCustomerReturnNoteData($customerSaleableReturnId, $customerSaleableReturnNoteDatanew);
+
+                            $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+                            $primeEntryBooksToUpdate = '';
+
+                            $customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '1');
+                            $customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '2');
+
+                            $primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteSalesEntryTransaction();
+                            $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteCostEntryTransaction();
+                            $primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForReceivePaymentTransactionClaim();
+
+                            if ($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry && $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry) {
+                                $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry);
+                            }
+
+                            if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                    $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                    if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 3) {
+                                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                    }
+                                }
+                            }
+
+                            if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                                $description = $this->lang->line('Journal entry for saleable return sales entry for Customer Return Note number : ') . $referenceNo;
+                                $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $customerSaleableReturnId, 
+                                        $customerSaleableReturnNoteSalesEntryJournalEntries, '1', $customerReturnNoteDate, $referenceNo, 
+                                        $locationId, $customerId, $customerReturnAmount, '0', $description, '', '', '', true);
+                                $description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $referenceNo;
+                                $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $customerSaleableReturnId, 
+                                        $customerSaleableReturnNoteCostEntryJournalEntries, '2', $customerReturnNoteDate, $referenceNo, 
+                                        $locationId, $customerId, $salesCost, '0', $description, '', '', '', true);
+
+                                //Update journal entry for customer return note claim for sales note
+                                if ($customerSaleableReturnNoteSalesEntryJournalEntries && sizeof($customerSaleableReturnNoteSalesEntryJournalEntries) > 0) {
+                                    $transactionClaimJournalEntries = array();
+                                    foreach ($customerSaleableReturnNoteSalesEntryJournalEntries as $customerSaleableReturnNoteSalesEntryJournalEntry) {
+                                        $journalEntryId = $customerSaleableReturnNoteSalesEntryJournalEntry->journal_entry_id;
+                                        $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
+
+                                        if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
+                                            foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
+                                                $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
+                                                $journalEntry = $this->journal_entries_model->getJournalEntryById($claimReferenceJournalEntryId);
+                                                $transactionClaimJournalEntries[] = $journalEntry;
+                                            }
+                                        }
+                                    }
+
+                                    $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim, $transactionClaimJournalEntries, 
+                                        $salesNoteDate, $salesNoteReferenceNo, '2', $salesNoteId, $salesNoteReferenceJournalEntryId, $referenceNo, $locationId, 
+                                        $customerId, $customerReturnAmount, true);
+                                }
+                            } else {
+                                $result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
+                            }
                         }
 
-                        $customerSaleableReturnNoteDatanew = array(
+                        //Update customer market return note added from sales note
+                        if ($customerMarketReturnId != '0') {
+                            $customerMarketReturnNote = $this->customer_return_note_model->getCustomerReturnNoteById($customerMarketReturnId);
+                            $customerReturnNoteDate = $customerMarketReturnNote[0]->date;
+                            $customerReturnAmount = $customerMarketReturnNote[0]->amount;
+
+                            $salesProfitMargin = $this->getSalesProfitMargin();
+
+                            $profitPortion = "";
+                            $salesCost = "";
+                            $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId = $this->system_configurations_model->getCustomerMarketReturnCostEntryProfitMarginCreditChartOfAccount();
+                            if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
+                                $profitPortion = ($customerReturnAmount/100) * $salesProfitMargin;
+                                $salesCost = $customerReturnAmount;
+                            } else {
+                                $salesCost = $customerReturnAmount - ($customerReturnAmount/100) * $salesProfitMargin;
+                            }
+
+                            $customerMarketReturnNoteDatanew = array(
+                                'customer_id' => $customerId,
+                                'location_id' => $locationId,
+                                'actioned_user_id' => $this->user_id,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'edited'
+                            );
+
+                            $this->customer_return_note_model->editCustomerReturnNoteData($customerMarketReturnId, $customerMarketReturnNoteDatanew);
+
+                            $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+                            $primeEntryBooksToUpdate = '';
+
+                            $customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '3');
+                            $customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '4');
+
+                            $primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteSalesEntryTransaction();
+                            $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteCostEntryTransaction();
+                            $primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForReceivePaymentTransactionClaim();
+
+                            if ($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry && $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry) {
+                                $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry);
+                            }
+
+                            if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                    $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                    if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 3) {
+                                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                    }
+                                }
+                            }
+
+                            if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                                $description = $this->lang->line('Journal entry for market return sales entry for Customer Return Note number : ') . $referenceNo;
+                                $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $customerMarketReturnId, 
+                                        $customerMarketReturnNoteSalesEntryJournalEntries, '3', $customerReturnNoteDate, $referenceNo, 
+                                        $locationId, $customerId, $customerReturnAmount, '0', $description, '', '', '', true);
+                                $description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $referenceNo;
+                                $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $customerMarketReturnId, 
+                                        $customerMarketReturnNoteCostEntryJournalEntries, '4', $customerReturnNoteDate, $referenceNo, 
+                                        $locationId, $customerId, $salesCost, '0', $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, '0', true);
+
+                                //Update journal entry for customer return note claim for sales note
+                                if ($customerMarketReturnNoteSalesEntryJournalEntries && sizeof($customerMarketReturnNoteSalesEntryJournalEntries) > 0) {
+                                    $transactionClaimJournalEntries = array();
+                                    foreach ($customerMarketReturnNoteSalesEntryJournalEntries as $customerMarketReturnNoteSalesEntryJournalEntry) {
+                                        $journalEntryId = $customerMarketReturnNoteSalesEntryJournalEntry->journal_entry_id;
+                                        $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
+
+                                        if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
+                                            foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
+                                                $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
+                                                $journalEntry = $this->journal_entries_model->getJournalEntryById($claimReferenceJournalEntryId);
+                                                $transactionClaimJournalEntries[] = $journalEntry;
+                                            }
+                                        }
+                                    }
+
+                                    $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim, $transactionClaimJournalEntries, 
+                                        $salesNoteDate, $salesNoteReferenceNo, '2', $salesNoteId, $salesNoteReferenceJournalEntryId, $referenceNo, $locationId, 
+                                        $customerId, $customerReturnAmount, true);
+                                }
+                            } else {
+                                $result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
+                            }
+                        }
+
+                        //Update income cheque data
+                        if ($salesNoteReceiveChequePaymentIds && sizeof($salesNoteReceiveChequePaymentIds) > 0) {
+                            foreach($salesNoteReceiveChequePaymentIds as $salesNoteReceiveChequePaymentId) {
+                                $receivePaymentMethodRecordsForChequePayments = $this->receive_payment_model->getReceivePaymentMethodList($salesNoteReceiveChequePaymentId, "Cheque Payment");
+                                if ($receivePaymentMethodRecordsForChequePayments && sizeof($receivePaymentMethodRecordsForChequePayments) > 0) {
+                                    foreach($receivePaymentMethodRecordsForChequePayments as $receivePaymentMethodRecord) {
+                                        $incomeChequeId = $receivePaymentMethodRecord->cheque_id;
+                                        $receiveChequePaymentId = $receivePaymentMethodRecord->receive_payment_id;
+
+                                        if ($incomeChequeId != '0') {
+                                            $incomeChequeDatanew = array(
+                                                'payer_id' => $customerId,
+                                                'location_id' => $locationId,
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'edited'
+                                            );
+
+                                            $this->payments_model->editIncomeCheque($incomeChequeId, $incomeChequeDatanew);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        //Update sales note data
+                        $salesNoteDataHistory = array(
+                            'sales_note_id' => $salesNote[0]->sales_note_id,
+                            'reference_no' => $salesNote[0]->reference_no,
+                            'customer_id' => $salesNote[0]->customer_id,
+                            'territory_id' => $salesNote[0]->territory_id,
+                            'location_id' => $salesNote[0]->location_id,
+                            'date' => $salesNote[0]->date,
+                            'sales_amount' => $salesNote[0]->sales_amount,
+                            'discount' => $salesNote[0]->discount,
+                            'amount_payable' => $salesNote[0]->amount_payable,
+                            'cash_payment_amount' => $salesNote[0]->cash_payment_amount,
+                            'cheque_payment_amount' => $salesNote[0]->cheque_payment_amount,
+                            'credit_card_payment_amount' => $salesNote[0]->credit_card_payment_amount,
+                            'balance_payment' => $salesNote[0]->balance_payment,
+                            'customer_return_note_claimed' => $salesNote[0]->customer_return_note_claimed,
+                            'customer_saleable_return_id' => $salesNote[0]->customer_saleable_return_id,
+                            'customer_market_return_id' => $salesNote[0]->customer_market_return_id,
+                            'free_issue_amount' => $salesNote[0]->free_issue_amount,
+                            'remark' => $salesNote[0]->remark,
+                            'actioned_user_id' => $salesNote[0]->actioned_user_id,
+                            'added_date' => $salesNote[0]->added_date,
+                            'action_date' => $salesNote[0]->action_date,
+                            'last_action_status' => $salesNote[0]->last_action_status,
+                        );
+
+                        $this->sales_note_model->addSalesNoteDataToHistory($salesNoteDataHistory);
+
+                        $amountPayable = $salesNote[0]->amount_payable;
+                        $balancePayment = $salesNote[0]->balance_payment;
+                        $salesNoteAmountChange = $salesAmount - $salesNote[0]->sales_amount;
+                        $discountChange = $discount - $salesNote[0]->discount;
+                        $amountPayable = $amountPayable + $salesNoteAmountChange - $discountChange;
+                        $balancePayment = $balancePayment + $salesNoteAmountChange + $customerReturnNoteAmountToAdd - $discountChange;
+
+                        $salesNoteDatanew = array(
+                            'reference_no' => $referenceNo,
                             'customer_id' => $customerId,
+                            'territory_id' => $territoryId,
                             'location_id' => $locationId,
+                            'date' => $salesNoteDate,
+                            'sales_amount' => $salesAmount,
+                            'discount' => $discount,
+                            'free_issue_amount' => $freeIssueAmount,
+                            'amount_payable' => $amountPayable,
+                            'balance_payment' => $balancePayment,
+                            'remark' => $remark,
                             'actioned_user_id' => $this->user_id,
                             'action_date' => $this->date,
                             'last_action_status' => 'edited'
                         );
 
-                        $this->customer_return_note_model->editCustomerReturnNoteData($customerSaleableReturnId, $customerSaleableReturnNoteDatanew);
+                        $this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteDatanew);
 
-                        $correctChartOfAccountsFoundInPrimeEntryBooks = true;
-                        $primeEntryBooksToUpdate = '';
+                        $salesNoteSalesEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '1');
+                        $salesNoteCostEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '2');
+                        $salesNoteDiscountJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '3');
+                        $salesNoteFreeIssuesJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '4');
 
-                        $customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '1');
-                        $customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '2');
+                        $primeEntryBooksToUpdateForSaleSalesEntry = $this->getPrimeEntryBooksToUpdateForSalesNoteSalesEntryTransaction();
+                        $primeEntryBooksToUpdateForSaleCostEntry = $this->getPrimeEntryBooksToUpdateForSalesNoteCostEntryTransaction();
+                        $primeEntryBooksToUpdateForDiscount = $this->getPrimeEntryBooksToUpdateForSalesNoteDiscountTransaction();
+                        $primeEntryBooksToUpdateForForFreeIssueAmount = $this->getPrimeEntryBooksToUpdateForSalesNoteFreeIssuesTransaction();
 
-                        $primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteSalesEntryTransaction();
-                        $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteCostEntryTransaction();
-                        $primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForReceivePaymentTransactionClaim();
-                        
-                        if ($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry && $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry) {
-                            $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry);
+                        if ($salesAmountChanged || $customerChanged || $locationChanged || $salesNoteDateChanged) {
+                            $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleSalesEntry, '0', $salesNoteId, $salesNoteSalesEntryJournalEntries, 
+                                    '1', $salesNoteDate, $referenceNo, $locationId, $customerId, $salesAmount, $salesOldAmount, "Yes", 
+                                    '', '', '', true);
+
+                            $salesProfitMargin = $this->getSalesProfitMargin();
+                            $salesCost = $salesAmount - ($salesAmount/100) * $salesProfitMargin;
+
+                            $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleCostEntry, '2', $salesNoteId, $salesNoteCostEntryJournalEntries, 
+                                    '2', $salesNoteDate, $referenceNo, $locationId, $customerId, $salesCost, $salesCostOldAmount, "No", 
+                                    '', '', '', true);
                         }
 
-                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                $primeEntryBookId = $primeEntryBook->config_filed_value;
-                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 3) {
-                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                }
-                            }
+                        if ($discountChanged || $customerChanged || $locationChanged || $salesNoteDateChanged) {
+                            $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForDiscount, '2', $salesNoteId, $salesNoteDiscountJournalEntries, 
+                                    '3', $salesNoteDate, $referenceNo, $locationId, $customerId, $discount, $discountOldAmount, "No", 
+                                    '', '', '', true);
                         }
 
-                        if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-                            $description = $this->lang->line('Journal entry for saleable return sales entry for Customer Return Note number : ') . $referenceNo;
-                            $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $customerSaleableReturnId, 
-                                    $customerSaleableReturnNoteSalesEntryJournalEntries, '1', $customerReturnNoteDate, $referenceNo, 
-                                    $locationId, $customerId, $customerReturnAmount, '0', $description, '', '', '', true);
-                            $description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $referenceNo;
-                            $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $customerSaleableReturnId, 
-                                    $customerSaleableReturnNoteCostEntryJournalEntries, '2', $customerReturnNoteDate, $referenceNo, 
-                                    $locationId, $customerId, $salesCost, '0', $description, '', '', '', true);
-                            
-                            //Update journal entry for customer return note claim for sales note
-                            if ($customerSaleableReturnNoteSalesEntryJournalEntries && sizeof($customerSaleableReturnNoteSalesEntryJournalEntries) > 0) {
-                                $transactionClaimJournalEntries = array();
-                                foreach ($customerSaleableReturnNoteSalesEntryJournalEntries as $customerSaleableReturnNoteSalesEntryJournalEntry) {
-                                    $journalEntryId = $customerSaleableReturnNoteSalesEntryJournalEntry->journal_entry_id;
-                                    $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
-
-                                    if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
-                                        foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
-                                            $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
-                                            $journalEntry = $this->journal_entries_model->getJournalEntryById($claimReferenceJournalEntryId);
-                                            $transactionClaimJournalEntries[] = $journalEntry;
-                                        }
-                                    }
-                                }
-                                
-                                $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim, $transactionClaimJournalEntries, 
-                                    $salesNoteDate, $salesNoteReferenceNo, '2', $salesNoteId, $salesNoteReferenceJournalEntryId, $referenceNo, $locationId, 
-                                    $customerId, $customerReturnAmount, true);
-                            }
-                        } else {
-                            $result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
+                        if ($freeIssueAmountChanged || $customerChanged || $locationChanged || $salesNoteDateChanged) {
+                            $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForForFreeIssueAmount, '2', $salesNoteId, $salesNoteFreeIssuesJournalEntries, 
+                                    '4', $salesNoteDate, $referenceNo, $locationId, $customerId, $freeIssueAmount, $freeIssueOldAmount, "No", 
+                                    '', '', '', true);
                         }
+
+                        $result = 'ok';
+                    } else {
+                        $result = 'no_changes_to_save';
                     }
-                    
-                    //Update customer market return note added from sales note
-                    if ($customerMarketReturnId != '0') {
-                        $customerMarketReturnNote = $this->customer_return_note_model->getCustomerReturnNoteById($customerMarketReturnId);
-                        $customerReturnNoteDate = $customerMarketReturnNote[0]->date;
-                        $customerReturnAmount = $customerMarketReturnNote[0]->amount;
-                        
-                        $salesProfitMargin = $this->getSalesProfitMargin();
-                    
-                        $profitPortion = "";
-                        $salesCost = "";
-                        $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId = $this->system_configurations_model->getCustomerMarketReturnCostEntryProfitMarginCreditChartOfAccount();
-                        if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
-                            $profitPortion = ($customerReturnAmount/100) * $salesProfitMargin;
-                            $salesCost = $customerReturnAmount;
-                        } else {
-                            $salesCost = $customerReturnAmount - ($customerReturnAmount/100) * $salesProfitMargin;
-                        }
-                        
-                        $customerMarketReturnNoteDatanew = array(
-                            'customer_id' => $customerId,
-                            'location_id' => $locationId,
-                            'actioned_user_id' => $this->user_id,
-                            'action_date' => $this->date,
-                            'last_action_status' => 'edited'
-                        );
-
-                        $this->customer_return_note_model->editCustomerReturnNoteData($customerMarketReturnId, $customerMarketReturnNoteDatanew);
-
-                        $correctChartOfAccountsFoundInPrimeEntryBooks = true;
-                        $primeEntryBooksToUpdate = '';
-
-                        $customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '3');
-                        $customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '4');
-
-                        $primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteSalesEntryTransaction();
-                        $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteCostEntryTransaction();
-                        $primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForReceivePaymentTransactionClaim();
-                        
-                        if ($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry && $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry) {
-                            $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry);
-                        }
-
-                        if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                $primeEntryBookId = $primeEntryBook->config_filed_value;
-                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 3) {
-                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                }
-                            }
-                        }
-
-                        if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-                            $description = $this->lang->line('Journal entry for market return sales entry for Customer Return Note number : ') . $referenceNo;
-                            $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $customerMarketReturnId, 
-                                    $customerMarketReturnNoteSalesEntryJournalEntries, '3', $customerReturnNoteDate, $referenceNo, 
-                                    $locationId, $customerId, $customerReturnAmount, '0', $description, '', '', '', true);
-                            $description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $referenceNo;
-                            $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $customerMarketReturnId, 
-                                    $customerMarketReturnNoteCostEntryJournalEntries, '4', $customerReturnNoteDate, $referenceNo, 
-                                    $locationId, $customerId, $salesCost, '0', $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, '0', true);
-                            
-                            //Update journal entry for customer return note claim for sales note
-                            if ($customerMarketReturnNoteSalesEntryJournalEntries && sizeof($customerMarketReturnNoteSalesEntryJournalEntries) > 0) {
-                                $transactionClaimJournalEntries = array();
-                                foreach ($customerMarketReturnNoteSalesEntryJournalEntries as $customerMarketReturnNoteSalesEntryJournalEntry) {
-                                    $journalEntryId = $customerMarketReturnNoteSalesEntryJournalEntry->journal_entry_id;
-                                    $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
-
-                                    if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
-                                        foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
-                                            $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
-                                            $journalEntry = $this->journal_entries_model->getJournalEntryById($claimReferenceJournalEntryId);
-                                            $transactionClaimJournalEntries[] = $journalEntry;
-                                        }
-                                    }
-                                }
-                        
-                                $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim, $transactionClaimJournalEntries, 
-                                    $salesNoteDate, $salesNoteReferenceNo, '2', $salesNoteId, $salesNoteReferenceJournalEntryId, $referenceNo, $locationId, 
-                                    $customerId, $customerReturnAmount, true);
-                            }
-                        } else {
-                            $result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
-                        }
-                    }
-                    
-                    //Update income cheque data
-                    if ($salesNoteReceiveChequePaymentIds && sizeof($salesNoteReceiveChequePaymentIds) > 0) {
-                        foreach($salesNoteReceiveChequePaymentIds as $salesNoteReceiveChequePaymentId) {
-                            $receivePaymentMethodRecordsForChequePayments = $this->receive_payment_model->getReceivePaymentMethodList($salesNoteReceiveChequePaymentId, "Cheque Payment");
-                            if ($receivePaymentMethodRecordsForChequePayments && sizeof($receivePaymentMethodRecordsForChequePayments) > 0) {
-                                foreach($receivePaymentMethodRecordsForChequePayments as $receivePaymentMethodRecord) {
-                                    $incomeChequeId = $receivePaymentMethodRecord->cheque_id;
-                                    $receiveChequePaymentId = $receivePaymentMethodRecord->receive_payment_id;
-
-                                    if ($incomeChequeId != '0') {
-                                        $incomeChequeDatanew = array(
-                                            'payer_id' => $customerId,
-                                            'location_id' => $locationId,
-                                            'actioned_user_id' => $this->user_id,
-                                            'action_date' => $this->date,
-                                            'last_action_status' => 'edited'
-                                        );
-
-                                        $this->payments_model->editIncomeCheque($incomeChequeId, $incomeChequeDatanew);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    //Update sales note data
-                    $salesNoteDataHistory = array(
-						'sales_note_id' => $salesNote[0]->sales_note_id,
-						'reference_no' => $salesNote[0]->reference_no,
-						'customer_id' => $salesNote[0]->customer_id,
-						'territory_id' => $salesNote[0]->territory_id,
-						'location_id' => $salesNote[0]->location_id,
-						'date' => $salesNote[0]->date,
-						'sales_amount' => $salesNote[0]->sales_amount,
-						'discount' => $salesNote[0]->discount,
-						'amount_payable' => $salesNote[0]->amount_payable,
-                        'cash_payment_amount' => $salesNote[0]->cash_payment_amount,
-						'cheque_payment_amount' => $salesNote[0]->cheque_payment_amount,
-                        'credit_card_payment_amount' => $salesNote[0]->credit_card_payment_amount,
-                        'balance_payment' => $salesNote[0]->balance_payment,
-                        'customer_return_note_claimed' => $salesNote[0]->customer_return_note_claimed,
-						'customer_saleable_return_id' => $salesNote[0]->customer_saleable_return_id,
-						'customer_market_return_id' => $salesNote[0]->customer_market_return_id,
-						'free_issue_amount' => $salesNote[0]->free_issue_amount,
-						'remark' => $salesNote[0]->remark,
-						'actioned_user_id' => $salesNote[0]->actioned_user_id,
-						'added_date' => $salesNote[0]->added_date,
-						'action_date' => $salesNote[0]->action_date,
-						'last_action_status' => $salesNote[0]->last_action_status,
-					);
-
-					$this->sales_note_model->addSalesNoteDataToHistory($salesNoteDataHistory);
-
-                    $amountPayable = $salesNote[0]->amount_payable;
-                    $balancePayment = $salesNote[0]->balance_payment;
-                    $salesNoteAmountChange = $salesAmount - $salesNote[0]->sales_amount;
-                    $discountChange = $discount - $salesNote[0]->discount;
-                    $amountPayable = $amountPayable + $salesNoteAmountChange - $discountChange;
-                    $balancePayment = $balancePayment + $salesNoteAmountChange + $customerReturnNoteAmountToAdd - $discountChange;
-                    
-					$salesNoteDatanew = array(
-						'reference_no' => $referenceNo,
-						'customer_id' => $customerId,
-						'territory_id' => $territoryId,
-						'location_id' => $locationId,
-						'date' => $salesNoteDate,
-						'sales_amount' => $salesAmount,
-						'discount' => $discount,
-						'free_issue_amount' => $freeIssueAmount,
-						'amount_payable' => $amountPayable,
-                        'balance_payment' => $balancePayment,
-						'remark' => $remark,
-						'actioned_user_id' => $this->user_id,
-						'action_date' => $this->date,
-						'last_action_status' => 'edited'
-					);
-
-					$this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteDatanew);
-
-					$salesNoteSalesEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '1');
-					$salesNoteCostEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '2');
-					$salesNoteDiscountJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '3');
-					$salesNoteFreeIssuesJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '4');
-				
-					$primeEntryBooksToUpdateForSaleSalesEntry = $this->getPrimeEntryBooksToUpdateForSalesNoteSalesEntryTransaction();
-					$primeEntryBooksToUpdateForSaleCostEntry = $this->getPrimeEntryBooksToUpdateForSalesNoteCostEntryTransaction();
-					$primeEntryBooksToUpdateForDiscount = $this->getPrimeEntryBooksToUpdateForSalesNoteDiscountTransaction();
-					$primeEntryBooksToUpdateForForFreeIssueAmount = $this->getPrimeEntryBooksToUpdateForSalesNoteFreeIssuesTransaction();
-				
-					if ($salesAmountChanged || $customerChanged || $locationChanged || $salesNoteDateChanged) {
-						$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleSalesEntry, '0', $salesNoteId, $salesNoteSalesEntryJournalEntries, 
-                                '1', $salesNoteDate, $referenceNo, $locationId, $customerId, $salesAmount, $salesOldAmount, "Yes", 
-                                '', '', '', true);
-						
-						$salesProfitMargin = $this->getSalesProfitMargin();
-						$salesCost = $salesAmount - ($salesAmount/100) * $salesProfitMargin;
-						
-						$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleCostEntry, '2', $salesNoteId, $salesNoteCostEntryJournalEntries, 
-                                '2', $salesNoteDate, $referenceNo, $locationId, $customerId, $salesCost, $salesCostOldAmount, "No", 
-                                '', '', '', true);
-					}
-					
-					if ($discountChanged || $customerChanged || $locationChanged || $salesNoteDateChanged) {
-						$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForDiscount, '2', $salesNoteId, $salesNoteDiscountJournalEntries, 
-                                '3', $salesNoteDate, $referenceNo, $locationId, $customerId, $discount, $discountOldAmount, "No", 
-                                '', '', '', true);
-					}
-					
-					if ($freeIssueAmountChanged || $customerChanged || $locationChanged || $salesNoteDateChanged) {
-						$this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForForFreeIssueAmount, '2', $salesNoteId, $salesNoteFreeIssuesJournalEntries, 
-                                '4', $salesNoteDate, $referenceNo, $locationId, $customerId, $freeIssueAmount, $freeIssueOldAmount, "No", 
-                                '', '', '', true);
-					}
-					
-					$result = 'ok';
-				} else {
-					$result = 'no_changes_to_save';
-				}
+                } else {
+                    $result = "previous_financial_year_is_closed";
+                }
 			}
 
 			echo json_encode(array('result' => $result, 'salesNoteId' => $salesNoteId));
@@ -1123,861 +1144,886 @@ class Sales_note_controller extends CI_Controller {
 			$result = '';
 			
 			$salesNoteId = $this->db->escape_str($this->input->post('sales_note_id'));
-			$salesNoteDate = $this->db->escape_str($this->input->post('sales_note_date'));
-			$customerId = $this->db->escape_str($this->input->post('customer_id'));
-			$territoryId = $this->db->escape_str($this->input->post('territory_id'));
-			$locationId = $this->db->escape_str($this->input->post('location_id'));
-			$customerReturnsAvailable = $this->db->escape_str($this->input->post('customer_returns_available'));
-			$customerSaleableReturnAmount = $this->db->escape_str($this->input->post('customer_saleable_return_amount'));
-			$customerMarketReturnAmount = $this->db->escape_str($this->input->post('customer_market_return_amount'));
-			
-			$salesProfitMargin = $this->getSalesProfitMargin();
-			$CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId = $this->system_configurations_model->getCustomerMarketReturnCostEntryProfitMarginCreditChartOfAccount();
-			
-			$salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
-			
-            $salesNoteReferenceNo = $salesNote[0]->reference_no;
-			$customerIdOld = $salesNote[0]->customer_id;
-			$territoryIdOld = $salesNote[0]->territory_id;
-			$locationIdOld = $salesNote[0]->location_id;
-			$salesNoteDateOld = $salesNote[0]->date;
-			$customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
-			$customerMarketReturnId = $salesNote[0]->customer_market_return_id;
             
-            $primeEntryBookData = $this->system_configurations_model->getSalesNoteSalesEntryAccountsPrimeEntryBooks();
-        
-            $primeEntryBookId = '';
-            if ($primeEntryBookData && sizeof($primeEntryBookData) > 0) {
-                $primeEntryBookId = $primeEntryBookData[0]->config_filed_value;
-            }
+            $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
+            $salesNoteTransactionDate = $salesNote[0]->date;
+                
+            $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($salesNoteTransactionDate);
+
+            if ($financialYear[0]->year_end_process_status != "Closed") {
             
-            $referenceJournalEntry = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByPrimeEntryBookId($salesNoteReferenceNo, $primeEntryBookId);
-        
-            $salesNoteReferenceJournalEntryId = '';
-            if ($referenceJournalEntry && sizeof($referenceJournalEntry) > 0) {
-                $salesNoteReferenceJournalEntryId = $referenceJournalEntry[0]->journal_entry_id;
-            }
-			
-			$customerSaleableReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerSaleableReturnId);
-			$customerMarketReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerMarketReturnId);
-			
-			$customerSaleableReturnReferenceNo = '';
-			$customerSaleableReturnAmountOld = '';
-			if ($customerSaleableReturn && sizeof($customerSaleableReturn) > 0) {
-				$customerSaleableReturnReferenceNo = $customerSaleableReturn[0]->reference_no;
-				$customerSaleableReturnAmountOld = $customerSaleableReturn[0]->amount;
-			}
-			
-			$customerMarketReturnReferenceNo = '';
-			$customerMarketReturnAmountOld = '';
-			if ($customerMarketReturn && sizeof($customerMarketReturn) > 0) {
-				$customerMarketReturnReferenceNo = $customerMarketReturn[0]->reference_no;
-				$customerMarketReturnAmountOld = $customerMarketReturn[0]->amount;
-			}
-			
-			if ($customerIdOld != $customerId) {$customerChanged = true;}
-			if ($territoryIdOld != $territoryId) {$territoryChanged = true;}
-			if ($locationIdOld != $locationId) {$locationChanged = true;}
-			if ($salesNoteDateOld != $salesNoteDate) {$salesNoteDateChanged = true;}
-			if ($customerSaleableReturnAmountOld != $customerSaleableReturnAmount) {
-                $customerSaleableReturnAmountChanged = true;
-                $customerSaleableReturnAmountChanged = $customerSaleableReturnAmountOld - $customerSaleableReturnAmount;
-            }
-			if ($customerMarketReturnAmountOld != $customerMarketReturnAmount) {
-                $customerMarketReturnAmountChanged = true;
-                $customerMarketReturnAmountChanged = $customerMarketReturnAmountOld - $customerMarketReturnAmount;
-            }
-			
-			if ($customerChanged || $territoryChanged || $locationChanged || $salesNoteDateChanged || $customerSaleableReturnAmountChanged) {
-				
-				if ($customerSaleableReturn && sizeof($customerSaleableReturn) > 0) {
-					$customerReturnNoteDataHistory = array(
-						'customer_return_note_id' => $customerSaleableReturn[0]->customer_return_note_id,
-						'reference_no' => $customerSaleableReturn[0]->reference_no,
-						'customer_id' => $customerSaleableReturn[0]->customer_id,
-						'territory_id' => $customerSaleableReturn[0]->territory_id,
-						'location_id' => $customerSaleableReturn[0]->location_id,
-						'date' => $customerSaleableReturn[0]->date,
-						'amount' => $customerSaleableReturn[0]->amount,
-						'type' => $customerSaleableReturn[0]->type,
-						'remark' => $customerSaleableReturn[0]->remark,
-						'actioned_user_id' => $customerSaleableReturn[0]->actioned_user_id,
-						'added_date' => $customerSaleableReturn[0]->added_date,
-						'action_date' => $customerSaleableReturn[0]->action_date,
-						'last_action_status' => $customerSaleableReturn[0]->last_action_status,
-					);
+                $salesNoteDate = $this->db->escape_str($this->input->post('sales_note_date'));
+                $customerId = $this->db->escape_str($this->input->post('customer_id'));
+                $territoryId = $this->db->escape_str($this->input->post('territory_id'));
+                $locationId = $this->db->escape_str($this->input->post('location_id'));
+                $customerReturnsAvailable = $this->db->escape_str($this->input->post('customer_returns_available'));
+                $customerSaleableReturnAmount = $this->db->escape_str($this->input->post('customer_saleable_return_amount'));
+                $customerMarketReturnAmount = $this->db->escape_str($this->input->post('customer_market_return_amount'));
 
-					$this->customer_return_note_model->addCustomerReturnNoteDataToHistory($customerReturnNoteDataHistory);
-					
-					$customerReturnNoteDatanew = array(
-						'customer_id' => $customerId,
-						'territory_id' => $territoryId,
-						'location_id' => $locationId,
-						'date' => $salesNoteDate,
-						'amount' => $customerSaleableReturnAmount,
-						'actioned_user_id' => $this->user_id,
-						'action_date' => $this->date,
-						'last_action_status' => 'edited'
-					);
+                $salesProfitMargin = $this->getSalesProfitMargin();
+                $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId = $this->system_configurations_model->getCustomerMarketReturnCostEntryProfitMarginCreditChartOfAccount();
 
-					$this->customer_return_note_model->editCustomerReturnNoteData($customerSaleableReturnId, $customerReturnNoteDatanew);
+                $salesNoteReferenceNo = $salesNote[0]->reference_no;
+                $customerIdOld = $salesNote[0]->customer_id;
+                $territoryIdOld = $salesNote[0]->territory_id;
+                $locationIdOld = $salesNote[0]->location_id;
+                $salesNoteDateOld = $salesNote[0]->date;
+                $customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
+                $customerMarketReturnId = $salesNote[0]->customer_market_return_id;
 
-					$customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '1');
-					$customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '2');
+                $primeEntryBookData = $this->system_configurations_model->getSalesNoteSalesEntryAccountsPrimeEntryBooks();
 
-					$primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteSalesEntryTransaction();
-					$primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteCostEntryTransaction();
-                    $primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForReceivePaymentTransactionClaim();
-                    
-					$description = $this->lang->line('Journal entry for saleable return sales entry for Customer Return Note number : ') . $customerSaleableReturnReferenceNo;
-                    
-                    
-                    $updateJournalEntryMasterData = false;
-                    
-                    if ($customerChanged || $locationChanged) {
-                        $updateJournalEntryMasterData = true;
+                $primeEntryBookId = '';
+                if ($primeEntryBookData && sizeof($primeEntryBookData) > 0) {
+                    $primeEntryBookId = $primeEntryBookData[0]->config_filed_value;
+                }
+
+                $referenceJournalEntry = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByPrimeEntryBookId($salesNoteReferenceNo, $primeEntryBookId);
+
+                $salesNoteReferenceJournalEntryId = '';
+                if ($referenceJournalEntry && sizeof($referenceJournalEntry) > 0) {
+                    $salesNoteReferenceJournalEntryId = $referenceJournalEntry[0]->journal_entry_id;
+                }
+
+                $customerSaleableReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerSaleableReturnId);
+                $customerMarketReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerMarketReturnId);
+
+                $customerSaleableReturnReferenceNo = '';
+                $customerSaleableReturnAmountOld = '';
+                if ($customerSaleableReturn && sizeof($customerSaleableReturn) > 0) {
+                    $customerSaleableReturnReferenceNo = $customerSaleableReturn[0]->reference_no;
+                    $customerSaleableReturnAmountOld = $customerSaleableReturn[0]->amount;
+                }
+
+                $customerMarketReturnReferenceNo = '';
+                $customerMarketReturnAmountOld = '';
+                if ($customerMarketReturn && sizeof($customerMarketReturn) > 0) {
+                    $customerMarketReturnReferenceNo = $customerMarketReturn[0]->reference_no;
+                    $customerMarketReturnAmountOld = $customerMarketReturn[0]->amount;
+                }
+
+                if ($customerIdOld != $customerId) {$customerChanged = true;}
+                if ($territoryIdOld != $territoryId) {$territoryChanged = true;}
+                if ($locationIdOld != $locationId) {$locationChanged = true;}
+                if ($salesNoteDateOld != $salesNoteDate) {$salesNoteDateChanged = true;}
+                if ($customerSaleableReturnAmountOld != $customerSaleableReturnAmount) {
+                    $customerSaleableReturnAmountChanged = true;
+                    $customerSaleableReturnAmountChanged = $customerSaleableReturnAmountOld - $customerSaleableReturnAmount;
+                }
+                if ($customerMarketReturnAmountOld != $customerMarketReturnAmount) {
+                    $customerMarketReturnAmountChanged = true;
+                    $customerMarketReturnAmountChanged = $customerMarketReturnAmountOld - $customerMarketReturnAmount;
+                }
+
+                if ($customerChanged || $territoryChanged || $locationChanged || $salesNoteDateChanged || $customerSaleableReturnAmountChanged) {
+
+                    if ($customerSaleableReturn && sizeof($customerSaleableReturn) > 0) {
+                        $customerReturnNoteDataHistory = array(
+                            'customer_return_note_id' => $customerSaleableReturn[0]->customer_return_note_id,
+                            'reference_no' => $customerSaleableReturn[0]->reference_no,
+                            'customer_id' => $customerSaleableReturn[0]->customer_id,
+                            'territory_id' => $customerSaleableReturn[0]->territory_id,
+                            'location_id' => $customerSaleableReturn[0]->location_id,
+                            'date' => $customerSaleableReturn[0]->date,
+                            'amount' => $customerSaleableReturn[0]->amount,
+                            'type' => $customerSaleableReturn[0]->type,
+                            'remark' => $customerSaleableReturn[0]->remark,
+                            'actioned_user_id' => $customerSaleableReturn[0]->actioned_user_id,
+                            'added_date' => $customerSaleableReturn[0]->added_date,
+                            'action_date' => $customerSaleableReturn[0]->action_date,
+                            'last_action_status' => $customerSaleableReturn[0]->last_action_status,
+                        );
+
+                        $this->customer_return_note_model->addCustomerReturnNoteDataToHistory($customerReturnNoteDataHistory);
+
+                        $customerReturnNoteDatanew = array(
+                            'customer_id' => $customerId,
+                            'territory_id' => $territoryId,
+                            'location_id' => $locationId,
+                            'date' => $salesNoteDate,
+                            'amount' => $customerSaleableReturnAmount,
+                            'actioned_user_id' => $this->user_id,
+                            'action_date' => $this->date,
+                            'last_action_status' => 'edited'
+                        );
+
+                        $this->customer_return_note_model->editCustomerReturnNoteData($customerSaleableReturnId, $customerReturnNoteDatanew);
+
+                        $customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '1');
+                        $customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '2');
+
+                        $primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteSalesEntryTransaction();
+                        $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteCostEntryTransaction();
+                        $primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForReceivePaymentTransactionClaim();
+
+                        $description = $this->lang->line('Journal entry for saleable return sales entry for Customer Return Note number : ') . $customerSaleableReturnReferenceNo;
+
+
+                        $updateJournalEntryMasterData = false;
+
+                        if ($customerChanged || $locationChanged) {
+                            $updateJournalEntryMasterData = true;
+                        }
+
+                        $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $customerSaleableReturnId, 
+                                    $customerSaleableReturnNoteSalesEntryJournalEntries, '1', $salesNoteDate, $customerSaleableReturnReferenceNo, 
+                                    $locationId, $customerId, $customerSaleableReturnAmount, $customerSaleableReturnAmountOld, $description, 
+                                    '', '', '', $updateJournalEntryMasterData);
+
+                        $costAmount = $customerSaleableReturnAmount - ($customerSaleableReturnAmount/100) * $salesProfitMargin;
+                        $costOldAmount = $customerSaleableReturnAmountOld - ($customerSaleableReturnAmountOld/100) * $salesProfitMargin;
+                        $description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $customerSaleableReturnReferenceNo;
+
+                        $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $salesNoteId, $customerSaleableReturnNoteCostEntryJournalEntries, 
+                                    '2', $salesNoteDate, $customerSaleableReturnReferenceNo, $locationId, $customerId, $costAmount, $costOldAmount, 
+                                    $description, '', '', '', $updateJournalEntryMasterData);
+
+                        //Update journal entry for customer return note claim for sales note
+                        if ($customerSaleableReturnNoteSalesEntryJournalEntries && sizeof($customerSaleableReturnNoteSalesEntryJournalEntries) > 0) {
+                            $transactionClaimJournalEntries = array();
+                            foreach ($customerSaleableReturnNoteSalesEntryJournalEntries as $customerSaleableReturnNoteSalesEntryJournalEntry) {
+                                $journalEntryId = $customerSaleableReturnNoteSalesEntryJournalEntry->journal_entry_id;
+                                $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
+
+                                if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
+                                    foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
+                                        $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
+                                        $journalEntry = $this->journal_entries_model->getJournalEntryById($claimReferenceJournalEntryId);
+                                        $transactionClaimJournalEntries[] = $journalEntry;
+                                    }
+                                }
+                            }
+
+                            $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim, $transactionClaimJournalEntries, 
+                                $salesNoteDate, $salesNoteReferenceNo, '2', $salesNoteId, $salesNoteReferenceJournalEntryId, $customerSaleableReturnReferenceNo, $locationId, 
+                                $customerId, $customerSaleableReturnAmount);
+                        }
+                    } else {
+                        if ($customerSaleableReturnAmount != '') {
+
+                            $referenceNo = $this->getNextCustomerReturnReferenceNo();
+
+                            $data = array(
+                                'reference_no' => $referenceNo,
+                                'date' => $salesNoteDate,
+                                'customer_id' => $customerId,
+                                'territory_id' => $territoryId,
+                                'location_id' => $locationId,
+                                'amount' => $customerSaleableReturnAmount,
+                                'type' => "saleable_return",
+                                'remark' => '',
+                                'status' => "Claimed",
+                                'actioned_user_id' => $this->user_id,
+                                'added_date' => $this->date,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'added'
+                            );
+
+                            $customerReturnNoteId = $this->customer_return_note_model->add($data);
+                            $customerSaleableReturnId = $customerReturnNoteId;
+
+                            $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+                            $primeEntryBooksToUpdate = '';
+
+                            $customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
+                            $customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
+
+                            $primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteSalesEntryTransaction();
+                            $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteCostEntryTransaction();
+                            $primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForReceivePaymentTransactionClaim();
+
+                            if ($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry && $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry) {
+                                $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry);
+                            }
+
+                            if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                    $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                    if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                    }
+                                }
+                            }
+
+                            if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                                $description = $this->lang->line('Journal entry for saleable return sales entry for Customer Return Note number : ') . $referenceNo;
+
+                                $referenceJournalEntryId = $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, 
+                                        $customerReturnNoteId, $customerSaleableReturnNoteSalesEntryJournalEntries, '1', $salesNoteDate, 
+                                        $referenceNo, $locationId, $customerId, $customerSaleableReturnAmount, '0', $description);
+
+                                $description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $referenceNo;
+                                $salesCost = $customerSaleableReturnAmount - ($customerSaleableReturnAmount/100) * $salesProfitMargin;
+
+                                $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, 
+                                        $customerReturnNoteId, $customerSaleableReturnNoteCostEntryJournalEntries, '2', $salesNoteDate, 
+                                        $referenceNo, $locationId, $customerId, $salesCost, '0', $description);
+
+                                //Post journal entry for customer return note claim for sales note
+                                if ($salesNoteReferenceJournalEntryId != '') {
+                                    $claimReferenceJournalEntryId = $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim, '', $salesNoteDate, 
+                                            $salesNoteReferenceNo, '2', $salesNoteId, $salesNoteReferenceJournalEntryId, $referenceNo, $locationId, $customerId, 
+                                            $customerSaleableReturnAmount);
+
+                                    if ($claimReferenceJournalEntryId != '') {
+                                        $data = array(
+                                            'journal_entry_id' => $referenceJournalEntryId,
+                                            'claim_reference_journal_entry_id' => $claimReferenceJournalEntryId,
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'added'
+                                        );
+
+                                        $this->journal_entries_model->addJournalEntryClaimReference($data);
+                                    }
+                                }
+                            } else {
+                                $result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
+                            }
+                        }
                     }
-                    
-					$this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $customerSaleableReturnId, 
-                                $customerSaleableReturnNoteSalesEntryJournalEntries, '1', $salesNoteDate, $customerSaleableReturnReferenceNo, 
-                                $locationId, $customerId, $customerSaleableReturnAmount, $customerSaleableReturnAmountOld, $description, 
+                }
+
+                if ($customerChanged || $territoryChanged || $locationChanged || $salesNoteDateChanged || $customerMarketReturnAmountChanged) {
+
+                    if ($customerMarketReturn && sizeof($customerMarketReturn) > 0) {
+                        $customerReturnNoteDataHistory = array(
+                            'customer_return_note_id' => $customerMarketReturn[0]->customer_return_note_id,
+                            'reference_no' => $customerMarketReturn[0]->reference_no,
+                            'customer_id' => $customerMarketReturn[0]->customer_id,
+                            'territory_id' => $customerMarketReturn[0]->territory_id,
+                            'location_id' => $customerMarketReturn[0]->location_id,
+                            'date' => $customerMarketReturn[0]->date,
+                            'amount' => $customerMarketReturn[0]->amount,
+                            'type' => $customerMarketReturn[0]->type,
+                            'remark' => $customerMarketReturn[0]->remark,
+                            'actioned_user_id' => $customerMarketReturn[0]->actioned_user_id,
+                            'added_date' => $customerMarketReturn[0]->added_date,
+                            'action_date' => $customerMarketReturn[0]->action_date,
+                            'last_action_status' => $customerMarketReturn[0]->last_action_status,
+                        );
+
+                        $this->customer_return_note_model->addCustomerReturnNoteDataToHistory($customerReturnNoteDataHistory);
+
+                        $customerReturnNoteDatanew = array(
+                            'customer_id' => $customerId,
+                            'territory_id' => $territoryId,
+                            'location_id' => $locationId,
+                            'date' => $salesNoteDate,
+                            'amount' => $customerMarketReturnAmount,
+                            'actioned_user_id' => $this->user_id,
+                            'action_date' => $this->date,
+                            'last_action_status' => 'edited'
+                        );
+
+                        $this->customer_return_note_model->editCustomerReturnNoteData($customerMarketReturnId, $customerReturnNoteDatanew);
+
+                        $customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '3');
+                        $customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '4');
+
+                        $primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteSalesEntryTransaction();
+                        $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteCostEntryTransaction();
+                        $primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForReceivePaymentTransactionClaim();
+
+                        $description = $this->lang->line('Journal entry for market return sales entry for Customer Return Note number : ') . $customerMarketReturnReferenceNo;
+
+                        $updateJournalEntryMasterData = false;
+
+                        if ($customerChanged || $locationChanged) {
+                            $updateJournalEntryMasterData = true;
+                        }
+
+                        $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $customerMarketReturnId, 
+                                $customerMarketReturnNoteSalesEntryJournalEntries, '3', $salesNoteDate, $customerMarketReturnReferenceNo, 
+                                $locationId, $customerId, $customerMarketReturnAmount, $customerMarketReturnAmountOld, $description, 
                                 '', '', '', $updateJournalEntryMasterData);
 
-					$costAmount = $customerSaleableReturnAmount - ($customerSaleableReturnAmount/100) * $salesProfitMargin;
-					$costOldAmount = $customerSaleableReturnAmountOld - ($customerSaleableReturnAmountOld/100) * $salesProfitMargin;
-					$description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $customerSaleableReturnReferenceNo;
-                    
-					$this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $salesNoteId, $customerSaleableReturnNoteCostEntryJournalEntries, 
-                                '2', $salesNoteDate, $customerSaleableReturnReferenceNo, $locationId, $customerId, $costAmount, $costOldAmount, 
-                                $description, '', '', '', $updateJournalEntryMasterData);
-                    
-                    //Update journal entry for customer return note claim for sales note
-                    if ($customerSaleableReturnNoteSalesEntryJournalEntries && sizeof($customerSaleableReturnNoteSalesEntryJournalEntries) > 0) {
-                        $transactionClaimJournalEntries = array();
-                        foreach ($customerSaleableReturnNoteSalesEntryJournalEntries as $customerSaleableReturnNoteSalesEntryJournalEntry) {
-                            $journalEntryId = $customerSaleableReturnNoteSalesEntryJournalEntry->journal_entry_id;
-                            $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
+                        $profitPortionOld = "";
+                        $costOldAmount = "";
+                        if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
+                            $profitPortionOld = ($customerMarketReturnAmountOld/100) * $salesProfitMargin;
+                            $costOldAmount = $customerMarketReturnAmountOld;
+                        } else {
+                            $costOldAmount = $customerMarketReturnAmountOld - ($customerMarketReturnAmountOld/100) * $salesProfitMargin;
+                        }
 
-                            if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
-                                foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
-                                    $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
-                                    $journalEntry = $this->journal_entries_model->getJournalEntryById($claimReferenceJournalEntryId);
-                                    $transactionClaimJournalEntries[] = $journalEntry;
+                        $profitPortion = "";
+                        $costAmount = "";
+                        if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
+                            $profitPortion = ($customerMarketReturnAmount/100) * $salesProfitMargin;
+                            $costAmount = $customerMarketReturnAmount;
+                        } else {
+                            $costAmount = $customerMarketReturnAmount - ($customerMarketReturnAmount/100) * $salesProfitMargin;
+                        }
+
+                        $description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $customerMarketReturnReferenceNo;
+
+                        $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $salesNoteId, 
+                                    $customerMarketReturnNoteCostEntryJournalEntries, '4', $salesNoteDate, $customerMarketReturnReferenceNo, 
+                                    $locationId, $customerId, $costAmount, $costOldAmount, $description, '', 
+                                    $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, $profitPortionOld, $updateJournalEntryMasterData);
+
+                        //Update journal entry for customer return note claim for sales note
+                        if ($customerMarketReturnNoteSalesEntryJournalEntries && sizeof($customerMarketReturnNoteSalesEntryJournalEntries) > 0) {
+                            $transactionClaimJournalEntries = array();
+                            foreach ($customerMarketReturnNoteSalesEntryJournalEntries as $customerMarketReturnNoteSalesEntryJournalEntry) {
+                                $journalEntryId = $customerMarketReturnNoteSalesEntryJournalEntry->journal_entry_id;
+                                $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
+
+                                if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
+                                    foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
+                                        $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
+                                        $journalEntry = $this->journal_entries_model->getJournalEntryById($claimReferenceJournalEntryId);
+                                        $transactionClaimJournalEntries[] = $journalEntry;
+                                    }
                                 }
+                            }
+
+                            $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim, $transactionClaimJournalEntries, 
+                                $salesNoteDate, $salesNoteReferenceNo, '2', $salesNoteId, $salesNoteReferenceJournalEntryId, $customerMarketReturnReferenceNo, $locationId, 
+                                $customerId, $customerMarketReturnAmount);
+                        }
+                    } else {
+                        if ($customerMarketReturnAmount != '') {
+
+                            $referenceNo = $this->getNextCustomerReturnReferenceNo();
+
+                            $data = array(
+                                'reference_no' => $referenceNo,
+                                'date' => $salesNoteDate,
+                                'customer_id' => $customerId,
+                                'territory_id' => $territoryId,
+                                'location_id' => $locationId,
+                                'amount' => $customerMarketReturnAmount,
+                                'type' => "market_return",
+                                'remark' => '',
+                                'status' => "Claimed",
+                                'actioned_user_id' => $this->user_id,
+                                'added_date' => $this->date,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'added'
+                            );
+
+                            $customerReturnNoteId = $this->customer_return_note_model->add($data);
+                            $customerMarketReturnId = $customerReturnNoteId;
+
+                            $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+                            $primeEntryBooksToUpdate = '';
+
+                            $customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '3');
+                            $customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '4');
+
+                            $primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteSalesEntryTransaction();
+                            $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteCostEntryTransaction();
+                            $primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForReceivePaymentTransactionClaim();
+
+                            if ($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry && $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry) {
+                                $primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry);
+                            }
+
+                            if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                                    $primeEntryBookId = $primeEntryBook->config_filed_value;
+                                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                                    if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 3) {
+                                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                                    }
+                                }
+                            }
+
+                            if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                                $description = $this->lang->line('Journal entry for market return sales entry for Customer Return Note number : ') . $referenceNo;
+
+                                $referenceJournalEntryId = $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $customerReturnNoteId, 
+                                        $customerMarketReturnNoteSalesEntryJournalEntries, '3', $salesNoteDate, $referenceNo, $locationId, $customerId, 
+                                        $customerMarketReturnAmount, '0', $description);
+
+                                $description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $referenceNo;
+
+                                $profitPortion = "";
+                                $salesCost = "";
+                                $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId = $this->system_configurations_model->getCustomerMarketReturnCostEntryProfitMarginCreditChartOfAccount();
+                                if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
+                                    $profitPortion = ($customerMarketReturnAmount/100) * $salesProfitMargin;
+                                    $salesCost = $customerMarketReturnAmount;
+                                } else {
+                                    $salesCost = $customerMarketReturnAmount - ($customerMarketReturnAmount/100) * $salesProfitMargin;
+                                }
+
+                                $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $customerReturnNoteId, 
+                                        $customerMarketReturnNoteCostEntryJournalEntries, '4', $salesNoteDate, $referenceNo, $locationId, $customerId, 
+                                        $salesCost, '0', $description, '', $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, 
+                                        $profitPortion, '0');
+
+                                //Post journal entry for customer return note claim for sales note
+                                if ($salesNoteReferenceJournalEntryId != '') {
+                                    $claimReferenceJournalEntryId = $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim, '', $salesNoteDate, 
+                                            $salesNoteReferenceNo, '2', $salesNoteId, $salesNoteReferenceJournalEntryId, $referenceNo, $locationId, $customerId, 
+                                            $customerMarketReturnAmount);
+
+                                    if ($claimReferenceJournalEntryId != '') {
+                                        $data = array(
+                                            'journal_entry_id' => $referenceJournalEntryId,
+                                            'claim_reference_journal_entry_id' => $claimReferenceJournalEntryId,
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'added'
+                                        );
+
+                                        $this->journal_entries_model->addJournalEntryClaimReference($data);
+                                    }
+                                }
+                            } else {
+                                $result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
                             }
                         }
-                        
-                        $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim, $transactionClaimJournalEntries, 
-                            $salesNoteDate, $salesNoteReferenceNo, '2', $salesNoteId, $salesNoteReferenceJournalEntryId, $customerSaleableReturnReferenceNo, $locationId, 
-                            $customerId, $customerSaleableReturnAmount);
                     }
-				} else {
-					if ($customerSaleableReturnAmount != '') {
-				
-						$referenceNo = $this->getNextCustomerReturnReferenceNo();
-
-						$data = array(
-							'reference_no' => $referenceNo,
-							'date' => $salesNoteDate,
-							'customer_id' => $customerId,
-							'territory_id' => $territoryId,
-							'location_id' => $locationId,
-							'amount' => $customerSaleableReturnAmount,
-							'type' => "saleable_return",
-							'remark' => '',
-                            'status' => "Claimed",
-							'actioned_user_id' => $this->user_id,
-							'added_date' => $this->date,
-							'action_date' => $this->date,
-							'last_action_status' => 'added'
-						);
-
-						$customerReturnNoteId = $this->customer_return_note_model->add($data);
-						$customerSaleableReturnId = $customerReturnNoteId;
-
-						$correctChartOfAccountsFoundInPrimeEntryBooks = true;
-						$primeEntryBooksToUpdate = '';
-
-						$customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
-						$customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
-
-						$primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteSalesEntryTransaction();
-						$primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerSaleableReturnNoteCostEntryTransaction();
-                        $primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForReceivePaymentTransactionClaim();
-                        
-						if ($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry && $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry) {
-							$primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, $primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry);
-						}
-
-						if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                $primeEntryBookId = $primeEntryBook->config_filed_value;
-                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                }
-                            }
-						}
-
-						if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-							$description = $this->lang->line('Journal entry for saleable return sales entry for Customer Return Note number : ') . $referenceNo;
-                            
-							$referenceJournalEntryId = $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnSalesEntry, 
-                                    $customerReturnNoteId, $customerSaleableReturnNoteSalesEntryJournalEntries, '1', $salesNoteDate, 
-                                    $referenceNo, $locationId, $customerId, $customerSaleableReturnAmount, '0', $description);
-                            
-							$description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $referenceNo;
-							$salesCost = $customerSaleableReturnAmount - ($customerSaleableReturnAmount/100) * $salesProfitMargin;
-                            
-							$this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, 
-                                    $customerReturnNoteId, $customerSaleableReturnNoteCostEntryJournalEntries, '2', $salesNoteDate, 
-                                    $referenceNo, $locationId, $customerId, $salesCost, '0', $description);
-                            
-                            //Post journal entry for customer return note claim for sales note
-                            if ($salesNoteReferenceJournalEntryId != '') {
-                                $claimReferenceJournalEntryId = $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnNoteClaim, '', $salesNoteDate, 
-                                        $salesNoteReferenceNo, '2', $salesNoteId, $salesNoteReferenceJournalEntryId, $referenceNo, $locationId, $customerId, 
-                                        $customerSaleableReturnAmount);
-
-                                if ($claimReferenceJournalEntryId != '') {
-                                    $data = array(
-                                        'journal_entry_id' => $referenceJournalEntryId,
-                                        'claim_reference_journal_entry_id' => $claimReferenceJournalEntryId,
-                                        'actioned_user_id' => $this->user_id,
-                                        'action_date' => $this->date,
-                                        'last_action_status' => 'added'
-                                    );
-
-                                    $this->journal_entries_model->addJournalEntryClaimReference($data);
-                                }
-                            }
-						} else {
-							$result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
-						}
-					}
-				}
-			}
-			
-			if ($customerChanged || $territoryChanged || $locationChanged || $salesNoteDateChanged || $customerMarketReturnAmountChanged) {
-				
-				if ($customerMarketReturn && sizeof($customerMarketReturn) > 0) {
-					$customerReturnNoteDataHistory = array(
-						'customer_return_note_id' => $customerMarketReturn[0]->customer_return_note_id,
-						'reference_no' => $customerMarketReturn[0]->reference_no,
-						'customer_id' => $customerMarketReturn[0]->customer_id,
-						'territory_id' => $customerMarketReturn[0]->territory_id,
-						'location_id' => $customerMarketReturn[0]->location_id,
-						'date' => $customerMarketReturn[0]->date,
-						'amount' => $customerMarketReturn[0]->amount,
-						'type' => $customerMarketReturn[0]->type,
-						'remark' => $customerMarketReturn[0]->remark,
-						'actioned_user_id' => $customerMarketReturn[0]->actioned_user_id,
-						'added_date' => $customerMarketReturn[0]->added_date,
-						'action_date' => $customerMarketReturn[0]->action_date,
-						'last_action_status' => $customerMarketReturn[0]->last_action_status,
-					);
-
-					$this->customer_return_note_model->addCustomerReturnNoteDataToHistory($customerReturnNoteDataHistory);
-					
-					$customerReturnNoteDatanew = array(
-						'customer_id' => $customerId,
-						'territory_id' => $territoryId,
-						'location_id' => $locationId,
-						'date' => $salesNoteDate,
-						'amount' => $customerMarketReturnAmount,
-						'actioned_user_id' => $this->user_id,
-						'action_date' => $this->date,
-						'last_action_status' => 'edited'
-					);
-
-					$this->customer_return_note_model->editCustomerReturnNoteData($customerMarketReturnId, $customerReturnNoteDatanew);
-
-					$customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '3');
-					$customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '4');
-
-					$primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteSalesEntryTransaction();
-					$primeEntryBooksToUpdateForCustomerMarketReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteCostEntryTransaction();
-                    $primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForReceivePaymentTransactionClaim();
-                    
-					$description = $this->lang->line('Journal entry for market return sales entry for Customer Return Note number : ') . $customerMarketReturnReferenceNo;
-                    
-                    $updateJournalEntryMasterData = false;
-                    
-                    if ($customerChanged || $locationChanged) {
-                        $updateJournalEntryMasterData = true;
-                    }
-                    
-					$this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $customerMarketReturnId, 
-                            $customerMarketReturnNoteSalesEntryJournalEntries, '3', $salesNoteDate, $customerMarketReturnReferenceNo, 
-                            $locationId, $customerId, $customerMarketReturnAmount, $customerMarketReturnAmountOld, $description, 
-                            '', '', '', $updateJournalEntryMasterData);
-
-                    $profitPortionOld = "";
-                    $costOldAmount = "";
-					if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
-						$profitPortionOld = ($customerMarketReturnAmountOld/100) * $salesProfitMargin;
-						$costOldAmount = $customerMarketReturnAmountOld;
-					} else {
-						$costOldAmount = $customerMarketReturnAmountOld - ($customerMarketReturnAmountOld/100) * $salesProfitMargin;
-					}
-
-                    $profitPortion = "";
-                    $costAmount = "";
-					if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
-						$profitPortion = ($customerMarketReturnAmount/100) * $salesProfitMargin;
-						$costAmount = $customerMarketReturnAmount;
-					} else {
-						$costAmount = $customerMarketReturnAmount - ($customerMarketReturnAmount/100) * $salesProfitMargin;
-					}
-
-					$description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $customerMarketReturnReferenceNo;
-                    
-					$this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $salesNoteId, 
-                                $customerMarketReturnNoteCostEntryJournalEntries, '4', $salesNoteDate, $customerMarketReturnReferenceNo, 
-                                $locationId, $customerId, $costAmount, $costOldAmount, $description, '', 
-                                $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, $profitPortionOld, $updateJournalEntryMasterData);
-                    
-                    //Update journal entry for customer return note claim for sales note
-                    if ($customerMarketReturnNoteSalesEntryJournalEntries && sizeof($customerMarketReturnNoteSalesEntryJournalEntries) > 0) {
-                        $transactionClaimJournalEntries = array();
-                        foreach ($customerMarketReturnNoteSalesEntryJournalEntries as $customerMarketReturnNoteSalesEntryJournalEntry) {
-                            $journalEntryId = $customerMarketReturnNoteSalesEntryJournalEntry->journal_entry_id;
-                            $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
-
-                            if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
-                                foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
-                                    $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
-                                    $journalEntry = $this->journal_entries_model->getJournalEntryById($claimReferenceJournalEntryId);
-                                    $transactionClaimJournalEntries[] = $journalEntry;
-                                }
-                            }
-                        }
-                        
-                        $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim, $transactionClaimJournalEntries, 
-                            $salesNoteDate, $salesNoteReferenceNo, '2', $salesNoteId, $salesNoteReferenceJournalEntryId, $customerMarketReturnReferenceNo, $locationId, 
-                            $customerId, $customerMarketReturnAmount);
-                    }
-				} else {
-					if ($customerMarketReturnAmount != '') {
-				
-						$referenceNo = $this->getNextCustomerReturnReferenceNo();
-
-						$data = array(
-							'reference_no' => $referenceNo,
-							'date' => $salesNoteDate,
-							'customer_id' => $customerId,
-							'territory_id' => $territoryId,
-							'location_id' => $locationId,
-							'amount' => $customerMarketReturnAmount,
-							'type' => "market_return",
-							'remark' => '',
-                            'status' => "Claimed",
-							'actioned_user_id' => $this->user_id,
-							'added_date' => $this->date,
-							'action_date' => $this->date,
-							'last_action_status' => 'added'
-						);
-
-						$customerReturnNoteId = $this->customer_return_note_model->add($data);
-						$customerMarketReturnId = $customerReturnNoteId;
-
-						$correctChartOfAccountsFoundInPrimeEntryBooks = true;
-						$primeEntryBooksToUpdate = '';
-
-						$customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '3');
-						$customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '4');
-
-						$primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteSalesEntryTransaction();
-						$primeEntryBooksToUpdateForCustomerMarketReturnCostEntry = $this->getPrimeEntryBooksToUpdateForCustomerMarketReturnNoteCostEntryTransaction();
-                        $primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim = $this->getPrimeEntryBooksToUpdateForReceivePaymentTransactionClaim();
-                        
-						if ($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry && $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry) {
-							$primeEntryBooksToUpdate = array_merge($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $primeEntryBooksToUpdateForCustomerMarketReturnCostEntry);
-						}
-
-						if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-                            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                                $primeEntryBookId = $primeEntryBook->config_filed_value;
-                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-
-                                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 3) {
-                                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
-                                }
-                            }
-						}
-
-						if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-							$description = $this->lang->line('Journal entry for market return sales entry for Customer Return Note number : ') . $referenceNo;
-                            
-							$referenceJournalEntryId = $this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $customerReturnNoteId, 
-                                    $customerMarketReturnNoteSalesEntryJournalEntries, '3', $salesNoteDate, $referenceNo, $locationId, $customerId, 
-                                    $customerMarketReturnAmount, '0', $description);
-                            
-							$description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $referenceNo;
-
-							$profitPortion = "";
-							$salesCost = "";
-							$CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId = $this->system_configurations_model->getCustomerMarketReturnCostEntryProfitMarginCreditChartOfAccount();
-							if ($this->system_configurations_model->isAddCustomerMarketReturnCostEntryWithProfitMarginEnabled()) {
-								$profitPortion = ($customerMarketReturnAmount/100) * $salesProfitMargin;
-								$salesCost = $customerMarketReturnAmount;
-							} else {
-								$salesCost = $customerMarketReturnAmount - ($customerMarketReturnAmount/100) * $salesProfitMargin;
-							}
-
-							$this->postCustomerReturnNoteJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $customerReturnNoteId, 
-                                    $customerMarketReturnNoteCostEntryJournalEntries, '4', $salesNoteDate, $referenceNo, $locationId, $customerId, 
-                                    $salesCost, '0', $description, '', $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, 
-                                    $profitPortion, '0');
-                            
-                            //Post journal entry for customer return note claim for sales note
-                            if ($salesNoteReferenceJournalEntryId != '') {
-                                $claimReferenceJournalEntryId = $this->postReferenceJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnNoteClaim, '', $salesNoteDate, 
-                                        $salesNoteReferenceNo, '2', $salesNoteId, $salesNoteReferenceJournalEntryId, $referenceNo, $locationId, $customerId, 
-                                        $customerMarketReturnAmount);
-
-                                if ($claimReferenceJournalEntryId != '') {
-                                    $data = array(
-                                        'journal_entry_id' => $referenceJournalEntryId,
-                                        'claim_reference_journal_entry_id' => $claimReferenceJournalEntryId,
-                                        'actioned_user_id' => $this->user_id,
-                                        'action_date' => $this->date,
-                                        'last_action_status' => 'added'
-                                    );
-
-                                    $this->journal_entries_model->addJournalEntryClaimReference($data);
-                                }
-                            }
-						} else {
-							$result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
-						}
-					}
-				}
-			}
-			
-            if ($customerReturnsAvailable == "Yes") {
-                
-                $totalAmount = $salesNote[0]->sales_amount;
-                $discount = $salesNote[0]->discount;
-                $paidCashAmount = $salesNote[0]->cash_payment_amount;
-                $paidChequeAmount = $salesNote[0]->cheque_payment_amount;
-                $paidCreditCardAmount = $salesNote[0]->credit_card_payment_amount;
-                $customerReturnAmountClaimed = $salesNote[0]->customer_return_note_claimed;
-                $totalPayable = $totalAmount - $discount;
-                $totalPaid = $paidCashAmount + $paidChequeAmount + $paidCreditCardAmount + $customerReturnAmountClaimed;
-
-                $customerReturnAmountClaimed = $customerReturnAmountClaimed - ($customerSaleableReturnAmountChanged + $customerMarketReturnAmountChanged);
-                $newBalancePayment = $totalPayable - ($totalPaid - ($customerSaleableReturnAmountChanged + $customerMarketReturnAmountChanged));
-
-                if ($newBalancePayment < 0) {
-                    $newBalancePayment = 0;
                 }
 
-                $status = "Open";
-                if ($newBalancePayment == 0) {
-                    $status = "Claimed";
-                }
-                
-                if (!$customerSaleableReturn || !$customerMarketReturn) {
-					$salesNoteDatanew = array(
-                        'balance_payment' => $newBalancePayment,
-                        'customer_return_note_claimed' => $customerReturnAmountClaimed,
-						'customer_saleable_return_id' => $customerSaleableReturnId,
-						'customer_market_return_id' => $customerMarketReturnId,
-                        'status' => $status
-					);
+                if ($customerReturnsAvailable == "Yes") {
 
-					$this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteDatanew);
-				} else {
+                    $totalAmount = $salesNote[0]->sales_amount;
+                    $discount = $salesNote[0]->discount;
+                    $paidCashAmount = $salesNote[0]->cash_payment_amount;
+                    $paidChequeAmount = $salesNote[0]->cheque_payment_amount;
+                    $paidCreditCardAmount = $salesNote[0]->credit_card_payment_amount;
+                    $customerReturnAmountClaimed = $salesNote[0]->customer_return_note_claimed;
+                    $totalPayable = $totalAmount - $discount;
+                    $totalPaid = $paidCashAmount + $paidChequeAmount + $paidCreditCardAmount + $customerReturnAmountClaimed;
+
+                    $customerReturnAmountClaimed = $customerReturnAmountClaimed - ($customerSaleableReturnAmountChanged + $customerMarketReturnAmountChanged);
+                    $newBalancePayment = $totalPayable - ($totalPaid - ($customerSaleableReturnAmountChanged + $customerMarketReturnAmountChanged));
+
+                    if ($newBalancePayment < 0) {
+                        $newBalancePayment = 0;
+                    }
+
+                    $status = "Open";
+                    if ($newBalancePayment == 0) {
+                        $status = "Claimed";
+                    }
+
+                    if (!$customerSaleableReturn || !$customerMarketReturn) {
+                        $salesNoteDatanew = array(
+                            'balance_payment' => $newBalancePayment,
+                            'customer_return_note_claimed' => $customerReturnAmountClaimed,
+                            'customer_saleable_return_id' => $customerSaleableReturnId,
+                            'customer_market_return_id' => $customerMarketReturnId,
+                            'status' => $status
+                        );
+
+                        $this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteDatanew);
+                    } else {
+                        $salesNoteDatanew = array(
+                            'balance_payment' => $newBalancePayment,
+                            'customer_return_note_claimed' => $customerReturnAmountClaimed,
+                            'status' => $status
+                        );
+
+                        $this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteDatanew);
+                    }
+                } else if ($customerReturnsAvailable == "No") {
+
+                    $totalAmount = $salesNote[0]->sales_amount;
+                    $discount = $salesNote[0]->discount;
+                    $paidCashAmount = $salesNote[0]->cash_payment_amount;
+                    $paidChequeAmount = $salesNote[0]->cheque_payment_amount;
+                    $paidCreditCardAmount = $salesNote[0]->credit_card_payment_amount;
+                    $customerReturnAmountClaimed = $salesNote[0]->customer_return_note_claimed;
+                    $totalPayable = $totalAmount - $discount;
+                    $totalPaid = $paidCashAmount + $paidChequeAmount + $paidCreditCardAmount + $customerReturnAmountClaimed;
+
+                    $customerReturnAmountClaimed = $customerReturnAmountClaimed - ($customerSaleableReturnAmountChanged + $customerMarketReturnAmountChanged);
+                    $newBalancePayment = $totalPayable - ($totalPaid - ($customerSaleableReturnAmountChanged + $customerMarketReturnAmountChanged));
+
+                    if ($newBalancePayment < 0) {
+                        $newBalancePayment = 0;
+                    }
+
+                    $status = "Open";
+                    if ($newBalancePayment == 0) {
+                        $status = "Claimed";
+                    }
+
                     $salesNoteDatanew = array(
                         'balance_payment' => $newBalancePayment,
                         'customer_return_note_claimed' => $customerReturnAmountClaimed,
+                        'customer_saleable_return_id' => $customerSaleableReturnId,
+                        'customer_market_return_id' => $customerMarketReturnId,
                         'status' => $status
-					);
+                    );
 
-					$this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteDatanew);
+                    $this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteDatanew);
+
+                    $status = "deleted";
+
+                    if ($customerSaleableReturn && sizeof($customerSaleableReturn) > 0) {
+
+                        $customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '1');
+                        $customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '2');
+
+                        if ($customerSaleableReturnNoteSalesEntryJournalEntries && sizeof($customerSaleableReturnNoteSalesEntryJournalEntries) > 0) {
+                            //Delete all journal entries of Sales Note
+                            foreach($customerSaleableReturnNoteSalesEntryJournalEntries as $journalEntry) {
+                                $journalEntryId = $journalEntry->journal_entry_id;
+                                $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                            }
+                        }
+
+                        if ($customerSaleableReturnNoteCostEntryJournalEntries && sizeof($customerSaleableReturnNoteCostEntryJournalEntries) > 0) {
+                            //Delete all journal entries of Sales Note
+                            foreach($customerSaleableReturnNoteCostEntryJournalEntries as $journalEntry) {
+                                $journalEntryId = $journalEntry->journal_entry_id;
+                                $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                            }
+                        }
+
+                        $this->customer_return_note_model->deleteCustomerReturnNote($customerSaleableReturnId, $status, $this->user_id);
+                    }
+
+                    if ($customerMarketReturn && sizeof($customerMarketReturn) > 0) {
+
+                        $customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '3');
+                        $customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '4');
+
+                        if ($customerMarketReturnNoteSalesEntryJournalEntries && sizeof($customerMarketReturnNoteSalesEntryJournalEntries) > 0) {
+                            //Delete all journal entries of Sales Note
+                            foreach($customerMarketReturnNoteSalesEntryJournalEntries as $journalEntry) {
+                                $journalEntryId = $journalEntry->journal_entry_id;
+                                $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                            }
+                        }
+
+                        if ($customerMarketReturnNoteCostEntryJournalEntries && sizeof($customerMarketReturnNoteCostEntryJournalEntries) > 0) {
+                            //Delete all journal entries of Sales Note
+                            foreach($customerMarketReturnNoteCostEntryJournalEntries as $journalEntry) {
+                                $journalEntryId = $journalEntry->journal_entry_id;
+                                $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                            }
+                        }
+
+                        $this->customer_return_note_model->deleteCustomerReturnNote($customerMarketReturnId, $status, $this->user_id);
+                    }
+
+                    $salesNoteDatanew = array(
+                        'customer_saleable_return_id' => '0',
+                        'customer_market_return_id' => '0',
+                    );
+
+                    $this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteDatanew);
                 }
-            } else if ($customerReturnsAvailable == "No") {
-				
-                $totalAmount = $salesNote[0]->sales_amount;
-                $discount = $salesNote[0]->discount;
-                $paidCashAmount = $salesNote[0]->cash_payment_amount;
-                $paidChequeAmount = $salesNote[0]->cheque_payment_amount;
-                $paidCreditCardAmount = $salesNote[0]->credit_card_payment_amount;
-                $customerReturnAmountClaimed = $salesNote[0]->customer_return_note_claimed;
-                $totalPayable = $totalAmount - $discount;
-                $totalPaid = $paidCashAmount + $paidChequeAmount + $paidCreditCardAmount + $customerReturnAmountClaimed;
 
-                $customerReturnAmountClaimed = $customerReturnAmountClaimed - ($customerSaleableReturnAmountChanged + $customerMarketReturnAmountChanged);
-                $newBalancePayment = $totalPayable - ($totalPaid - ($customerSaleableReturnAmountChanged + $customerMarketReturnAmountChanged));
-
-                if ($newBalancePayment < 0) {
-                    $newBalancePayment = 0;
+                if ($result == '') {
+                    $result = 'ok';
                 }
-
-                $status = "Open";
-                if ($newBalancePayment == 0) {
-                    $status = "Claimed";
-                }
-                
-                $salesNoteDatanew = array(
-                    'balance_payment' => $newBalancePayment,
-                    'customer_return_note_claimed' => $customerReturnAmountClaimed,
-                    'customer_saleable_return_id' => $customerSaleableReturnId,
-                    'customer_market_return_id' => $customerMarketReturnId,
-                    'status' => $status
-                );
-
-                $this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteDatanew);
-                
-				$status = "deleted";
-				
-				if ($customerSaleableReturn && sizeof($customerSaleableReturn) > 0) {
-					
-					$customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '1');
-					$customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '2');
-					
-					if ($customerSaleableReturnNoteSalesEntryJournalEntries && sizeof($customerSaleableReturnNoteSalesEntryJournalEntries) > 0) {
-						//Delete all journal entries of Sales Note
-						foreach($customerSaleableReturnNoteSalesEntryJournalEntries as $journalEntry) {
-							$journalEntryId = $journalEntry->journal_entry_id;
-							$this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-							$this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
-						}
-					}
-
-					if ($customerSaleableReturnNoteCostEntryJournalEntries && sizeof($customerSaleableReturnNoteCostEntryJournalEntries) > 0) {
-						//Delete all journal entries of Sales Note
-						foreach($customerSaleableReturnNoteCostEntryJournalEntries as $journalEntry) {
-							$journalEntryId = $journalEntry->journal_entry_id;
-							$this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-							$this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
-						}
-					}
-					
-					$this->customer_return_note_model->deleteCustomerReturnNote($customerSaleableReturnId, $status, $this->user_id);
-				}
-
-				if ($customerMarketReturn && sizeof($customerMarketReturn) > 0) {
-					
-					$customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '3');
-					$customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '4');
-					
-					if ($customerMarketReturnNoteSalesEntryJournalEntries && sizeof($customerMarketReturnNoteSalesEntryJournalEntries) > 0) {
-						//Delete all journal entries of Sales Note
-						foreach($customerMarketReturnNoteSalesEntryJournalEntries as $journalEntry) {
-							$journalEntryId = $journalEntry->journal_entry_id;
-							$this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-							$this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
-						}
-					}
-
-					if ($customerMarketReturnNoteCostEntryJournalEntries && sizeof($customerMarketReturnNoteCostEntryJournalEntries) > 0) {
-						//Delete all journal entries of Sales Note
-						foreach($customerMarketReturnNoteCostEntryJournalEntries as $journalEntry) {
-							$journalEntryId = $journalEntry->journal_entry_id;
-							$this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-							$this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
-						}
-					}
-					
-					$this->customer_return_note_model->deleteCustomerReturnNote($customerMarketReturnId, $status, $this->user_id);
-				}
-				
-				$salesNoteDatanew = array(
-					'customer_saleable_return_id' => '0',
-					'customer_market_return_id' => '0',
-				);
-
-				$this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteDatanew);
-			}
-			
-			if ($result == '') {
-				$result = 'ok';
-			}
+            } else {
+                $result = "previous_financial_year_is_closed";
+            }
 		}
 		
-		echo 'ok';
+		echo $result;
 	}
     
     public function saveReceiveCashPaymentData() {
 		
+        $cashPaymentAmount = '';
+        $chequePaymentAmount = '';
+        $creditCardPaymentAmount = '';
+        $newBalancePayment = '';
+        
 		$salesNoteId = $this->db->escape_str($this->input->post('sales_note_id'));
-		$salesNoteJournalEntryId = $this->db->escape_str($this->input->post('sales_note_journal_entry_id'));
-		$customerId = $this->db->escape_str($this->input->post('customer_id'));
-		$locationId = $this->db->escape_str($this->input->post('location_id'));
-		$date = $this->db->escape_str($this->input->post('date'));
-		$amount = $this->db->escape_str($this->input->post('amount'));
-		
-		$salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
-        $salesNoteReferenceNo = $salesNote[0]->reference_no;
-
-		$customer = $this->peoples_model->getById($customerId);
-		
-		$customerType = "";
-		if ($customer && sizeof($customer) > 0) {
-			$customerType = $customer[0]->people_type;
-		}
-		
-		$result = '';
-
-        $totalAmount = $salesNote[0]->sales_amount;
-        $discount = $salesNote[0]->discount;
-        $paidCashAmount = $salesNote[0]->cash_payment_amount;
-        $paidChequeAmount = $salesNote[0]->cheque_payment_amount;
-        $paidCreditCardAmount = $salesNote[0]->credit_card_payment_amount;
-        $customerReturnAmountClaimed = $salesNote[0]->customer_return_note_claimed;
-        $totalPayable = $totalAmount - $discount;
-        $totalPaid = $paidCashAmount + $paidChequeAmount + $paidCreditCardAmount + $customerReturnAmountClaimed;
         
-        $newBalancePayment = $totalPayable - ($totalPaid + $amount);
-        $cashPaymentAmount = $paidCashAmount + $amount;
-        $chequePaymentAmount = $paidChequeAmount;
-        $creditCardPaymentAmount = $paidCreditCardAmount;
-        
-        if ($newBalancePayment < 0) {
-            $newBalancePayment = 0;
-        }
-        
-        $status = "Open";
-        if ($newBalancePayment == 0) {
-            $status = "Claimed";
-        }
-                             
-        //Update sales note for the cash payment
-        $salesInvoiceData = array(
-            'cash_payment_amount' => $paidCashAmount + $amount,
-            'balance_payment' => $newBalancePayment,
-            'status' => $status,
-            'actioned_user_id' => $this->user_id,
-            'action_date' => $this->date,
-            'last_action_status' => 'edited'
-        );
-        
-        $this->sales_note_model->editSalesNoteData($salesNoteId, $salesInvoiceData);
+        $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
+        $salesNoteTransactionDate = $salesNote[0]->date;
+                
+        $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($salesNoteTransactionDate);
 
-        //Add new receive payment entry
-		$referenceNo = $this->getNextReceivePaymentReferenceNo();
-
-		$data = array(
-			'reference_no' => $referenceNo,
-			'date' => $date,
-			'payer_type' => $customerType,
-			'payer_id' => $customerId,
-			'location_id' => $locationId,
-			'remark' => '',
-			'actioned_user_id' => $this->user_id,
-			'added_date' => $this->date,
-			'action_date' => $this->date,
-			'last_action_status' => 'added'
-		);
-
-		$receivePaymentId = $this->receive_payment_model->add($data);
+        if ($financialYear[0]->year_end_process_status != "Closed") {
         
-        //Add the cash payment entry
-        $cashPaymentData = array(
-            'transaction_type' => 'Sales Note',
-            'transaction_id' => $salesNoteId,
-            'date' => $date,
-            'amount' => $amount,
-            'actioned_user_id' => $this->user_id,
-            'action_date' => $this->date,
-            'last_action_status' => 'edited'
-        );
+            $salesNoteJournalEntryId = $this->db->escape_str($this->input->post('sales_note_journal_entry_id'));
+            $customerId = $this->db->escape_str($this->input->post('customer_id'));
+            $locationId = $this->db->escape_str($this->input->post('location_id'));
+            $date = $this->db->escape_str($this->input->post('date'));
+            $amount = $this->db->escape_str($this->input->post('amount'));
 
-        $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
-        
-        //Add receive payment reference transaction
-        $primeEntryBookData = $this->system_configurations_model->getSalesNoteSalesEntryAccountsPrimeEntryBooks();
-        
-        $primeEntryBookId = '';
-        if ($primeEntryBookData && sizeof($primeEntryBookData) > 0) {
-            $primeEntryBookId = $primeEntryBookData[0]->config_filed_value;
-        }
-        
-        $referenceJournalEntry = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByPrimeEntryBookId($salesNoteReferenceNo, $primeEntryBookId);
-        
-        if ($referenceJournalEntry && sizeof($referenceJournalEntry) > 0) {
-            $referenceJournalEntryId = $referenceJournalEntry[0]->journal_entry_id;
-        }
-        
-        $data = array(
-            'receive_payment_id' => $receivePaymentId,
-            'reference_transaction_type_id' => '2',
-            'reference_transaction_id' => $salesNoteId,
-            'reference_journal_entry_id' => $referenceJournalEntryId,
-            'claim_amount' => $amount,
-            'actioned_user_id' => $this->user_id,
-            'action_date' => $this->date,
-            'last_action_status' => 'added'
-        );
 
-        $this->receive_payment_model->addReceivePaymentReferenceTransaction($data);
-                 
-        //Add receive payment method record
-        $receivePaymentMethodRecordData = array(
-            'receive_payment_id' => $receivePaymentId,
-            'payment_method' => "Cash Payment",
-            'cash_payment_id' => $paymentId,
-            'actioned_user_id' => $this->user_id,
-            'action_date' => $this->date,
-            'last_action_status' => 'added'
-        );
+            $salesNoteReferenceNo = $salesNote[0]->reference_no;
 
-        $receivePaymentMethodId = $this->receive_payment_model->addReceivePaymentMethodRecord($receivePaymentMethodRecordData);
-        
-        //Add sales note cash payment entry
-		$salesNoteCashPaymentEntry = array(
-			'sales_note_id' => $salesNoteId,
-			'receive_cash_payment_method_id' => $receivePaymentMethodId,
-            'added_from' => "Sales Note",
-			'actioned_user_id' => $this->user_id,
-			'action_date' => $this->date,
-			'last_action_status' => 'added'
-		);
-		
-		$this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteCashPaymentEntry);
-		
-		$receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentId);
+            $customer = $this->peoples_model->getById($customerId);
 
-		$correctChartOfAccountsFoundInPrimeEntryBooks = true;
+            $customerType = "";
+            if ($customer && sizeof($customer) > 0) {
+                $customerType = $customer[0]->people_type;
+            }
 
-		$primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForReceivePaymentCashTransaction();
+            $result = '';
 
-		if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                $primeEntryBookId = $primeEntryBook->config_filed_value;
-                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+            $totalAmount = $salesNote[0]->sales_amount;
+            $discount = $salesNote[0]->discount;
+            $paidCashAmount = $salesNote[0]->cash_payment_amount;
+            $paidChequeAmount = $salesNote[0]->cheque_payment_amount;
+            $paidCreditCardAmount = $salesNote[0]->credit_card_payment_amount;
+            $customerReturnAmountClaimed = $salesNote[0]->customer_return_note_claimed;
+            $totalPayable = $totalAmount - $discount;
+            $totalPaid = $paidCashAmount + $paidChequeAmount + $paidCreditCardAmount + $customerReturnAmountClaimed;
 
-                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+            $newBalancePayment = $totalPayable - ($totalPaid + $amount);
+            $cashPaymentAmount = $paidCashAmount + $amount;
+            $chequePaymentAmount = $paidChequeAmount;
+            $creditCardPaymentAmount = $paidCreditCardAmount;
+
+            if ($newBalancePayment < 0) {
+                $newBalancePayment = 0;
+            }
+
+            $status = "Open";
+            if ($newBalancePayment == 0) {
+                $status = "Claimed";
+            }
+
+            //Update sales note for the cash payment
+            $salesInvoiceData = array(
+                'cash_payment_amount' => $paidCashAmount + $amount,
+                'balance_payment' => $newBalancePayment,
+                'status' => $status,
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'edited'
+            );
+
+            $this->sales_note_model->editSalesNoteData($salesNoteId, $salesInvoiceData);
+
+            //Add new receive payment entry
+            $referenceNo = $this->getNextReceivePaymentReferenceNo();
+
+            $data = array(
+                'reference_no' => $referenceNo,
+                'date' => $date,
+                'payer_type' => $customerType,
+                'payer_id' => $customerId,
+                'location_id' => $locationId,
+                'remark' => '',
+                'actioned_user_id' => $this->user_id,
+                'added_date' => $this->date,
+                'action_date' => $this->date,
+                'last_action_status' => 'added'
+            );
+
+            $receivePaymentId = $this->receive_payment_model->add($data);
+
+            //Add the cash payment entry
+            $cashPaymentData = array(
+                'transaction_type' => 'Sales Note',
+                'transaction_id' => $salesNoteId,
+                'date' => $date,
+                'amount' => $amount,
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'edited'
+            );
+
+            $paymentId = $this->payments_model->addCashPayment($cashPaymentData);
+
+            //Add receive payment reference transaction
+            $primeEntryBookData = $this->system_configurations_model->getSalesNoteSalesEntryAccountsPrimeEntryBooks();
+
+            $primeEntryBookId = '';
+            if ($primeEntryBookData && sizeof($primeEntryBookData) > 0) {
+                $primeEntryBookId = $primeEntryBookData[0]->config_filed_value;
+            }
+
+            $referenceJournalEntry = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByPrimeEntryBookId($salesNoteReferenceNo, $primeEntryBookId);
+
+            if ($referenceJournalEntry && sizeof($referenceJournalEntry) > 0) {
+                $referenceJournalEntryId = $referenceJournalEntry[0]->journal_entry_id;
+            }
+
+            $data = array(
+                'receive_payment_id' => $receivePaymentId,
+                'reference_transaction_type_id' => '2',
+                'reference_transaction_id' => $salesNoteId,
+                'reference_journal_entry_id' => $referenceJournalEntryId,
+                'claim_amount' => $amount,
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'added'
+            );
+
+            $this->receive_payment_model->addReceivePaymentReferenceTransaction($data);
+
+            //Add receive payment method record
+            $receivePaymentMethodRecordData = array(
+                'receive_payment_id' => $receivePaymentId,
+                'payment_method' => "Cash Payment",
+                'cash_payment_id' => $paymentId,
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'added'
+            );
+
+            $receivePaymentMethodId = $this->receive_payment_model->addReceivePaymentMethodRecord($receivePaymentMethodRecordData);
+
+            //Add sales note cash payment entry
+            $salesNoteCashPaymentEntry = array(
+                'sales_note_id' => $salesNoteId,
+                'receive_cash_payment_method_id' => $receivePaymentMethodId,
+                'added_from' => "Sales Note",
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'added'
+            );
+
+            $this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteCashPaymentEntry);
+
+            $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentId);
+
+            $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+            $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForReceivePaymentCashTransaction();
+
+            if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                    $primeEntryBookId = $primeEntryBook->config_filed_value;
+                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                    if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                    }
                 }
             }
-		}
 
-		if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-			if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-				if (!$receivePaymentJournalEntries) {
-					//Add journal entry records
+            if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                    if (!$receivePaymentJournalEntries) {
+                        //Add journal entry records
 
-                    foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                        $primeEntryBookId = $primeEntryBook->config_filed_value;
-                        $data = array(
-                            'prime_entry_book_id' => $primeEntryBookId,
-                            'transaction_date' => $date,
-                            'reference_no' => $referenceNo,
-                            'should_have_a_payment_journal_entry' => "No",
-                            'location_id' => $locationId,
-                            'payee_payer_type' => $customerType,
-                            'payee_payer_id' => $customerId,
-                            'reference_transaction_type_id' => '2',
-                            'reference_transaction_id' => $salesNoteId,
-                            'reference_journal_entry_id' => $salesNoteJournalEntryId,
-                            'description' => $this->lang->line('Journal entry for Receive Payment number : ') . $referenceNo,
-                            'post_type' => "Indirect",
-                            'actioned_user_id' => $this->user_id,
-                            'action_date' => $this->date,
-                            'last_action_status' => 'added'
-                        );
+                        foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                            $primeEntryBookId = $primeEntryBook->config_filed_value;
+                            $data = array(
+                                'prime_entry_book_id' => $primeEntryBookId,
+                                'transaction_date' => $date,
+                                'reference_no' => $referenceNo,
+                                'should_have_a_payment_journal_entry' => "No",
+                                'location_id' => $locationId,
+                                'payee_payer_type' => $customerType,
+                                'payee_payer_id' => $customerId,
+                                'reference_transaction_type_id' => '2',
+                                'reference_transaction_id' => $salesNoteId,
+                                'reference_journal_entry_id' => $salesNoteJournalEntryId,
+                                'description' => $this->lang->line('Journal entry for Receive Payment number : ') . $referenceNo,
+                                'post_type' => "Indirect",
+                                'actioned_user_id' => $this->user_id,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'added'
+                            );
 
-                        $journalEntryId = $this->journal_entries_model->addJournalEntry($data);
+                            $journalEntryId = $this->journal_entries_model->addJournalEntry($data);
 
-                        $data = array(
-                            'receive_payment_id' => $receivePaymentId,
-                            'receive_payment_method_id' => $receivePaymentMethodId,
-                            'prime_entry_book_id' => $primeEntryBookId,
-                            'journal_entry_id' => $journalEntryId,
-                            'actioned_user_id' => $this->user_id,
-                            'action_date' => $this->date,
-                            'last_action_status' => 'added'
-                        );
+                            $data = array(
+                                'receive_payment_id' => $receivePaymentId,
+                                'receive_payment_method_id' => $receivePaymentMethodId,
+                                'prime_entry_book_id' => $primeEntryBookId,
+                                'journal_entry_id' => $journalEntryId,
+                                'actioned_user_id' => $this->user_id,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'added'
+                            );
 
-                        $this->receive_payment_model->addReceivePaymentJournalEntry($data);
+                            $this->receive_payment_model->addReceivePaymentJournalEntry($data);
 
-                        $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-                        $amount = str_replace(',', '', $amount);
+                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                            $amount = str_replace(',', '', $amount);
 
-                        foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-                            if ($chartOfAccount->debit_or_credit == "debit") {
-                                $data = array(
-                                    'journal_entry_id' => $journalEntryId,
-                                    'prime_entry_book_id' => $primeEntryBookId,
-                                    'transaction_date' => $date,
-                                    'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                    'debit_value' => $amount,
-                                    'actioned_user_id' => $this->user_id,
-                                    'action_date' => $this->date,
-                                    'last_action_status' => 'added'
-                                );
-                            } else if ($chartOfAccount->debit_or_credit == "credit") {
-                                $data = array(
-                                    'journal_entry_id' => $journalEntryId,
-                                    'prime_entry_book_id' => $primeEntryBookId,
-                                    'transaction_date' => $date,
-                                    'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                    'credit_value' => $amount,
-                                    'actioned_user_id' => $this->user_id,
-                                    'action_date' => $this->date,
-                                    'last_action_status' => 'added'
-                                );
+                            foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+                                if ($chartOfAccount->debit_or_credit == "debit") {
+                                    $data = array(
+                                        'journal_entry_id' => $journalEntryId,
+                                        'prime_entry_book_id' => $primeEntryBookId,
+                                        'transaction_date' => $date,
+                                        'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                        'debit_value' => $amount,
+                                        'actioned_user_id' => $this->user_id,
+                                        'action_date' => $this->date,
+                                        'last_action_status' => 'added'
+                                    );
+                                } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                    $data = array(
+                                        'journal_entry_id' => $journalEntryId,
+                                        'prime_entry_book_id' => $primeEntryBookId,
+                                        'transaction_date' => $date,
+                                        'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                        'credit_value' => $amount,
+                                        'actioned_user_id' => $this->user_id,
+                                        'action_date' => $this->date,
+                                        'last_action_status' => 'added'
+                                    );
+                                }
+
+                                $this->journal_entries_model->addGeneralLedgerTransaction($data);
+
+                                //Same time add the data to previous years record table.
+                                $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
                             }
+                        }
+                    } else if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                        //Get general ledger transactions to update new amount
+                        foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
+                            $receivePaymentPrimeEntryBookId = $receivePaymentJournalEntry->prime_entry_book_id;
+                            $receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
 
-                            $this->journal_entries_model->addGeneralLedgerTransaction($data);
+                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($receivePaymentPrimeEntryBookId);
+                            $receivePaymentGeneralLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryIdAndPrimeEntryBookId($receivePaymentJournalEntryId, $receivePaymentPrimeEntryBookId);
+                            $amount = str_replace(',', '', $amount);
 
-                            //Same time add the data to previous years record table.
-                            $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
+                            foreach($primeEntryBookChartOfAccounts as $primeEntryBookChartOfAccount) {
+                                foreach($receivePaymentGeneralLedgerTransactions as $receivePaymentGeneralLedgerTransaction) {
+                                    if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'debit') {
+                                        $data = array(
+                                            'debit_value' => $receivePaymentGeneralLedgerTransaction->debit_value + $amount,
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'edited'
+                                        );
+
+                                        $this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+
+                                        //Same time edit the data in previous years record table.
+                                        $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+                                    } else if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'credit') {
+                                        $data = array(
+                                            'credit_value' => $receivePaymentGeneralLedgerTransaction->credit_value + $amount,
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'edited'
+                                        );
+
+                                        $this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+
+                                        //Same time edit the data in previous years record table.
+                                        $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+                                    }
+                                }
+                            }
                         }
                     }
-				} else if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-					//Get general ledger transactions to update new amount
-					foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
-						$receivePaymentPrimeEntryBookId = $receivePaymentJournalEntry->prime_entry_book_id;
-						$receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
+                } 
+            }else {
+                $result = 'incorrect_prime_entry_book_selected_for_receive_payment_transaction';
+            }
 
-						$primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($receivePaymentPrimeEntryBookId);
-						$receivePaymentGeneralLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryIdAndPrimeEntryBookId($receivePaymentJournalEntryId, $receivePaymentPrimeEntryBookId);
-						$amount = str_replace(',', '', $amount);
-
-						foreach($primeEntryBookChartOfAccounts as $primeEntryBookChartOfAccount) {
-							foreach($receivePaymentGeneralLedgerTransactions as $receivePaymentGeneralLedgerTransaction) {
-								if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'debit') {
-									$data = array(
-										'debit_value' => $receivePaymentGeneralLedgerTransaction->debit_value + $amount,
-										'actioned_user_id' => $this->user_id,
-										'action_date' => $this->date,
-										'last_action_status' => 'edited'
-									);
-
-									$this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-
-									//Same time edit the data in previous years record table.
-									$this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-								} else if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'credit') {
-									$data = array(
-										'credit_value' => $receivePaymentGeneralLedgerTransaction->credit_value + $amount,
-										'actioned_user_id' => $this->user_id,
-										'action_date' => $this->date,
-										'last_action_status' => 'edited'
-									);
-
-									$this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-
-									//Same time edit the data in previous years record table.
-									$this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-								}
-							}
-						}
-					}
-				}
-			} 
-		}else {
-			$result = 'incorrect_prime_entry_book_selected_for_receive_payment_transaction';
-		}
-		
-		if ($result == '') {
-			$result = 'ok';
-		}
+            if ($result == '') {
+                $result = 'ok';
+            }
+        } else {
+            $result = "previous_financial_year_is_closed";
+        }
 		
 		echo json_encode(array('result' => $result, 'cashPaymentAmount' => number_format($cashPaymentAmount, 2), 
                                'chequePaymentAmount' => number_format($chequePaymentAmount, 2), 
@@ -1987,307 +2033,322 @@ class Sales_note_controller extends CI_Controller {
 	
 	public function saveReceiveChequePaymentData() {
 		
+        $cashPaymentAmount = '';
+        $chequePaymentAmount = '';
+        $creditCardPaymentAmount = '';
+        $newBalancePayment = '';
+        
 		$salesNoteId = $this->db->escape_str($this->input->post('sales_note_id'));
-		$salesNoteJournalEntryId = $this->db->escape_str($this->input->post('sales_note_journal_entry_id'));
-		$customerId = $this->db->escape_str($this->input->post('customer_id'));
-		$locationId = $this->db->escape_str($this->input->post('location_id'));
-		$date = $this->db->escape_str($this->input->post('date'));
-		$chequeNumber = $this->db->escape_str($this->input->post('cheque_number'));
-		$bank = $this->db->escape_str($this->input->post('bank'));
-		$chequeDate = $this->db->escape_str($this->input->post('cheque_date'));
-        $thirdPartyCheque = $this->db->escape_str($this->input->post('third_party_cheque'));
-		$amount = $this->db->escape_str($this->input->post('amount'));
-        $crossedCheque = $this->db->escape_str($this->input->post('crossed_cheque'));
-        $chequeDepositPrimeEntryBookId = $this->db->escape_str($this->input->post('cheque_deposit_prime_entry_book_id'));
         
-		$salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
-		$salesNoteReferenceNo = $salesNote[0]->reference_no;
-		
-		$customer = $this->peoples_model->getById($customerId);
-		
-		$customerType = "";
-		if ($customer && sizeof($customer) > 0) {
-			$customerType = $customer[0]->people_type;
-		}
-		
-		$result = '';
+        $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
+        $salesNoteTransactionDate = $salesNote[0]->date;
+                
+        $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($salesNoteTransactionDate);
+
+        if ($financialYear[0]->year_end_process_status != "Closed") {
         
-        $totalAmount = $salesNote[0]->sales_amount;
-        $discount = $salesNote[0]->discount;
-        $paidCashAmount = $salesNote[0]->cash_payment_amount;
-        $paidChequeAmount = $salesNote[0]->cheque_payment_amount;
-        $paidCreditCardAmount = $salesNote[0]->credit_card_payment_amount;
-        $customerReturnAmountClaimed = $salesNote[0]->customer_return_note_claimed;
-        $totalPayable = $totalAmount - $discount;
-        $totalPaid = $paidCashAmount + $paidChequeAmount + $paidCreditCardAmount + $customerReturnAmountClaimed;
-        
-        $newBalancePayment = $totalPayable - ($totalPaid + $amount);
-        $cashPaymentAmount = $paidCashAmount;
-        $chequePaymentAmount = $paidChequeAmount + $amount;
-        $creditCardPaymentAmount = $paidCreditCardAmount;
-        
-        if ($newBalancePayment < 0) {
-            $newBalancePayment = 0;
-        }
-        
-        $status = "Open";
-        if ($newBalancePayment == 0) {
-            $status = "Claimed";
-        }
-                             
-        //Update sales note for the cheque payment
-        $salesInvoiceData = array(
-            'cheque_payment_amount' => $paidChequeAmount + $amount,
-            'balance_payment' => $newBalancePayment,
-            'status' => $status,
-            'actioned_user_id' => $this->user_id,
-            'action_date' => $this->date,
-            'last_action_status' => 'edited'
-        );
-        
-        $this->sales_note_model->editSalesNoteData($salesNoteId, $salesInvoiceData);
-        
-        //Add new receive payment entry
-		$referenceNo = $this->getNextReceivePaymentReferenceNo();
+            $salesNoteJournalEntryId = $this->db->escape_str($this->input->post('sales_note_journal_entry_id'));
+            $customerId = $this->db->escape_str($this->input->post('customer_id'));
+            $locationId = $this->db->escape_str($this->input->post('location_id'));
+            $date = $this->db->escape_str($this->input->post('date'));
+            $chequeNumber = $this->db->escape_str($this->input->post('cheque_number'));
+            $bank = $this->db->escape_str($this->input->post('bank'));
+            $chequeDate = $this->db->escape_str($this->input->post('cheque_date'));
+            $thirdPartyCheque = $this->db->escape_str($this->input->post('third_party_cheque'));
+            $amount = $this->db->escape_str($this->input->post('amount'));
+            $crossedCheque = $this->db->escape_str($this->input->post('crossed_cheque'));
+            $chequeDepositPrimeEntryBookId = $this->db->escape_str($this->input->post('cheque_deposit_prime_entry_book_id'));
 
-		$data = array(
-			'reference_no' => $referenceNo,
-			'date' => $date,
-			'payer_type' => $customerType,
-			'payer_id' => $customerId,
-			'location_id' => $locationId,
-			'remark' => '',
-			'actioned_user_id' => $this->user_id,
-			'added_date' => $this->date,
-			'action_date' => $this->date,
-			'last_action_status' => 'added'
-		);
+            $salesNoteReferenceNo = $salesNote[0]->reference_no;
 
-		$receivePaymentId = $this->receive_payment_model->add($data);
+            $customer = $this->peoples_model->getById($customerId);
 
-        //Add the cheque payment entry
-		$incomeChequeData = array(
-			'transaction_type' => "Sales Note",
-			'date' => $date,
-			'payer_id' => $customerId,
-			'location_id' => $locationId,
-			'reference_no' => $salesNoteReferenceNo,
-			'cheque_number' => $chequeNumber,
-			'bank' => $bank,
-			'cheque_date' => $chequeDate,
-            'third_party_cheque' => $thirdPartyCheque,
-			'amount' => $amount,
-            'crossed_cheque' => $crossedCheque,
-            'cheque_deposit_prime_entry_book_id' => $chequeDepositPrimeEntryBookId,
-			'status' => "In_Hand",
-			'actioned_user_id' => $this->user_id,
-			'action_date' => $this->date,
-			'last_action_status' => 'added'
-		);
+            $customerType = "";
+            if ($customer && sizeof($customer) > 0) {
+                $customerType = $customer[0]->people_type;
+            }
 
-		$chequeId = $this->payments_model->addIncomeCheque($incomeChequeData);
+            $result = '';
 
-        //Add receive payment reference transaction
-        $primeEntryBookData = $this->system_configurations_model->getSalesNoteSalesEntryAccountsPrimeEntryBooks();
-        
-        $primeEntryBookId = '';
-        if ($primeEntryBookData && sizeof($primeEntryBookData) > 0) {
-            $primeEntryBookId = $primeEntryBookData[0]->config_filed_value;
-        }
-        
-        $referenceJournalEntry = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByPrimeEntryBookId($salesNoteReferenceNo, $primeEntryBookId);
-        
-        if ($referenceJournalEntry && sizeof($referenceJournalEntry) > 0) {
-            $referenceJournalEntryId = $referenceJournalEntry[0]->journal_entry_id;
-        }
-        
-        $data = array(
-            'receive_payment_id' => $receivePaymentId,
-            'reference_transaction_type_id' => '2',
-            'reference_transaction_id' => $salesNoteId,
-            'reference_journal_entry_id' => $referenceJournalEntryId,
-            'claim_amount' => $amount,
-            'actioned_user_id' => $this->user_id,
-            'action_date' => $this->date,
-            'last_action_status' => 'added'
-        );
+            $totalAmount = $salesNote[0]->sales_amount;
+            $discount = $salesNote[0]->discount;
+            $paidCashAmount = $salesNote[0]->cash_payment_amount;
+            $paidChequeAmount = $salesNote[0]->cheque_payment_amount;
+            $paidCreditCardAmount = $salesNote[0]->credit_card_payment_amount;
+            $customerReturnAmountClaimed = $salesNote[0]->customer_return_note_claimed;
+            $totalPayable = $totalAmount - $discount;
+            $totalPaid = $paidCashAmount + $paidChequeAmount + $paidCreditCardAmount + $customerReturnAmountClaimed;
 
-        $this->receive_payment_model->addReceivePaymentReferenceTransaction($data);
-                 
-        //Add receive payment method record
-        $receivePaymentMethodRecordData = array(
-            'receive_payment_id' => $receivePaymentId,
-            'payment_method' => "Cheque Payment",
-            'cheque_id' => $chequeId,
-            'actioned_user_id' => $this->user_id,
-            'action_date' => $this->date,
-            'last_action_status' => 'added'
-        );
+            $newBalancePayment = $totalPayable - ($totalPaid + $amount);
+            $cashPaymentAmount = $paidCashAmount;
+            $chequePaymentAmount = $paidChequeAmount + $amount;
+            $creditCardPaymentAmount = $paidCreditCardAmount;
 
-        $receivePaymentMethodId = $this->receive_payment_model->addReceivePaymentMethodRecord($receivePaymentMethodRecordData);
-        
-        //Add sales note cheque payment entry
-		$salesNoteChequePaymentEntry = array(
-			'sales_note_id' => $salesNoteId,
-			'receive_cheque_payment_method_id' => $receivePaymentMethodId,
-            'added_from' => "Sales Note",
-			'actioned_user_id' => $this->user_id,
-			'action_date' => $this->date,
-			'last_action_status' => 'added'
-		);
-		
-		$this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteChequePaymentEntry);
+            if ($newBalancePayment < 0) {
+                $newBalancePayment = 0;
+            }
 
-		$receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentId);
+            $status = "Open";
+            if ($newBalancePayment == 0) {
+                $status = "Claimed";
+            }
 
-		$correctChartOfAccountsFoundInPrimeEntryBooks = true;
+            //Update sales note for the cheque payment
+            $salesInvoiceData = array(
+                'cheque_payment_amount' => $paidChequeAmount + $amount,
+                'balance_payment' => $newBalancePayment,
+                'status' => $status,
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'edited'
+            );
 
-		$primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForReceivePaymentChequeTransaction();
+            $this->sales_note_model->editSalesNoteData($salesNoteId, $salesInvoiceData);
 
-		if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                $primeEntryBookId = $primeEntryBook->config_filed_value;
-                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+            //Add new receive payment entry
+            $referenceNo = $this->getNextReceivePaymentReferenceNo();
 
-                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+            $data = array(
+                'reference_no' => $referenceNo,
+                'date' => $date,
+                'payer_type' => $customerType,
+                'payer_id' => $customerId,
+                'location_id' => $locationId,
+                'remark' => '',
+                'actioned_user_id' => $this->user_id,
+                'added_date' => $this->date,
+                'action_date' => $this->date,
+                'last_action_status' => 'added'
+            );
+
+            $receivePaymentId = $this->receive_payment_model->add($data);
+
+            //Add the cheque payment entry
+            $incomeChequeData = array(
+                'transaction_type' => "Sales Note",
+                'date' => $date,
+                'payer_id' => $customerId,
+                'location_id' => $locationId,
+                'reference_no' => $salesNoteReferenceNo,
+                'cheque_number' => $chequeNumber,
+                'bank' => $bank,
+                'cheque_date' => $chequeDate,
+                'third_party_cheque' => $thirdPartyCheque,
+                'amount' => $amount,
+                'crossed_cheque' => $crossedCheque,
+                'cheque_deposit_prime_entry_book_id' => $chequeDepositPrimeEntryBookId,
+                'status' => "In_Hand",
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'added'
+            );
+
+            $chequeId = $this->payments_model->addIncomeCheque($incomeChequeData);
+
+            //Add receive payment reference transaction
+            $primeEntryBookData = $this->system_configurations_model->getSalesNoteSalesEntryAccountsPrimeEntryBooks();
+
+            $primeEntryBookId = '';
+            if ($primeEntryBookData && sizeof($primeEntryBookData) > 0) {
+                $primeEntryBookId = $primeEntryBookData[0]->config_filed_value;
+            }
+
+            $referenceJournalEntry = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByPrimeEntryBookId($salesNoteReferenceNo, $primeEntryBookId);
+
+            if ($referenceJournalEntry && sizeof($referenceJournalEntry) > 0) {
+                $referenceJournalEntryId = $referenceJournalEntry[0]->journal_entry_id;
+            }
+
+            $data = array(
+                'receive_payment_id' => $receivePaymentId,
+                'reference_transaction_type_id' => '2',
+                'reference_transaction_id' => $salesNoteId,
+                'reference_journal_entry_id' => $referenceJournalEntryId,
+                'claim_amount' => $amount,
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'added'
+            );
+
+            $this->receive_payment_model->addReceivePaymentReferenceTransaction($data);
+
+            //Add receive payment method record
+            $receivePaymentMethodRecordData = array(
+                'receive_payment_id' => $receivePaymentId,
+                'payment_method' => "Cheque Payment",
+                'cheque_id' => $chequeId,
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'added'
+            );
+
+            $receivePaymentMethodId = $this->receive_payment_model->addReceivePaymentMethodRecord($receivePaymentMethodRecordData);
+
+            //Add sales note cheque payment entry
+            $salesNoteChequePaymentEntry = array(
+                'sales_note_id' => $salesNoteId,
+                'receive_cheque_payment_method_id' => $receivePaymentMethodId,
+                'added_from' => "Sales Note",
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'added'
+            );
+
+            $this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteChequePaymentEntry);
+
+            $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentId);
+
+            $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+            $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForReceivePaymentChequeTransaction();
+
+            if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                    $primeEntryBookId = $primeEntryBook->config_filed_value;
+                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                    if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                    }
                 }
             }
-		}
 
-		if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-			if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-				if (!$receivePaymentJournalEntries) {
-					//Add journal entry records
+            if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                    if (!$receivePaymentJournalEntries) {
+                        //Add journal entry records
 
-                    foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                        $primeEntryBookId = $primeEntryBook->config_filed_value;
-                        $data = array(
-                            'prime_entry_book_id' => $primeEntryBookId,
-                            'transaction_date' => $date,
-                            'reference_no' => $referenceNo,
-                            'should_have_a_payment_journal_entry' => "No",
-                            'location_id' => $locationId,
-                            'payee_payer_type' => $customerType,
-                            'payee_payer_id' => $customerId,
-                            'reference_transaction_type_id' => '2',
-                            'reference_transaction_id' => $salesNoteId,
-                            'reference_journal_entry_id' => $salesNoteJournalEntryId,
-                            'description' => $this->lang->line('Journal entry for Receive Payment number : ') . $referenceNo,
-                            'post_type' => "Indirect",
-                            'actioned_user_id' => $this->user_id,
-                            'action_date' => $this->date,
-                            'last_action_status' => 'added'
-                        );
+                        foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                            $primeEntryBookId = $primeEntryBook->config_filed_value;
+                            $data = array(
+                                'prime_entry_book_id' => $primeEntryBookId,
+                                'transaction_date' => $date,
+                                'reference_no' => $referenceNo,
+                                'should_have_a_payment_journal_entry' => "No",
+                                'location_id' => $locationId,
+                                'payee_payer_type' => $customerType,
+                                'payee_payer_id' => $customerId,
+                                'reference_transaction_type_id' => '2',
+                                'reference_transaction_id' => $salesNoteId,
+                                'reference_journal_entry_id' => $salesNoteJournalEntryId,
+                                'description' => $this->lang->line('Journal entry for Receive Payment number : ') . $referenceNo,
+                                'post_type' => "Indirect",
+                                'actioned_user_id' => $this->user_id,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'added'
+                            );
 
-                        $journalEntryId = $this->journal_entries_model->addJournalEntry($data);
+                            $journalEntryId = $this->journal_entries_model->addJournalEntry($data);
 
-                        $data = array(
-                            'receive_payment_id' => $receivePaymentId,
-                            'receive_payment_method_id' => $receivePaymentMethodId,
-                            'prime_entry_book_id' => $primeEntryBookId,
-                            'journal_entry_id' => $journalEntryId,
-                            'actioned_user_id' => $this->user_id,
-                            'action_date' => $this->date,
-                            'last_action_status' => 'added'
-                        );
+                            $data = array(
+                                'receive_payment_id' => $receivePaymentId,
+                                'receive_payment_method_id' => $receivePaymentMethodId,
+                                'prime_entry_book_id' => $primeEntryBookId,
+                                'journal_entry_id' => $journalEntryId,
+                                'actioned_user_id' => $this->user_id,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'added'
+                            );
 
-                        $this->receive_payment_model->addReceivePaymentJournalEntry($data);
+                            $this->receive_payment_model->addReceivePaymentJournalEntry($data);
 
-                        $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-                        $amount = str_replace(',', '', $amount);
+                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                            $amount = str_replace(',', '', $amount);
 
-                        foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-                            if ($chartOfAccount->debit_or_credit == "debit") {
-                                $data = array(
-                                    'journal_entry_id' => $journalEntryId,
-                                    'prime_entry_book_id' => $primeEntryBookId,
-                                    'transaction_date' => $date,
-                                    'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                    'debit_value' => $amount,
-                                    'transaction_complete' => "No",
-                                    'actioned_user_id' => $this->user_id,
-                                    'action_date' => $this->date,
-                                    'last_action_status' => 'added'
-                                );
-                            } else if ($chartOfAccount->debit_or_credit == "credit") {
-                                $data = array(
-                                    'journal_entry_id' => $journalEntryId,
-                                    'prime_entry_book_id' => $primeEntryBookId,
-                                    'transaction_date' => $date,
-                                    'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                    'credit_value' => $amount,
-                                    'transaction_complete' => "No",
-                                    'actioned_user_id' => $this->user_id,
-                                    'action_date' => $this->date,
-                                    'last_action_status' => 'added'
-                                );
+                            foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+                                if ($chartOfAccount->debit_or_credit == "debit") {
+                                    $data = array(
+                                        'journal_entry_id' => $journalEntryId,
+                                        'prime_entry_book_id' => $primeEntryBookId,
+                                        'transaction_date' => $date,
+                                        'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                        'debit_value' => $amount,
+                                        'transaction_complete' => "No",
+                                        'actioned_user_id' => $this->user_id,
+                                        'action_date' => $this->date,
+                                        'last_action_status' => 'added'
+                                    );
+                                } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                    $data = array(
+                                        'journal_entry_id' => $journalEntryId,
+                                        'prime_entry_book_id' => $primeEntryBookId,
+                                        'transaction_date' => $date,
+                                        'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                        'credit_value' => $amount,
+                                        'transaction_complete' => "No",
+                                        'actioned_user_id' => $this->user_id,
+                                        'action_date' => $this->date,
+                                        'last_action_status' => 'added'
+                                    );
+                                }
+
+                                $this->journal_entries_model->addGeneralLedgerTransaction($data);
+
+                                //Same time add the data to previous years record table.
+                                $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
                             }
 
-                            $this->journal_entries_model->addGeneralLedgerTransaction($data);
+                            $incomeChequeData = array(
+                                'cheque_reference_journal_entry_id' => $journalEntryId,
+                                'actioned_user_id' => $this->user_id,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'added'
+                            );
 
-                            //Same time add the data to previous years record table.
-                            $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
+                            $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
                         }
-                        
-                        $incomeChequeData = array(
-                            'cheque_reference_journal_entry_id' => $journalEntryId,
-                            'actioned_user_id' => $this->user_id,
-                            'action_date' => $this->date,
-                            'last_action_status' => 'added'
-                        );
+                    } else if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                        //Get general ledger transactions to update new amount
+                        foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
+                            $receivePaymentPrimeEntryBookId = $receivePaymentJournalEntry->prime_entry_book_id;
+                            $receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
 
-                        $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
+                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($receivePaymentPrimeEntryBookId);
+                            $receivePaymentGeneralLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryIdAndPrimeEntryBookId($receivePaymentJournalEntryId, $receivePaymentPrimeEntryBookId);
+                            $amount = str_replace(',', '', $amount);
+
+                            foreach($primeEntryBookChartOfAccounts as $primeEntryBookChartOfAccount) {
+                                foreach($receivePaymentGeneralLedgerTransactions as $receivePaymentGeneralLedgerTransaction) {
+                                    if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'debit') {
+                                        $data = array(
+                                            'debit_value' => $receivePaymentGeneralLedgerTransaction->debit_value + $amount,
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'edited'
+                                        );
+
+                                        $this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+
+                                        //Same time edit the data in previous years record table.
+                                        $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+                                    } else if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'credit') {
+                                        $data = array(
+                                            'credit_value' => $receivePaymentGeneralLedgerTransaction->credit_value + $amount,
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'edited'
+                                        );
+
+                                        $this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+
+                                        //Same time edit the data in previous years record table.
+                                        $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+                                    }
+                                }
+                            }
+                        }
                     }
-				} else if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-					//Get general ledger transactions to update new amount
-					foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
-						$receivePaymentPrimeEntryBookId = $receivePaymentJournalEntry->prime_entry_book_id;
-						$receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
+                } 
+            }else {
+                $result = 'incorrect_prime_entry_book_selected_for_receive_payment_transaction';
+            }
 
-						$primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($receivePaymentPrimeEntryBookId);
-						$receivePaymentGeneralLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryIdAndPrimeEntryBookId($receivePaymentJournalEntryId, $receivePaymentPrimeEntryBookId);
-						$amount = str_replace(',', '', $amount);
-
-						foreach($primeEntryBookChartOfAccounts as $primeEntryBookChartOfAccount) {
-							foreach($receivePaymentGeneralLedgerTransactions as $receivePaymentGeneralLedgerTransaction) {
-								if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'debit') {
-									$data = array(
-										'debit_value' => $receivePaymentGeneralLedgerTransaction->debit_value + $amount,
-										'actioned_user_id' => $this->user_id,
-										'action_date' => $this->date,
-										'last_action_status' => 'edited'
-									);
-
-									$this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-
-									//Same time edit the data in previous years record table.
-									$this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-								} else if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'credit') {
-									$data = array(
-										'credit_value' => $receivePaymentGeneralLedgerTransaction->credit_value + $amount,
-										'actioned_user_id' => $this->user_id,
-										'action_date' => $this->date,
-										'last_action_status' => 'edited'
-									);
-
-									$this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-
-									//Same time edit the data in previous years record table.
-									$this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-								}
-							}
-						}
-					}
-				}
-			} 
-		}else {
-			$result = 'incorrect_prime_entry_book_selected_for_receive_payment_transaction';
-		}
-		
-		if ($result == '') {
-			$result = 'ok';
-		}
+            if ($result == '') {
+                $result = 'ok';
+            }
+        } else {
+            $result = "previous_financial_year_is_closed";
+        }
 		
 		echo json_encode(array('result' => $result, 'cashPaymentAmount' => number_format($cashPaymentAmount, 2), 
                                'chequePaymentAmount' => number_format($chequePaymentAmount, 2),
@@ -2297,285 +2358,300 @@ class Sales_note_controller extends CI_Controller {
     
     public function saveReceiveCreditCardPaymentData() {
 		
+        $cashPaymentAmount = '';
+        $chequePaymentAmount = '';
+        $creditCardPaymentAmount = '';
+        $newBalancePayment = '';
+        
 		$salesNoteId = $this->db->escape_str($this->input->post('sales_note_id'));
-		$salesNoteJournalEntryId = $this->db->escape_str($this->input->post('sales_note_journal_entry_id'));
-		$customerId = $this->db->escape_str($this->input->post('customer_id'));
-		$locationId = $this->db->escape_str($this->input->post('location_id'));
-		$date = $this->db->escape_str($this->input->post('date'));
-        $cardType = $this->db->escape_str($this->input->post('card_type'));
-		$amount = $this->db->escape_str($this->input->post('amount'));
-        $paymentAccountId = $this->db->escape_str($this->input->post('payment_account_id'));
-		
-		$salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
-        $salesNoteReferenceNo = $salesNote[0]->reference_no;
-
-		$customer = $this->peoples_model->getById($customerId);
-		
-		$customerType = "";
-		if ($customer && sizeof($customer) > 0) {
-			$customerType = $customer[0]->people_type;
-		}
-		
-		$result = '';
-
-        $totalAmount = $salesNote[0]->sales_amount;
-        $discount = $salesNote[0]->discount;
-        $paidCashAmount = $salesNote[0]->cash_payment_amount;
-        $paidChequeAmount = $salesNote[0]->cheque_payment_amount;
-        $paidCreditCardAmount = $salesNote[0]->credit_card_payment_amount;
-        $customerReturnAmountClaimed = $salesNote[0]->customer_return_note_claimed;
-        $totalPayable = $totalAmount - $discount;
-        $totalPaid = $paidCashAmount + $paidChequeAmount + $paidCreditCardAmount + $customerReturnAmountClaimed;
         
-        $newBalancePayment = $totalPayable - ($totalPaid + $amount);
-        $cashPaymentAmount = $paidCashAmount;
-        $chequePaymentAmount = $paidChequeAmount;
-        $creditCardPaymentAmount = $paidCreditCardAmount + $amount;
-        
-        if ($newBalancePayment < 0) {
-            $newBalancePayment = 0;
-        }
-        
-        $status = "Open";
-        if ($newBalancePayment == 0) {
-            $status = "Claimed";
-        }
-                             
-        //Update sales note for the credit card payment
-        $salesInvoiceData = array(
-            'credit_card_payment_amount' => $paidCreditCardAmount + $amount,
-            'balance_payment' => $newBalancePayment,
-            'status' => $status,
-            'actioned_user_id' => $this->user_id,
-            'action_date' => $this->date,
-            'last_action_status' => 'edited'
-        );
-        
-        $this->sales_note_model->editSalesNoteData($salesNoteId, $salesInvoiceData);
+        $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
+        $salesNoteTransactionDate = $salesNote[0]->date;
+                
+        $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($salesNoteTransactionDate);
 
-        //Add new receive payment entry
-		$referenceNo = $this->getNextReceivePaymentReferenceNo();
-
-		$data = array(
-			'reference_no' => $referenceNo,
-			'date' => $date,
-			'payer_type' => $customerType,
-			'payer_id' => $customerId,
-			'location_id' => $locationId,
-			'remark' => '',
-			'actioned_user_id' => $this->user_id,
-			'added_date' => $this->date,
-			'action_date' => $this->date,
-			'last_action_status' => 'added'
-		);
-
-		$receivePaymentId = $this->receive_payment_model->add($data);
+        if ($financialYear[0]->year_end_process_status != "Closed") {
         
-        //Add the credit card payment entry
-        $creditCardPaymentData = array(
-            'transaction_type' => 'Sales Note',
-            'transaction_id' => $salesNoteId,
-            'date' => $date,
-            'card_type' => $cardType,
-            'amount' => $amount,
-            'card_payment_prime_entry_book_id' => $paymentAccountId,
-            'actioned_user_id' => $this->user_id,
-            'action_date' => $this->date,
-            'last_action_status' => 'edited'
-        );
+            $salesNoteJournalEntryId = $this->db->escape_str($this->input->post('sales_note_journal_entry_id'));
+            $customerId = $this->db->escape_str($this->input->post('customer_id'));
+            $locationId = $this->db->escape_str($this->input->post('location_id'));
+            $date = $this->db->escape_str($this->input->post('date'));
+            $cardType = $this->db->escape_str($this->input->post('card_type'));
+            $amount = $this->db->escape_str($this->input->post('amount'));
+            $paymentAccountId = $this->db->escape_str($this->input->post('payment_account_id'));
 
-        $paymentId = $this->payments_model->addCreditCardPayment($creditCardPaymentData);
-        
-        //Add receive payment reference transaction
-        $primeEntryBookData = $this->system_configurations_model->getSalesNoteSalesEntryAccountsPrimeEntryBooks();
-        
-        $primeEntryBookId = '';
-        if ($primeEntryBookData && sizeof($primeEntryBookData) > 0) {
-            $primeEntryBookId = $primeEntryBookData[0]->config_filed_value;
-        }
-        
-        $referenceJournalEntry = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByPrimeEntryBookId($salesNoteReferenceNo, $primeEntryBookId);
-        
-        if ($referenceJournalEntry && sizeof($referenceJournalEntry) > 0) {
-            $referenceJournalEntryId = $referenceJournalEntry[0]->journal_entry_id;
-        }
-        
-        $data = array(
-            'receive_payment_id' => $receivePaymentId,
-            'reference_transaction_type_id' => '2',
-            'reference_transaction_id' => $salesNoteId,
-            'reference_journal_entry_id' => $referenceJournalEntryId,
-            'claim_amount' => $amount,
-            'actioned_user_id' => $this->user_id,
-            'action_date' => $this->date,
-            'last_action_status' => 'added'
-        );
+            $salesNoteReferenceNo = $salesNote[0]->reference_no;
 
-        $this->receive_payment_model->addReceivePaymentReferenceTransaction($data);
-                 
-        //Add receive payment method record
-        $receivePaymentMethodRecordData = array(
-            'receive_payment_id' => $receivePaymentId,
-            'payment_method' => "Card Payment",
-            'credit_card_payment_id' => $paymentId,
-            'actioned_user_id' => $this->user_id,
-            'action_date' => $this->date,
-            'last_action_status' => 'added'
-        );
+            $customer = $this->peoples_model->getById($customerId);
 
-        $receivePaymentMethodId = $this->receive_payment_model->addReceivePaymentMethodRecord($receivePaymentMethodRecordData);
-        
-        //Add sales note credit card payment entry
-		$salesNoteCreditCardPaymentEntry = array(
-			'sales_note_id' => $salesNoteId,
-			'receive_credit_card_payment_method_id' => $receivePaymentMethodId,
-            'added_from' => "Sales Note",
-			'actioned_user_id' => $this->user_id,
-			'action_date' => $this->date,
-			'last_action_status' => 'added'
-		);
-		
-		$this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteCreditCardPaymentEntry);
-		
-		$receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentId);
+            $customerType = "";
+            if ($customer && sizeof($customer) > 0) {
+                $customerType = $customer[0]->people_type;
+            }
 
-		$correctChartOfAccountsFoundInPrimeEntryBooks = true;
+            $result = '';
 
-		$primeEntryBooksToUpdate = $this->prime_entry_book_model->getPrimeEntryBookById($paymentAccountId);
+            $totalAmount = $salesNote[0]->sales_amount;
+            $discount = $salesNote[0]->discount;
+            $paidCashAmount = $salesNote[0]->cash_payment_amount;
+            $paidChequeAmount = $salesNote[0]->cheque_payment_amount;
+            $paidCreditCardAmount = $salesNote[0]->credit_card_payment_amount;
+            $customerReturnAmountClaimed = $salesNote[0]->customer_return_note_claimed;
+            $totalPayable = $totalAmount - $discount;
+            $totalPaid = $paidCashAmount + $paidChequeAmount + $paidCreditCardAmount + $customerReturnAmountClaimed;
 
-		if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-            foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
-                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+            $newBalancePayment = $totalPayable - ($totalPaid + $amount);
+            $cashPaymentAmount = $paidCashAmount;
+            $chequePaymentAmount = $paidChequeAmount;
+            $creditCardPaymentAmount = $paidCreditCardAmount + $amount;
 
-                if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
-                    $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+            if ($newBalancePayment < 0) {
+                $newBalancePayment = 0;
+            }
+
+            $status = "Open";
+            if ($newBalancePayment == 0) {
+                $status = "Claimed";
+            }
+
+            //Update sales note for the credit card payment
+            $salesInvoiceData = array(
+                'credit_card_payment_amount' => $paidCreditCardAmount + $amount,
+                'balance_payment' => $newBalancePayment,
+                'status' => $status,
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'edited'
+            );
+
+            $this->sales_note_model->editSalesNoteData($salesNoteId, $salesInvoiceData);
+
+            //Add new receive payment entry
+            $referenceNo = $this->getNextReceivePaymentReferenceNo();
+
+            $data = array(
+                'reference_no' => $referenceNo,
+                'date' => $date,
+                'payer_type' => $customerType,
+                'payer_id' => $customerId,
+                'location_id' => $locationId,
+                'remark' => '',
+                'actioned_user_id' => $this->user_id,
+                'added_date' => $this->date,
+                'action_date' => $this->date,
+                'last_action_status' => 'added'
+            );
+
+            $receivePaymentId = $this->receive_payment_model->add($data);
+
+            //Add the credit card payment entry
+            $creditCardPaymentData = array(
+                'transaction_type' => 'Sales Note',
+                'transaction_id' => $salesNoteId,
+                'date' => $date,
+                'card_type' => $cardType,
+                'amount' => $amount,
+                'card_payment_prime_entry_book_id' => $paymentAccountId,
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'edited'
+            );
+
+            $paymentId = $this->payments_model->addCreditCardPayment($creditCardPaymentData);
+
+            //Add receive payment reference transaction
+            $primeEntryBookData = $this->system_configurations_model->getSalesNoteSalesEntryAccountsPrimeEntryBooks();
+
+            $primeEntryBookId = '';
+            if ($primeEntryBookData && sizeof($primeEntryBookData) > 0) {
+                $primeEntryBookId = $primeEntryBookData[0]->config_filed_value;
+            }
+
+            $referenceJournalEntry = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByPrimeEntryBookId($salesNoteReferenceNo, $primeEntryBookId);
+
+            if ($referenceJournalEntry && sizeof($referenceJournalEntry) > 0) {
+                $referenceJournalEntryId = $referenceJournalEntry[0]->journal_entry_id;
+            }
+
+            $data = array(
+                'receive_payment_id' => $receivePaymentId,
+                'reference_transaction_type_id' => '2',
+                'reference_transaction_id' => $salesNoteId,
+                'reference_journal_entry_id' => $referenceJournalEntryId,
+                'claim_amount' => $amount,
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'added'
+            );
+
+            $this->receive_payment_model->addReceivePaymentReferenceTransaction($data);
+
+            //Add receive payment method record
+            $receivePaymentMethodRecordData = array(
+                'receive_payment_id' => $receivePaymentId,
+                'payment_method' => "Card Payment",
+                'credit_card_payment_id' => $paymentId,
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'added'
+            );
+
+            $receivePaymentMethodId = $this->receive_payment_model->addReceivePaymentMethodRecord($receivePaymentMethodRecordData);
+
+            //Add sales note credit card payment entry
+            $salesNoteCreditCardPaymentEntry = array(
+                'sales_note_id' => $salesNoteId,
+                'receive_credit_card_payment_method_id' => $receivePaymentMethodId,
+                'added_from' => "Sales Note",
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'added'
+            );
+
+            $this->sales_note_model->addSalesNoteReceivePaymentEntry($salesNoteCreditCardPaymentEntry);
+
+            $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentId);
+
+            $correctChartOfAccountsFoundInPrimeEntryBooks = true;
+
+            $primeEntryBooksToUpdate = $this->prime_entry_book_model->getPrimeEntryBookById($paymentAccountId);
+
+            if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                    $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
+                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+
+                    if ($primeEntryBookChartOfAccounts && sizeof($primeEntryBookChartOfAccounts) > 2) {
+                        $correctChartOfAccountsFoundInPrimeEntryBooks = false;
+                    }
                 }
             }
-		}
 
-		if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
-			if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-				if (!$receivePaymentJournalEntries) {
-					//Add journal entry records
+            if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
+                if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                    if (!$receivePaymentJournalEntries) {
+                        //Add journal entry records
 
-                    foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
-                        $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
-                        $data = array(
-                            'prime_entry_book_id' => $primeEntryBookId,
-                            'transaction_date' => $date,
-                            'reference_no' => $referenceNo,
-                            'should_have_a_payment_journal_entry' => "No",
-                            'location_id' => $locationId,
-                            'payee_payer_type' => $customerType,
-                            'payee_payer_id' => $customerId,
-                            'reference_transaction_type_id' => '2',
-                            'reference_transaction_id' => $salesNoteId,
-                            'reference_journal_entry_id' => $salesNoteJournalEntryId,
-                            'description' => $this->lang->line('Journal entry for Receive Payment number : ') . $referenceNo,
-                            'post_type' => "Indirect",
-                            'actioned_user_id' => $this->user_id,
-                            'action_date' => $this->date,
-                            'last_action_status' => 'added'
-                        );
+                        foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
+                            $primeEntryBookId = $primeEntryBook->prime_entry_book_id;
+                            $data = array(
+                                'prime_entry_book_id' => $primeEntryBookId,
+                                'transaction_date' => $date,
+                                'reference_no' => $referenceNo,
+                                'should_have_a_payment_journal_entry' => "No",
+                                'location_id' => $locationId,
+                                'payee_payer_type' => $customerType,
+                                'payee_payer_id' => $customerId,
+                                'reference_transaction_type_id' => '2',
+                                'reference_transaction_id' => $salesNoteId,
+                                'reference_journal_entry_id' => $salesNoteJournalEntryId,
+                                'description' => $this->lang->line('Journal entry for Receive Payment number : ') . $referenceNo,
+                                'post_type' => "Indirect",
+                                'actioned_user_id' => $this->user_id,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'added'
+                            );
 
-                        $journalEntryId = $this->journal_entries_model->addJournalEntry($data);
+                            $journalEntryId = $this->journal_entries_model->addJournalEntry($data);
 
-                        $data = array(
-                            'receive_payment_id' => $receivePaymentId,
-                            'receive_payment_method_id' => $receivePaymentMethodId,
-                            'prime_entry_book_id' => $primeEntryBookId,
-                            'journal_entry_id' => $journalEntryId,
-                            'actioned_user_id' => $this->user_id,
-                            'action_date' => $this->date,
-                            'last_action_status' => 'added'
-                        );
+                            $data = array(
+                                'receive_payment_id' => $receivePaymentId,
+                                'receive_payment_method_id' => $receivePaymentMethodId,
+                                'prime_entry_book_id' => $primeEntryBookId,
+                                'journal_entry_id' => $journalEntryId,
+                                'actioned_user_id' => $this->user_id,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'added'
+                            );
 
-                        $this->receive_payment_model->addReceivePaymentJournalEntry($data);
+                            $this->receive_payment_model->addReceivePaymentJournalEntry($data);
 
-                        $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
-                        $amount = str_replace(',', '', $amount);
+                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                            $amount = str_replace(',', '', $amount);
 
-                        foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-                            if ($chartOfAccount->debit_or_credit == "debit") {
-                                $data = array(
-                                    'journal_entry_id' => $journalEntryId,
-                                    'prime_entry_book_id' => $primeEntryBookId,
-                                    'transaction_date' => $date,
-                                    'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                    'debit_value' => $amount,
-                                    'actioned_user_id' => $this->user_id,
-                                    'action_date' => $this->date,
-                                    'last_action_status' => 'added'
-                                );
-                            } else if ($chartOfAccount->debit_or_credit == "credit") {
-                                $data = array(
-                                    'journal_entry_id' => $journalEntryId,
-                                    'prime_entry_book_id' => $primeEntryBookId,
-                                    'transaction_date' => $date,
-                                    'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-                                    'credit_value' => $amount,
-                                    'actioned_user_id' => $this->user_id,
-                                    'action_date' => $this->date,
-                                    'last_action_status' => 'added'
-                                );
+                            foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+                                if ($chartOfAccount->debit_or_credit == "debit") {
+                                    $data = array(
+                                        'journal_entry_id' => $journalEntryId,
+                                        'prime_entry_book_id' => $primeEntryBookId,
+                                        'transaction_date' => $date,
+                                        'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                        'debit_value' => $amount,
+                                        'actioned_user_id' => $this->user_id,
+                                        'action_date' => $this->date,
+                                        'last_action_status' => 'added'
+                                    );
+                                } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                    $data = array(
+                                        'journal_entry_id' => $journalEntryId,
+                                        'prime_entry_book_id' => $primeEntryBookId,
+                                        'transaction_date' => $date,
+                                        'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                        'credit_value' => $amount,
+                                        'actioned_user_id' => $this->user_id,
+                                        'action_date' => $this->date,
+                                        'last_action_status' => 'added'
+                                    );
+                                }
+
+                                $this->journal_entries_model->addGeneralLedgerTransaction($data);
+
+                                //Same time add the data to previous years record table.
+                                $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
                             }
+                        }
+                    } else if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                        //Get general ledger transactions to update new amount
+                        foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
+                            $receivePaymentPrimeEntryBookId = $receivePaymentJournalEntry->prime_entry_book_id;
+                            $receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
 
-                            $this->journal_entries_model->addGeneralLedgerTransaction($data);
+                            $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($receivePaymentPrimeEntryBookId);
+                            $receivePaymentGeneralLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryIdAndPrimeEntryBookId($receivePaymentJournalEntryId, $receivePaymentPrimeEntryBookId);
+                            $amount = str_replace(',', '', $amount);
 
-                            //Same time add the data to previous years record table.
-                            $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
+                            foreach($primeEntryBookChartOfAccounts as $primeEntryBookChartOfAccount) {
+                                foreach($receivePaymentGeneralLedgerTransactions as $receivePaymentGeneralLedgerTransaction) {
+                                    if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'debit') {
+                                        $data = array(
+                                            'debit_value' => $receivePaymentGeneralLedgerTransaction->debit_value + $amount,
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'edited'
+                                        );
+
+                                        $this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+
+                                        //Same time edit the data in previous years record table.
+                                        $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+                                    } else if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'credit') {
+                                        $data = array(
+                                            'credit_value' => $receivePaymentGeneralLedgerTransaction->credit_value + $amount,
+                                            'actioned_user_id' => $this->user_id,
+                                            'action_date' => $this->date,
+                                            'last_action_status' => 'edited'
+                                        );
+
+                                        $this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+
+                                        //Same time edit the data in previous years record table.
+                                        $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+                                    }
+                                }
+                            }
                         }
                     }
-				} else if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-					//Get general ledger transactions to update new amount
-					foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
-						$receivePaymentPrimeEntryBookId = $receivePaymentJournalEntry->prime_entry_book_id;
-						$receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
+                } 
+            }else {
+                $result = 'incorrect_prime_entry_book_selected_for_receive_payment_transaction';
+            }
 
-						$primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($receivePaymentPrimeEntryBookId);
-						$receivePaymentGeneralLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryIdAndPrimeEntryBookId($receivePaymentJournalEntryId, $receivePaymentPrimeEntryBookId);
-						$amount = str_replace(',', '', $amount);
-
-						foreach($primeEntryBookChartOfAccounts as $primeEntryBookChartOfAccount) {
-							foreach($receivePaymentGeneralLedgerTransactions as $receivePaymentGeneralLedgerTransaction) {
-								if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'debit') {
-									$data = array(
-										'debit_value' => $receivePaymentGeneralLedgerTransaction->debit_value + $amount,
-										'actioned_user_id' => $this->user_id,
-										'action_date' => $this->date,
-										'last_action_status' => 'edited'
-									);
-
-									$this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-
-									//Same time edit the data in previous years record table.
-									$this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-								} else if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'credit') {
-									$data = array(
-										'credit_value' => $receivePaymentGeneralLedgerTransaction->credit_value + $amount,
-										'actioned_user_id' => $this->user_id,
-										'action_date' => $this->date,
-										'last_action_status' => 'edited'
-									);
-
-									$this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-
-									//Same time edit the data in previous years record table.
-									$this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-								}
-							}
-						}
-					}
-				}
-			} 
-		}else {
-			$result = 'incorrect_prime_entry_book_selected_for_receive_payment_transaction';
-		}
-		
-		if ($result == '') {
-			$result = 'ok';
-		}
+            if ($result == '') {
+                $result = 'ok';
+            }
+        } else {
+            $result = "previous_financial_year_is_closed";
+        }
 		
 		echo json_encode(array('result' => $result, 'cashPaymentAmount' => number_format($cashPaymentAmount, 2), 
                                'chequePaymentAmount' => number_format($chequePaymentAmount, 2), 
@@ -2585,399 +2661,142 @@ class Sales_note_controller extends CI_Controller {
     
     public function editReceiveCashPaymentData() {
         
-		$receivePaymentId = $this->db->escape_str($this->input->post('receive_payment_id'));
-        $cashPaymentId = $this->db->escape_str($this->input->post('cash_payment_id'));
-		$salesNoteId = $this->db->escape_str($this->input->post('sales_note_id'));
-		$date = $this->db->escape_str($this->input->post('date'));
-        $customerId = $this->db->escape_str($this->input->post('customer_id'));
-		$locationId = $this->db->escape_str($this->input->post('location_id'));
-		$amount = $this->db->escape_str($this->input->post('amount'));
-		
-		$result = '';
-		
-		$cashPayment = $this->payments_model->getCashPaymentById($cashPaymentId);
-		$dateOld = $cashPayment[0]->date;
-		$cashPaymentOld = $cashPayment[0]->amount;
-		
-		$salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
-		$amountPayable = $salesNote[0]->amount_payable;
-        $cashPaymentAmount = $salesNote[0]->cash_payment_amount;
-        $chequePaymentAmount = $salesNote[0]->cheque_payment_amount;
-        $creditCardPaymentAmount = $salesNote[0]->credit_card_payment_amount;
-        $customerIdOld = $salesNote[0]->customer_id;
-		$locationIdOld = $salesNote[0]->location_id;
-		
-		$customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
-		$customerMarketReturnId = $salesNote[0]->customer_market_return_id;
+        $cashPaymentAmount = '';
+        $chequePaymentAmount = '';
+        $creditCardPaymentAmount = '';
+        $balancePaymentAmount = '';
+        
+        $salesNoteId = $this->db->escape_str($this->input->post('sales_note_id'));
+        
+        $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
+        $salesNoteTransactionDate = $salesNote[0]->date;
+                
+        $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($salesNoteTransactionDate);
 
-		$customerSaleableReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerSaleableReturnId);
-		$customerMarketReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerMarketReturnId);
+        if ($financialYear[0]->year_end_process_status != "Closed") {
+        
+            $receivePaymentId = $this->db->escape_str($this->input->post('receive_payment_id'));
+            $cashPaymentId = $this->db->escape_str($this->input->post('cash_payment_id'));
+            $date = $this->db->escape_str($this->input->post('date'));
+            $customerId = $this->db->escape_str($this->input->post('customer_id'));
+            $locationId = $this->db->escape_str($this->input->post('location_id'));
+            $amount = $this->db->escape_str($this->input->post('amount'));
 
-		$customerSaleableReturnAmount = 0;
-		if ($customerSaleableReturn && sizeof($customerSaleableReturn) > 0) {
-			$customerSaleableReturnAmount = $customerSaleableReturn[0]->amount;
-		}
+            $result = '';
 
-		$customerMarketReturnAmount = 0;
-		if ($customerMarketReturn && sizeof($customerMarketReturn) > 0) {
-			$customerMarketReturnAmount = $customerMarketReturn[0]->amount;
-		}
-		
-		$cashPaymentAmount = ($cashPaymentAmount - $cashPaymentOld) + $amount;
-		$balancePaymentAmount = $amountPayable - ($customerSaleableReturnAmount + $customerMarketReturnAmount + $cashPaymentAmount + $chequePaymentAmount + $creditCardPaymentAmount);
-		
-		$dateChanged = false;
-        $customerChanged = false;
-        $locationChanged = false;
-		$cashPaymentChanged = false;
+            $cashPayment = $this->payments_model->getCashPaymentById($cashPaymentId);
+            $dateOld = $cashPayment[0]->date;
+            $cashPaymentOld = $cashPayment[0]->amount;
 
-		if ($dateOld != $date) {$dateChanged = true;}
-        if ($customerIdOld != $customerId) {$customerChanged = true;}
-		if ($locationIdOld != $locationId) {$locationChanged = true;}
-		if ($cashPaymentOld != $amount) {$cashPaymentChanged = true;}
-		
-		if ($customerChanged || $locationChanged || $dateChanged || $cashPaymentChanged) {
+            $amountPayable = $salesNote[0]->amount_payable;
+            $cashPaymentAmount = $salesNote[0]->cash_payment_amount;
+            $chequePaymentAmount = $salesNote[0]->cheque_payment_amount;
+            $creditCardPaymentAmount = $salesNote[0]->credit_card_payment_amount;
+            $customerIdOld = $salesNote[0]->customer_id;
+            $locationIdOld = $salesNote[0]->location_id;
 
-            $cashPaymentHistory = array(
-                'cash_payment_id' => $cashPayment[0]->cash_payment_id,
-                'transaction_type' => $cashPayment[0]->transaction_type,
-                'transaction_id' => $cashPayment[0]->transaction_id,
-                'date' => $cashPayment[0]->date,
-                'amount' => $cashPayment[0]->amount,
-                'actioned_user_id' => $cashPayment[0]->actioned_user_id,
-                'action_date' => $cashPayment[0]->action_date,
-                'last_action_status' => $cashPayment[0]->last_action_status
-            );
-            
-            $this->payments_model->addCashPaymentToHistory($cashPaymentHistory);
-            
-            $cashPaymentNew = array(
-                'date' => $date,
-                'amount' => $amount,
-                'actioned_user_id' => $this->user_id,
-                'action_date' => $this->date,
-                'last_action_status' => 'added'
-            );
-            
-            $this->payments_model->editCashPayment($cashPaymentId, $cashPaymentNew);
-            
-            //Update sales note for the cash payment
-            $status = "Open";
-            if ($balancePaymentAmount == '0.00') {
-                $status = "Claimed";
+            $customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
+            $customerMarketReturnId = $salesNote[0]->customer_market_return_id;
+
+            $customerSaleableReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerSaleableReturnId);
+            $customerMarketReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerMarketReturnId);
+
+            $customerSaleableReturnAmount = 0;
+            if ($customerSaleableReturn && sizeof($customerSaleableReturn) > 0) {
+                $customerSaleableReturnAmount = $customerSaleableReturn[0]->amount;
             }
-            
-            $salesNoteData = array(
-                'customer_id' => $customerId,
-				'location_id' => $locationId,
-                'cash_payment_amount' => $cashPaymentAmount,
-                'balance_payment' => $balancePaymentAmount,
-                'status' => $status,
-                'actioned_user_id' => $this->user_id,
-                'action_date' => $this->date,
-                'last_action_status' => 'edited'
-            );
 
-            $this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteData);
-            
-            //Update receive payment data
-            $receivePaymentDatanew = array(
-				'date' => $date,
-				'payer_id' => $customerId,
-				'location_id' => $locationId,
-                'actioned_user_id' => $this->user_id,
-				'action_date' => $this->date,
-				'last_action_status' => 'edited'
-			);
-            
-            $this->receive_payment_model->editReceivePaymentData($receivePaymentId, $receivePaymentDatanew);
-
-			$receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentId);
-
-			if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-				//Get general ledger transactions to update new location
-				foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
-
-					$receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
-                    
-                    $journalEntry = $this->journal_entries_model->getJournalEntryById($receivePaymentJournalEntryId);
-
-                    $journalEntryHistoryData = array(
-                        'journal_entry_id' => $journalEntry[0]->journal_entry_id,
-                        'prime_entry_book_id' => $journalEntry[0]->prime_entry_book_id,
-                        'location_id' => $journalEntry[0]->location_id,
-                        'payee_payer_type' => $journalEntry[0]->payee_payer_type,
-                        'delivery_route_id' => $journalEntry[0]->delivery_route_id,
-                        'payee_payer_id' => $journalEntry[0]->payee_payer_id,
-                        'due_date' => $journalEntry[0]->due_date,
-                        'transaction_date' => $journalEntry[0]->transaction_date,
-                        'reference_no' => $journalEntry[0]->reference_no,
-                        'should_have_a_payment_journal_entry' => $journalEntry[0]->should_have_a_payment_journal_entry,
-                        'reference_transaction_type_id' => $journalEntry[0]->reference_transaction_type_id,
-                        'reference_transaction_id' => $journalEntry[0]->reference_transaction_id,
-                        'reference_journal_entry_id' => $journalEntry[0]->reference_journal_entry_id,
-                        'description' => $journalEntry[0]->description,
-                        'post_type' => $journalEntry[0]->post_type,
-                        'actioned_user_id' => $journalEntry[0]->actioned_user_id,
-                        'action_date' => $journalEntry[0]->action_date,
-                        'last_action_status' => $journalEntry[0]->last_action_status
-                    );
-
-                    $this->journal_entries_model->addJournalEntryToHistory($journalEntryHistoryData);
-                        
-					$data = array(
-						'transaction_date' => $date,
-						'location_id' => $locationId,
-						'payee_payer_id' => $customerId,
-						'actioned_user_id' => $this->user_id,
-						'action_date' => $this->date,
-						'last_action_status' => 'edited'
-					);
-
-					$this->journal_entries_model->editJournalEntry($receivePaymentJournalEntryId, $data);
-				}
-
-				$primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForReceivePaymentCashTransaction();
-
-				if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-					if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-						//Get general ledger transactions to update new amount
-						foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
-							$receivePaymentPrimeEntryBookId = $receivePaymentJournalEntry->prime_entry_book_id;
-							$receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
-
-							$primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($receivePaymentPrimeEntryBookId);
-							$receivePaymentGeneralLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryIdAndPrimeEntryBookId($receivePaymentJournalEntryId, $receivePaymentPrimeEntryBookId);
-
-							$amount = str_replace(',', '', $amount);
-							$oldAmount = str_replace(',', '', $cashPaymentOld);
-
-							if ($receivePaymentGeneralLedgerTransactions && sizeof($receivePaymentGeneralLedgerTransactions) > 0) {
-								foreach($primeEntryBookChartOfAccounts as $primeEntryBookChartOfAccount) {
-									foreach($receivePaymentGeneralLedgerTransactions as $receivePaymentGeneralLedgerTransaction) {
-										if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'debit') {
-											$data = array(
-												'debit_value' => ($receivePaymentGeneralLedgerTransaction->debit_value - $oldAmount) + $amount,
-												'actioned_user_id' => $this->user_id,
-												'action_date' => $this->date,
-												'last_action_status' => 'edited'
-											);
-
-											$this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-
-											//Same time edit the data in previous years record table.
-											$this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-										} else if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'credit') {
-											$data = array(
-												'credit_value' => ($receivePaymentGeneralLedgerTransaction->credit_value - $oldAmount) + $amount,
-												'actioned_user_id' => $this->user_id,
-												'action_date' => $this->date,
-												'last_action_status' => 'edited'
-											);
-
-											$this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-
-											//Same time edit the data in previous years record table.
-											$this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-										}
-									}
-								}
-							} else {
-								foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-									if ($chartOfAccount->debit_or_credit == "debit") {
-										$data = array(
-											'journal_entry_id' => $receivePaymentJournalEntryId,
-											'prime_entry_book_id' => $receivePaymentPrimeEntryBookId,
-											'transaction_date' => $date,
-											'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-											'debit_value' => $amount,
-											'actioned_user_id' => $this->user_id,
-											'action_date' => $this->date,
-											'last_action_status' => 'added'
-										);
-									} else if ($chartOfAccount->debit_or_credit == "credit") {
-										$data = array(
-											'journal_entry_id' => $receivePaymentJournalEntryId,
-											'prime_entry_book_id' => $receivePaymentPrimeEntryBookId,
-											'transaction_date' => $date,
-											'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-											'credit_value' => $amount,
-											'actioned_user_id' => $this->user_id,
-											'action_date' => $this->date,
-											'last_action_status' => 'added'
-										);
-									}
-
-									$this->journal_entries_model->addGeneralLedgerTransaction($data);
-
-									//Same time add the data to previous years record table.
-									$this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
-								}
-							}
-						}
-					}
-				}
-			}
-			
-			$result = 'ok';
-		} else {
-			$result = 'no_changes_to_save';
-		}
-		
-		echo json_encode(array('result' => $result, 'cashPaymentAmount' => number_format($cashPaymentAmount, 2), 
-                               'chequePaymentAmount' => number_format($chequePaymentAmount, 2), 
-                               'creditCardPaymentAmount' => number_format($creditCardPaymentAmount, 2),
-                               'balancePaymentAmount' => number_format($balancePaymentAmount, 2)));
-	}
-	
-	public function editReceiveChequePaymentData() {
-		
-        $receiveChequePaymentId = $this->db->escape_str($this->input->post('receive_payment_id'));
-		$salesNoteId = $this->db->escape_str($this->input->post('sales_note_id'));
-		$chequeId = $this->db->escape_str($this->input->post('cheque_id'));
-        $customerId = $this->db->escape_str($this->input->post('customer_id'));
-		$locationId = $this->db->escape_str($this->input->post('location_id'));
-		$date = $this->db->escape_str($this->input->post('date'));
-		$chequeNumber = $this->db->escape_str($this->input->post('cheque_number'));
-		$bank = $this->db->escape_str($this->input->post('bank'));
-		$chequeDate = $this->db->escape_str($this->input->post('cheque_date'));
-        $thirdPartyCheque = $this->db->escape_str($this->input->post('third_party_cheque'));
-		$amount = $this->db->escape_str($this->input->post('amount'));
-        $crossedCheque = $this->db->escape_str($this->input->post('crossed_cheque'));
-        $chequeDepositPrimeEntryBookId = $this->db->escape_str($this->input->post('cheque_deposit_prime_entry_book_id'));
-		
-		$result = '';
-		
-		$incomeCheque = $this->payments_model->getIncomeChequeById($chequeId);
-		$dateOld = $incomeCheque[0]->date;
-        $chequeNumberOld = $incomeCheque[0]->cheque_number;
-		$bankOld = $incomeCheque[0]->bank;
-		$chequeDateOld = $incomeCheque[0]->cheque_date;
-        $thirdPartyChequeOld = $incomeCheque[0]->third_party_cheque;
-        $chequePaymentOld = $incomeCheque[0]->amount;
-        $crossedChequeOld = $incomeCheque[0]->crossed_cheque;
-        $chequeDepositPrimeEntryBookIdOld = $incomeCheque[0]->cheque_deposit_prime_entry_book_id;
-		
-		$salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
-        $customerIdOld = $salesNote[0]->customer_id;
-		$locationIdOld = $salesNote[0]->location_id;
-		$amountPayable = $salesNote[0]->amount_payable;
-        $cashPaymentAmount = $salesNote[0]->cash_payment_amount;
-        $chequePaymentAmount = $salesNote[0]->cheque_payment_amount;
-        $creditCardPaymentAmount = $salesNote[0]->credit_card_payment_amount;
-        $customerReturnNoteClaimed = $salesNote[0]->customer_return_note_claimed;
-		
-        $chequePaymentAmount = ($chequePaymentAmount - $chequePaymentOld) + $amount;
-		$balancePaymentAmount = $amountPayable - ($customerReturnNoteClaimed + $cashPaymentAmount + $chequePaymentAmount + $creditCardPaymentAmount);
-		
-        $customerChanged = false;
-        $locationChanged = false;
-		$dateChanged = false;
-		$chequeNumberChanged = false;
-		$bankChanged = false;
-		$chequeDateChanged = false;
-        $thirdPartyChequeChanged = false;
-		$chequePaymentChanged = false;
-        $crossedChequeChanged = false;
-        $chequeDepositPrimeEntryBookIdChanged = false;
-
-        if ($customerIdOld != $customerId) {$customerChanged = true;}
-		if ($locationIdOld != $locationId) {$locationChanged = true;}
-		if ($dateOld != $date) {$dateChanged = true;}
-		if ($chequeNumberOld != $chequeNumber) {$chequeNumberChanged = true;}
-		if ($bankOld != $bank) {$bankChanged = true;}
-		if ($chequeDateOld != $chequeDate) {$chequeDateChanged = true;}
-        if ($thirdPartyChequeOld != $thirdPartyCheque) {$thirdPartyChequeChanged = true;}
-		if ($chequePaymentOld != $amount) {$chequePaymentChanged = true;}
-        if ($crossedChequeOld != $crossedCheque) {$crossedChequeChanged = true;}
-        if ($chequeDepositPrimeEntryBookIdOld != $chequeDepositPrimeEntryBookId) {$chequeDepositPrimeEntryBookIdChanged = true;}
-		
-		if ($customerChanged || $locationChanged || $dateChanged || $chequeNumberChanged || $bankChanged || $chequeDateChanged || 
-                $thirdPartyChequeChanged || $chequePaymentChanged || $crossedChequeChanged || $chequeDepositPrimeEntryBookIdChanged) {
-				
-            $incomeChequeDataHistory = array(
-				'date' => $incomeCheque[0]->date,
-                'payer_id' => $incomeCheque[0]->payer_id,
-                'location_id' => $incomeCheque[0]->location_id,
-				'cheque_number' => $incomeCheque[0]->cheque_number,
-				'bank' => $incomeCheque[0]->bank,
-				'cheque_date' => $incomeCheque[0]->cheque_date,
-                'third_party_cheque' => $incomeCheque[0]->third_party_cheque,
-				'amount' => $incomeCheque[0]->amount,
-                'crossed_cheque' => $incomeCheque[0]->crossed_cheque,
-                'cheque_deposit_prime_entry_book_id' => $incomeCheque[0]->cheque_deposit_prime_entry_book_id,
-				'actioned_user_id' => $incomeCheque[0]->actioned_user_id,
-				'action_date' => $incomeCheque[0]->action_date,
-				'last_action_status' => $incomeCheque[0]->last_action_status
-			);
-
-			$this->payments_model->addIncomeChequeToHistory($incomeChequeDataHistory);
-            
-			$incomeChequeData = array(
-				'date' => $date,
-                'payer_id' => $customerId,
-                'location_id' => $locationId,
-				'cheque_number' => $chequeNumber,
-				'bank' => $bank,
-				'cheque_date' => $chequeDate,
-                'third_party_cheque' => $thirdPartyCheque,
-				'amount' => $amount,
-                'crossed_cheque' => $crossedCheque,
-                'cheque_deposit_prime_entry_book_id' => $chequeDepositPrimeEntryBookId,
-				'actioned_user_id' => $this->user_id,
-				'action_date' => $this->date,
-				'last_action_status' => 'edited'
-			);
-
-			$this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
-            
-            //Update sales note for the cheque payment
-            $status = "Open";
-            if ($balancePaymentAmount == '0.00') {
-                $status = "Claimed";
+            $customerMarketReturnAmount = 0;
+            if ($customerMarketReturn && sizeof($customerMarketReturn) > 0) {
+                $customerMarketReturnAmount = $customerMarketReturn[0]->amount;
             }
-            
-            $salesInvoiceData = array(
-                'cheque_payment_amount' => $chequePaymentAmount,
-                'balance_payment' => $balancePaymentAmount,
-                'status' => $status,
-                'actioned_user_id' => $this->user_id,
-                'action_date' => $this->date,
-                'last_action_status' => 'edited'
-            );
 
-            $this->sales_note_model->editSalesNoteData($salesNoteId, $salesInvoiceData);
+            $cashPaymentAmount = ($cashPaymentAmount - $cashPaymentOld) + $amount;
+            $balancePaymentAmount = $amountPayable - ($customerSaleableReturnAmount + $customerMarketReturnAmount + $cashPaymentAmount + $chequePaymentAmount + $creditCardPaymentAmount);
 
-			$receivePaymentDatanew = array(
-				'date' => $date,
-				'payer_id' => $customerId,
-				'location_id' => $locationId,
-				'actioned_user_id' => $this->user_id,
-				'action_date' => $this->date,
-				'last_action_status' => 'edited'
-			);
+            $dateChanged = false;
+            $customerChanged = false;
+            $locationChanged = false;
+            $cashPaymentChanged = false;
 
-			$this->receive_payment_model->editReceivePaymentData($receiveChequePaymentId, $receivePaymentDatanew);
+            if ($dateOld != $date) {$dateChanged = true;}
+            if ($customerIdOld != $customerId) {$customerChanged = true;}
+            if ($locationIdOld != $locationId) {$locationChanged = true;}
+            if ($cashPaymentOld != $amount) {$cashPaymentChanged = true;}
 
-			$receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receiveChequePaymentId);
+            if ($customerChanged || $locationChanged || $dateChanged || $cashPaymentChanged) {
 
-			if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-				//Get general ledger transactions to update new location
-				foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
+                $cashPaymentHistory = array(
+                    'cash_payment_id' => $cashPayment[0]->cash_payment_id,
+                    'transaction_type' => $cashPayment[0]->transaction_type,
+                    'transaction_id' => $cashPayment[0]->transaction_id,
+                    'date' => $cashPayment[0]->date,
+                    'amount' => $cashPayment[0]->amount,
+                    'actioned_user_id' => $cashPayment[0]->actioned_user_id,
+                    'action_date' => $cashPayment[0]->action_date,
+                    'last_action_status' => $cashPayment[0]->last_action_status
+                );
 
-					$receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
+                $this->payments_model->addCashPaymentToHistory($cashPaymentHistory);
 
-                    if ($customerChanged || $locationChanged || $dateChanged) {
-                        
+                $cashPaymentNew = array(
+                    'date' => $date,
+                    'amount' => $amount,
+                    'actioned_user_id' => $this->user_id,
+                    'action_date' => $this->date,
+                    'last_action_status' => 'added'
+                );
+
+                $this->payments_model->editCashPayment($cashPaymentId, $cashPaymentNew);
+
+                //Update sales note for the cash payment
+                $status = "Open";
+                if ($balancePaymentAmount == '0.00') {
+                    $status = "Claimed";
+                }
+
+                $salesNoteData = array(
+                    'customer_id' => $customerId,
+                    'location_id' => $locationId,
+                    'cash_payment_amount' => $cashPaymentAmount,
+                    'balance_payment' => $balancePaymentAmount,
+                    'status' => $status,
+                    'actioned_user_id' => $this->user_id,
+                    'action_date' => $this->date,
+                    'last_action_status' => 'edited'
+                );
+
+                $this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteData);
+
+                //Update receive payment data
+                $receivePaymentDatanew = array(
+                    'date' => $date,
+                    'payer_id' => $customerId,
+                    'location_id' => $locationId,
+                    'actioned_user_id' => $this->user_id,
+                    'action_date' => $this->date,
+                    'last_action_status' => 'edited'
+                );
+
+                $this->receive_payment_model->editReceivePaymentData($receivePaymentId, $receivePaymentDatanew);
+
+                $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentId);
+
+                if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                    //Get general ledger transactions to update new location
+                    foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
+
+                        $receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
+
                         $journalEntry = $this->journal_entries_model->getJournalEntryById($receivePaymentJournalEntryId);
 
                         $journalEntryHistoryData = array(
                             'journal_entry_id' => $journalEntry[0]->journal_entry_id,
-							'prime_entry_book_id' => $journalEntry[0]->prime_entry_book_id,
-							'location_id' => $journalEntry[0]->location_id,
-							'payee_payer_type' => $journalEntry[0]->payee_payer_type,
+                            'prime_entry_book_id' => $journalEntry[0]->prime_entry_book_id,
+                            'location_id' => $journalEntry[0]->location_id,
+                            'payee_payer_type' => $journalEntry[0]->payee_payer_type,
                             'delivery_route_id' => $journalEntry[0]->delivery_route_id,
-							'payee_payer_id' => $journalEntry[0]->payee_payer_id,
+                            'payee_payer_id' => $journalEntry[0]->payee_payer_id,
                             'due_date' => $journalEntry[0]->due_date,
                             'transaction_date' => $journalEntry[0]->transaction_date,
                             'reference_no' => $journalEntry[0]->reference_no,
@@ -2985,15 +2804,15 @@ class Sales_note_controller extends CI_Controller {
                             'reference_transaction_type_id' => $journalEntry[0]->reference_transaction_type_id,
                             'reference_transaction_id' => $journalEntry[0]->reference_transaction_id,
                             'reference_journal_entry_id' => $journalEntry[0]->reference_journal_entry_id,
-							'description' => $journalEntry[0]->description,
-							'post_type' => $journalEntry[0]->post_type,
-							'actioned_user_id' => $journalEntry[0]->actioned_user_id,
-							'action_date' => $journalEntry[0]->action_date,
-							'last_action_status' => $journalEntry[0]->last_action_status
-						);
+                            'description' => $journalEntry[0]->description,
+                            'post_type' => $journalEntry[0]->post_type,
+                            'actioned_user_id' => $journalEntry[0]->actioned_user_id,
+                            'action_date' => $journalEntry[0]->action_date,
+                            'last_action_status' => $journalEntry[0]->last_action_status
+                        );
 
                         $this->journal_entries_model->addJournalEntryToHistory($journalEntryHistoryData);
-                    
+
                         $data = array(
                             'transaction_date' => $date,
                             'location_id' => $locationId,
@@ -3005,94 +2824,381 @@ class Sales_note_controller extends CI_Controller {
 
                         $this->journal_entries_model->editJournalEntry($receivePaymentJournalEntryId, $data);
                     }
-				}
 
-				$primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForReceivePaymentChequeTransaction();
+                    $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForReceivePaymentCashTransaction();
 
-				if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-					if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-						//Get general ledger transactions to update new amount
-						foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
-							$receivePaymentPrimeEntryBookId = $receivePaymentJournalEntry->prime_entry_book_id;
-							$receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
+                    if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                        if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                            //Get general ledger transactions to update new amount
+                            foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
+                                $receivePaymentPrimeEntryBookId = $receivePaymentJournalEntry->prime_entry_book_id;
+                                $receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
 
-							$primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($receivePaymentPrimeEntryBookId);
-							$receivePaymentGeneralLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryIdAndPrimeEntryBookId($receivePaymentJournalEntryId, $receivePaymentPrimeEntryBookId);
+                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($receivePaymentPrimeEntryBookId);
+                                $receivePaymentGeneralLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryIdAndPrimeEntryBookId($receivePaymentJournalEntryId, $receivePaymentPrimeEntryBookId);
 
-							$amount = str_replace(',', '', $amount);
-							$oldAmount = str_replace(',', '', $chequePaymentOld);
+                                $amount = str_replace(',', '', $amount);
+                                $oldAmount = str_replace(',', '', $cashPaymentOld);
 
-							if ($receivePaymentGeneralLedgerTransactions && sizeof($receivePaymentGeneralLedgerTransactions) > 0) {
-								foreach($primeEntryBookChartOfAccounts as $primeEntryBookChartOfAccount) {
-									foreach($receivePaymentGeneralLedgerTransactions as $receivePaymentGeneralLedgerTransaction) {
-										if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'debit') {
-											$data = array(
-												'debit_value' => ($receivePaymentGeneralLedgerTransaction->debit_value - $oldAmount) + $amount,
-												'actioned_user_id' => $this->user_id,
-												'action_date' => $this->date,
-												'last_action_status' => 'edited'
-											);
+                                if ($receivePaymentGeneralLedgerTransactions && sizeof($receivePaymentGeneralLedgerTransactions) > 0) {
+                                    foreach($primeEntryBookChartOfAccounts as $primeEntryBookChartOfAccount) {
+                                        foreach($receivePaymentGeneralLedgerTransactions as $receivePaymentGeneralLedgerTransaction) {
+                                            if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'debit') {
+                                                $data = array(
+                                                    'debit_value' => ($receivePaymentGeneralLedgerTransaction->debit_value - $oldAmount) + $amount,
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'edited'
+                                                );
 
-											$this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+                                                $this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
 
-											//Same time edit the data in previous years record table.
-											$this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-										} else if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'credit') {
-											$data = array(
-												'credit_value' => ($receivePaymentGeneralLedgerTransaction->credit_value - $oldAmount) + $amount,
-												'actioned_user_id' => $this->user_id,
-												'action_date' => $this->date,
-												'last_action_status' => 'edited'
-											);
+                                                //Same time edit the data in previous years record table.
+                                                $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+                                            } else if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'credit') {
+                                                $data = array(
+                                                    'credit_value' => ($receivePaymentGeneralLedgerTransaction->credit_value - $oldAmount) + $amount,
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'edited'
+                                                );
 
-											$this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+                                                $this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
 
-											//Same time edit the data in previous years record table.
-											$this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-										}
-									}
-								}
-							} else {
-								foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-									if ($chartOfAccount->debit_or_credit == "debit") {
-										$data = array(
-											'journal_entry_id' => $receivePaymentJournalEntryId,
-											'prime_entry_book_id' => $receivePaymentPrimeEntryBookId,
-											'transaction_date' => $date,
-											'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-											'debit_value' => $amount,
-											'actioned_user_id' => $this->user_id,
-											'action_date' => $this->date,
-											'last_action_status' => 'added'
-										);
-									} else if ($chartOfAccount->debit_or_credit == "credit") {
-										$data = array(
-											'journal_entry_id' => $receivePaymentJournalEntryId,
-											'prime_entry_book_id' => $receivePaymentPrimeEntryBookId,
-											'transaction_date' => $date,
-											'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-											'credit_value' => $amount,
-											'actioned_user_id' => $this->user_id,
-											'action_date' => $this->date,
-											'last_action_status' => 'added'
-										);
-									}
+                                                //Same time edit the data in previous years record table.
+                                                $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+                                        if ($chartOfAccount->debit_or_credit == "debit") {
+                                            $data = array(
+                                                'journal_entry_id' => $receivePaymentJournalEntryId,
+                                                'prime_entry_book_id' => $receivePaymentPrimeEntryBookId,
+                                                'transaction_date' => $date,
+                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                'debit_value' => $amount,
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'added'
+                                            );
+                                        } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                            $data = array(
+                                                'journal_entry_id' => $receivePaymentJournalEntryId,
+                                                'prime_entry_book_id' => $receivePaymentPrimeEntryBookId,
+                                                'transaction_date' => $date,
+                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                'credit_value' => $amount,
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'added'
+                                            );
+                                        }
 
-									$this->journal_entries_model->addGeneralLedgerTransaction($data);
+                                        $this->journal_entries_model->addGeneralLedgerTransaction($data);
 
-									//Same time add the data to previous years record table.
-									$this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
-								}
-							}
-						}
-					}
-				}
-			}
-			
-			$result = 'ok';
-		} else {
-			$result = 'no_changes_to_save';
-		}
+                                        //Same time add the data to previous years record table.
+                                        $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                $result = 'ok';
+            } else {
+                $result = 'no_changes_to_save';
+            }
+        } else {
+            $result = "previous_financial_year_is_closed";
+        }
+		
+		echo json_encode(array('result' => $result, 'cashPaymentAmount' => number_format($cashPaymentAmount, 2), 
+                               'chequePaymentAmount' => number_format($chequePaymentAmount, 2), 
+                               'creditCardPaymentAmount' => number_format($creditCardPaymentAmount, 2),
+                               'balancePaymentAmount' => number_format($balancePaymentAmount, 2)));
+	}
+	
+	public function editReceiveChequePaymentData() {
+        
+        $cashPaymentAmount = '';
+        $chequePaymentAmount = '';
+        $creditCardPaymentAmount = '';
+        $balancePaymentAmount = '';
+		
+        $salesNoteId = $this->db->escape_str($this->input->post('sales_note_id'));
+        
+        $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
+        $salesNoteTransactionDate = $salesNote[0]->date;
+                
+        $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($salesNoteTransactionDate);
+
+        if ($financialYear[0]->year_end_process_status != "Closed") {
+        
+            $receiveChequePaymentId = $this->db->escape_str($this->input->post('receive_payment_id'));
+            $chequeId = $this->db->escape_str($this->input->post('cheque_id'));
+            $customerId = $this->db->escape_str($this->input->post('customer_id'));
+            $locationId = $this->db->escape_str($this->input->post('location_id'));
+            $date = $this->db->escape_str($this->input->post('date'));
+            $chequeNumber = $this->db->escape_str($this->input->post('cheque_number'));
+            $bank = $this->db->escape_str($this->input->post('bank'));
+            $chequeDate = $this->db->escape_str($this->input->post('cheque_date'));
+            $thirdPartyCheque = $this->db->escape_str($this->input->post('third_party_cheque'));
+            $amount = $this->db->escape_str($this->input->post('amount'));
+            $crossedCheque = $this->db->escape_str($this->input->post('crossed_cheque'));
+            $chequeDepositPrimeEntryBookId = $this->db->escape_str($this->input->post('cheque_deposit_prime_entry_book_id'));
+
+            $result = '';
+
+            $incomeCheque = $this->payments_model->getIncomeChequeById($chequeId);
+            $dateOld = $incomeCheque[0]->date;
+            $chequeNumberOld = $incomeCheque[0]->cheque_number;
+            $bankOld = $incomeCheque[0]->bank;
+            $chequeDateOld = $incomeCheque[0]->cheque_date;
+            $thirdPartyChequeOld = $incomeCheque[0]->third_party_cheque;
+            $chequePaymentOld = $incomeCheque[0]->amount;
+            $crossedChequeOld = $incomeCheque[0]->crossed_cheque;
+            $chequeDepositPrimeEntryBookIdOld = $incomeCheque[0]->cheque_deposit_prime_entry_book_id;
+
+            $customerIdOld = $salesNote[0]->customer_id;
+            $locationIdOld = $salesNote[0]->location_id;
+            $amountPayable = $salesNote[0]->amount_payable;
+            $cashPaymentAmount = $salesNote[0]->cash_payment_amount;
+            $chequePaymentAmount = $salesNote[0]->cheque_payment_amount;
+            $creditCardPaymentAmount = $salesNote[0]->credit_card_payment_amount;
+            $customerReturnNoteClaimed = $salesNote[0]->customer_return_note_claimed;
+
+            $chequePaymentAmount = ($chequePaymentAmount - $chequePaymentOld) + $amount;
+            $balancePaymentAmount = $amountPayable - ($customerReturnNoteClaimed + $cashPaymentAmount + $chequePaymentAmount + $creditCardPaymentAmount);
+
+            $customerChanged = false;
+            $locationChanged = false;
+            $dateChanged = false;
+            $chequeNumberChanged = false;
+            $bankChanged = false;
+            $chequeDateChanged = false;
+            $thirdPartyChequeChanged = false;
+            $chequePaymentChanged = false;
+            $crossedChequeChanged = false;
+            $chequeDepositPrimeEntryBookIdChanged = false;
+
+            if ($customerIdOld != $customerId) {$customerChanged = true;}
+            if ($locationIdOld != $locationId) {$locationChanged = true;}
+            if ($dateOld != $date) {$dateChanged = true;}
+            if ($chequeNumberOld != $chequeNumber) {$chequeNumberChanged = true;}
+            if ($bankOld != $bank) {$bankChanged = true;}
+            if ($chequeDateOld != $chequeDate) {$chequeDateChanged = true;}
+            if ($thirdPartyChequeOld != $thirdPartyCheque) {$thirdPartyChequeChanged = true;}
+            if ($chequePaymentOld != $amount) {$chequePaymentChanged = true;}
+            if ($crossedChequeOld != $crossedCheque) {$crossedChequeChanged = true;}
+            if ($chequeDepositPrimeEntryBookIdOld != $chequeDepositPrimeEntryBookId) {$chequeDepositPrimeEntryBookIdChanged = true;}
+
+            if ($customerChanged || $locationChanged || $dateChanged || $chequeNumberChanged || $bankChanged || $chequeDateChanged || 
+                    $thirdPartyChequeChanged || $chequePaymentChanged || $crossedChequeChanged || $chequeDepositPrimeEntryBookIdChanged) {
+
+                $incomeChequeDataHistory = array(
+                    'date' => $incomeCheque[0]->date,
+                    'payer_id' => $incomeCheque[0]->payer_id,
+                    'location_id' => $incomeCheque[0]->location_id,
+                    'cheque_number' => $incomeCheque[0]->cheque_number,
+                    'bank' => $incomeCheque[0]->bank,
+                    'cheque_date' => $incomeCheque[0]->cheque_date,
+                    'third_party_cheque' => $incomeCheque[0]->third_party_cheque,
+                    'amount' => $incomeCheque[0]->amount,
+                    'crossed_cheque' => $incomeCheque[0]->crossed_cheque,
+                    'cheque_deposit_prime_entry_book_id' => $incomeCheque[0]->cheque_deposit_prime_entry_book_id,
+                    'actioned_user_id' => $incomeCheque[0]->actioned_user_id,
+                    'action_date' => $incomeCheque[0]->action_date,
+                    'last_action_status' => $incomeCheque[0]->last_action_status
+                );
+
+                $this->payments_model->addIncomeChequeToHistory($incomeChequeDataHistory);
+
+                $incomeChequeData = array(
+                    'date' => $date,
+                    'payer_id' => $customerId,
+                    'location_id' => $locationId,
+                    'cheque_number' => $chequeNumber,
+                    'bank' => $bank,
+                    'cheque_date' => $chequeDate,
+                    'third_party_cheque' => $thirdPartyCheque,
+                    'amount' => $amount,
+                    'crossed_cheque' => $crossedCheque,
+                    'cheque_deposit_prime_entry_book_id' => $chequeDepositPrimeEntryBookId,
+                    'actioned_user_id' => $this->user_id,
+                    'action_date' => $this->date,
+                    'last_action_status' => 'edited'
+                );
+
+                $this->payments_model->editIncomeCheque($chequeId, $incomeChequeData);
+
+                //Update sales note for the cheque payment
+                $status = "Open";
+                if ($balancePaymentAmount == '0.00') {
+                    $status = "Claimed";
+                }
+
+                $salesInvoiceData = array(
+                    'cheque_payment_amount' => $chequePaymentAmount,
+                    'balance_payment' => $balancePaymentAmount,
+                    'status' => $status,
+                    'actioned_user_id' => $this->user_id,
+                    'action_date' => $this->date,
+                    'last_action_status' => 'edited'
+                );
+
+                $this->sales_note_model->editSalesNoteData($salesNoteId, $salesInvoiceData);
+
+                $receivePaymentDatanew = array(
+                    'date' => $date,
+                    'payer_id' => $customerId,
+                    'location_id' => $locationId,
+                    'actioned_user_id' => $this->user_id,
+                    'action_date' => $this->date,
+                    'last_action_status' => 'edited'
+                );
+
+                $this->receive_payment_model->editReceivePaymentData($receiveChequePaymentId, $receivePaymentDatanew);
+
+                $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receiveChequePaymentId);
+
+                if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                    //Get general ledger transactions to update new location
+                    foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
+
+                        $receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
+
+                        if ($customerChanged || $locationChanged || $dateChanged) {
+
+                            $journalEntry = $this->journal_entries_model->getJournalEntryById($receivePaymentJournalEntryId);
+
+                            $journalEntryHistoryData = array(
+                                'journal_entry_id' => $journalEntry[0]->journal_entry_id,
+                                'prime_entry_book_id' => $journalEntry[0]->prime_entry_book_id,
+                                'location_id' => $journalEntry[0]->location_id,
+                                'payee_payer_type' => $journalEntry[0]->payee_payer_type,
+                                'delivery_route_id' => $journalEntry[0]->delivery_route_id,
+                                'payee_payer_id' => $journalEntry[0]->payee_payer_id,
+                                'due_date' => $journalEntry[0]->due_date,
+                                'transaction_date' => $journalEntry[0]->transaction_date,
+                                'reference_no' => $journalEntry[0]->reference_no,
+                                'should_have_a_payment_journal_entry' => $journalEntry[0]->should_have_a_payment_journal_entry,
+                                'reference_transaction_type_id' => $journalEntry[0]->reference_transaction_type_id,
+                                'reference_transaction_id' => $journalEntry[0]->reference_transaction_id,
+                                'reference_journal_entry_id' => $journalEntry[0]->reference_journal_entry_id,
+                                'description' => $journalEntry[0]->description,
+                                'post_type' => $journalEntry[0]->post_type,
+                                'actioned_user_id' => $journalEntry[0]->actioned_user_id,
+                                'action_date' => $journalEntry[0]->action_date,
+                                'last_action_status' => $journalEntry[0]->last_action_status
+                            );
+
+                            $this->journal_entries_model->addJournalEntryToHistory($journalEntryHistoryData);
+
+                            $data = array(
+                                'transaction_date' => $date,
+                                'location_id' => $locationId,
+                                'payee_payer_id' => $customerId,
+                                'actioned_user_id' => $this->user_id,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'edited'
+                            );
+
+                            $this->journal_entries_model->editJournalEntry($receivePaymentJournalEntryId, $data);
+                        }
+                    }
+
+                    $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForReceivePaymentChequeTransaction();
+
+                    if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                        if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                            //Get general ledger transactions to update new amount
+                            foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
+                                $receivePaymentPrimeEntryBookId = $receivePaymentJournalEntry->prime_entry_book_id;
+                                $receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
+
+                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($receivePaymentPrimeEntryBookId);
+                                $receivePaymentGeneralLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryIdAndPrimeEntryBookId($receivePaymentJournalEntryId, $receivePaymentPrimeEntryBookId);
+
+                                $amount = str_replace(',', '', $amount);
+                                $oldAmount = str_replace(',', '', $chequePaymentOld);
+
+                                if ($receivePaymentGeneralLedgerTransactions && sizeof($receivePaymentGeneralLedgerTransactions) > 0) {
+                                    foreach($primeEntryBookChartOfAccounts as $primeEntryBookChartOfAccount) {
+                                        foreach($receivePaymentGeneralLedgerTransactions as $receivePaymentGeneralLedgerTransaction) {
+                                            if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'debit') {
+                                                $data = array(
+                                                    'debit_value' => ($receivePaymentGeneralLedgerTransaction->debit_value - $oldAmount) + $amount,
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'edited'
+                                                );
+
+                                                $this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+
+                                                //Same time edit the data in previous years record table.
+                                                $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+                                            } else if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'credit') {
+                                                $data = array(
+                                                    'credit_value' => ($receivePaymentGeneralLedgerTransaction->credit_value - $oldAmount) + $amount,
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'edited'
+                                                );
+
+                                                $this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+
+                                                //Same time edit the data in previous years record table.
+                                                $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+                                        if ($chartOfAccount->debit_or_credit == "debit") {
+                                            $data = array(
+                                                'journal_entry_id' => $receivePaymentJournalEntryId,
+                                                'prime_entry_book_id' => $receivePaymentPrimeEntryBookId,
+                                                'transaction_date' => $date,
+                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                'debit_value' => $amount,
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'added'
+                                            );
+                                        } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                            $data = array(
+                                                'journal_entry_id' => $receivePaymentJournalEntryId,
+                                                'prime_entry_book_id' => $receivePaymentPrimeEntryBookId,
+                                                'transaction_date' => $date,
+                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                'credit_value' => $amount,
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'added'
+                                            );
+                                        }
+
+                                        $this->journal_entries_model->addGeneralLedgerTransaction($data);
+
+                                        //Same time add the data to previous years record table.
+                                        $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                $result = 'ok';
+            } else {
+                $result = 'no_changes_to_save';
+            }
+        } else {
+            $result = "previous_financial_year_is_closed";
+        }
 		
 		echo json_encode(array('result' => $result, 'cashPaymentAmount' => $cashPaymentAmount, 
                                'chequePaymentAmount' => $chequePaymentAmount, 
@@ -3102,251 +3208,266 @@ class Sales_note_controller extends CI_Controller {
     
     public function editReceiveCreditCardPaymentData() {
         
-		$receivePaymentId = $this->db->escape_str($this->input->post('receive_payment_id'));
-        $creditCardPaymentId = $this->db->escape_str($this->input->post('credit_card_payment_id'));
-		$salesNoteId = $this->db->escape_str($this->input->post('sales_note_id'));
-		$date = $this->db->escape_str($this->input->post('date'));
-        $customerId = $this->db->escape_str($this->input->post('customer_id'));
-		$locationId = $this->db->escape_str($this->input->post('location_id'));
-        $cardType = $this->db->escape_str($this->input->post('card_type'));
-		$amount = $this->db->escape_str($this->input->post('amount'));
-		
-		$result = '';
-		
-		$creditCardPayment = $this->payments_model->getCardPaymentById($creditCardPaymentId);
-		$dateOld = $creditCardPayment[0]->date;
-        $cardTypeOld = $creditCardPayment[0]->card_type;
-		$creditCardPaymentOld = $creditCardPayment[0]->amount;
-		
-		$salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
-		$amountPayable = $salesNote[0]->amount_payable;
-        $cashPaymentAmount = $salesNote[0]->cash_payment_amount;
-        $chequePaymentAmount = $salesNote[0]->cheque_payment_amount;
-        $creditCardPaymentAmount = $salesNote[0]->credit_card_payment_amount;
-        $customerIdOld = $salesNote[0]->customer_id;
-		$locationIdOld = $salesNote[0]->location_id;
-		
-		$customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
-		$customerMarketReturnId = $salesNote[0]->customer_market_return_id;
+        $cashPaymentAmount = '';
+        $chequePaymentAmount = '';
+        $creditCardPaymentAmount = '';
+        $balancePaymentAmount = '';
+        
+        $salesNoteId = $this->db->escape_str($this->input->post('sales_note_id'));
+        
+        $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
+        $salesNoteTransactionDate = $salesNote[0]->date;
+                
+        $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($salesNoteTransactionDate);
 
-		$customerSaleableReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerSaleableReturnId);
-		$customerMarketReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerMarketReturnId);
+        if ($financialYear[0]->year_end_process_status != "Closed") {
+        
+            $receivePaymentId = $this->db->escape_str($this->input->post('receive_payment_id'));
+            $creditCardPaymentId = $this->db->escape_str($this->input->post('credit_card_payment_id'));
+            $date = $this->db->escape_str($this->input->post('date'));
+            $customerId = $this->db->escape_str($this->input->post('customer_id'));
+            $locationId = $this->db->escape_str($this->input->post('location_id'));
+            $cardType = $this->db->escape_str($this->input->post('card_type'));
+            $amount = $this->db->escape_str($this->input->post('amount'));
 
-		$customerSaleableReturnAmount = 0;
-		if ($customerSaleableReturn && sizeof($customerSaleableReturn) > 0) {
-			$customerSaleableReturnAmount = $customerSaleableReturn[0]->amount;
-		}
+            $result = '';
 
-		$customerMarketReturnAmount = 0;
-		if ($customerMarketReturn && sizeof($customerMarketReturn) > 0) {
-			$customerMarketReturnAmount = $customerMarketReturn[0]->amount;
-		}
-		
-		$creditCardPaymentAmount = ($creditCardPaymentAmount - $creditCardPaymentOld) + $amount;
-		$balancePaymentAmount = $amountPayable - ($customerSaleableReturnAmount + $customerMarketReturnAmount + $cashPaymentAmount + $chequePaymentAmount + $creditCardPaymentAmount);
-		
-		$dateChanged = false;
-        $customerChanged = false;
-        $locationChanged = false;
-        $cardTypeChanged = false;
-		$creditCardPaymentChanged = false;
+            $creditCardPayment = $this->payments_model->getCardPaymentById($creditCardPaymentId);
+            $dateOld = $creditCardPayment[0]->date;
+            $cardTypeOld = $creditCardPayment[0]->card_type;
+            $creditCardPaymentOld = $creditCardPayment[0]->amount;
 
-		if ($dateOld != $date) {$dateChanged = true;}
-        if ($customerIdOld != $customerId) {$customerChanged = true;}
-		if ($locationIdOld != $locationId) {$locationChanged = true;}
-        if ($cardTypeOld != $cardType) {$cardTypeChanged = true;}
-		if ($creditCardPaymentOld != $amount) {$creditCardPaymentChanged = true;}
-		
-		if ($customerChanged || $locationChanged || $dateChanged || $cardTypeChanged || $creditCardPaymentChanged) {
+            $amountPayable = $salesNote[0]->amount_payable;
+            $cashPaymentAmount = $salesNote[0]->cash_payment_amount;
+            $chequePaymentAmount = $salesNote[0]->cheque_payment_amount;
+            $creditCardPaymentAmount = $salesNote[0]->credit_card_payment_amount;
+            $customerIdOld = $salesNote[0]->customer_id;
+            $locationIdOld = $salesNote[0]->location_id;
 
-            $creditCardPaymentHistory = array(
-                'credit_card_payment_id' => $creditCardPayment[0]->credit_card_payment_id,
-                'transaction_type' => $creditCardPayment[0]->transaction_type,
-                'transaction_id' => $creditCardPayment[0]->transaction_id,
-                'date' => $creditCardPayment[0]->date,
-                'card_type' => $creditCardPayment[0]->card_type,
-                'amount' => $creditCardPayment[0]->amount,
-                'card_payment_prime_entry_book_id' => $creditCardPayment[0]->card_payment_prime_entry_book_id,
-                'actioned_user_id' => $creditCardPayment[0]->actioned_user_id,
-                'action_date' => $creditCardPayment[0]->action_date,
-                'last_action_status' => $creditCardPayment[0]->last_action_status
-            );
-            
-            $this->payments_model->addCreditCardPaymentToHistory($creditCardPaymentHistory);
-            
-            $creditCardPaymentNew = array(
-                'date' => $date,
-                'card_type' => $cardType,
-                'amount' => $amount,
-                'actioned_user_id' => $this->user_id,
-                'action_date' => $this->date,
-                'last_action_status' => 'added'
-            );
-            
-            $this->payments_model->editCreditCardPayment($creditCardPaymentId, $creditCardPaymentNew);
-            
-            //Update sales note for the cash payment
-            $status = "Open";
-            if ($balancePaymentAmount == '0.00') {
-                $status = "Claimed";
+            $customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
+            $customerMarketReturnId = $salesNote[0]->customer_market_return_id;
+
+            $customerSaleableReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerSaleableReturnId);
+            $customerMarketReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerMarketReturnId);
+
+            $customerSaleableReturnAmount = 0;
+            if ($customerSaleableReturn && sizeof($customerSaleableReturn) > 0) {
+                $customerSaleableReturnAmount = $customerSaleableReturn[0]->amount;
             }
-            
-            $salesNoteData = array(
-                'customer_id' => $customerId,
-				'location_id' => $locationId,
-                'credit_card_payment_amount' => $creditCardPaymentAmount,
-                'balance_payment' => $balancePaymentAmount,
-                'status' => $status,
-                'actioned_user_id' => $this->user_id,
-                'action_date' => $this->date,
-                'last_action_status' => 'edited'
-            );
 
-            $this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteData);
-            
-            //Update receive payment data
-            $receivePaymentDatanew = array(
-				'date' => $date,
-				'payer_id' => $customerId,
-				'location_id' => $locationId,
-                'actioned_user_id' => $this->user_id,
-				'action_date' => $this->date,
-				'last_action_status' => 'edited'
-			);
-            
-            $this->receive_payment_model->editReceivePaymentData($receivePaymentId, $receivePaymentDatanew);
+            $customerMarketReturnAmount = 0;
+            if ($customerMarketReturn && sizeof($customerMarketReturn) > 0) {
+                $customerMarketReturnAmount = $customerMarketReturn[0]->amount;
+            }
 
-			$receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentId);
+            $creditCardPaymentAmount = ($creditCardPaymentAmount - $creditCardPaymentOld) + $amount;
+            $balancePaymentAmount = $amountPayable - ($customerSaleableReturnAmount + $customerMarketReturnAmount + $cashPaymentAmount + $chequePaymentAmount + $creditCardPaymentAmount);
 
-			if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-				//Get general ledger transactions to update new location
-				foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
+            $dateChanged = false;
+            $customerChanged = false;
+            $locationChanged = false;
+            $cardTypeChanged = false;
+            $creditCardPaymentChanged = false;
 
-					$receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
-                    
-                    $journalEntry = $this->journal_entries_model->getJournalEntryById($receivePaymentJournalEntryId);
+            if ($dateOld != $date) {$dateChanged = true;}
+            if ($customerIdOld != $customerId) {$customerChanged = true;}
+            if ($locationIdOld != $locationId) {$locationChanged = true;}
+            if ($cardTypeOld != $cardType) {$cardTypeChanged = true;}
+            if ($creditCardPaymentOld != $amount) {$creditCardPaymentChanged = true;}
 
-                    $journalEntryHistoryData = array(
-                        'journal_entry_id' => $journalEntry[0]->journal_entry_id,
-                        'prime_entry_book_id' => $journalEntry[0]->prime_entry_book_id,
-                        'location_id' => $journalEntry[0]->location_id,
-                        'payee_payer_type' => $journalEntry[0]->payee_payer_type,
-                        'delivery_route_id' => $journalEntry[0]->delivery_route_id,
-                        'payee_payer_id' => $journalEntry[0]->payee_payer_id,
-                        'due_date' => $journalEntry[0]->due_date,
-                        'transaction_date' => $journalEntry[0]->transaction_date,
-                        'reference_no' => $journalEntry[0]->reference_no,
-                        'should_have_a_payment_journal_entry' => $journalEntry[0]->should_have_a_payment_journal_entry,
-                        'reference_transaction_type_id' => $journalEntry[0]->reference_transaction_type_id,
-                        'reference_transaction_id' => $journalEntry[0]->reference_transaction_id,
-                        'reference_journal_entry_id' => $journalEntry[0]->reference_journal_entry_id,
-                        'description' => $journalEntry[0]->description,
-                        'post_type' => $journalEntry[0]->post_type,
-                        'actioned_user_id' => $journalEntry[0]->actioned_user_id,
-                        'action_date' => $journalEntry[0]->action_date,
-                        'last_action_status' => $journalEntry[0]->last_action_status
-                    );
+            if ($customerChanged || $locationChanged || $dateChanged || $cardTypeChanged || $creditCardPaymentChanged) {
 
-                    $this->journal_entries_model->addJournalEntryToHistory($journalEntryHistoryData);
-                        
-					$data = array(
-						'transaction_date' => $date,
-						'location_id' => $locationId,
-						'payee_payer_id' => $customerId,
-						'actioned_user_id' => $this->user_id,
-						'action_date' => $this->date,
-						'last_action_status' => 'edited'
-					);
+                $creditCardPaymentHistory = array(
+                    'credit_card_payment_id' => $creditCardPayment[0]->credit_card_payment_id,
+                    'transaction_type' => $creditCardPayment[0]->transaction_type,
+                    'transaction_id' => $creditCardPayment[0]->transaction_id,
+                    'date' => $creditCardPayment[0]->date,
+                    'card_type' => $creditCardPayment[0]->card_type,
+                    'amount' => $creditCardPayment[0]->amount,
+                    'card_payment_prime_entry_book_id' => $creditCardPayment[0]->card_payment_prime_entry_book_id,
+                    'actioned_user_id' => $creditCardPayment[0]->actioned_user_id,
+                    'action_date' => $creditCardPayment[0]->action_date,
+                    'last_action_status' => $creditCardPayment[0]->last_action_status
+                );
 
-					$this->journal_entries_model->editJournalEntry($receivePaymentJournalEntryId, $data);
-				}
+                $this->payments_model->addCreditCardPaymentToHistory($creditCardPaymentHistory);
 
-				$primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForReceivePaymentCashTransaction();
+                $creditCardPaymentNew = array(
+                    'date' => $date,
+                    'card_type' => $cardType,
+                    'amount' => $amount,
+                    'actioned_user_id' => $this->user_id,
+                    'action_date' => $this->date,
+                    'last_action_status' => 'added'
+                );
 
-				if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
-					if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-						//Get general ledger transactions to update new amount
-						foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
-							$receivePaymentPrimeEntryBookId = $receivePaymentJournalEntry->prime_entry_book_id;
-							$receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
+                $this->payments_model->editCreditCardPayment($creditCardPaymentId, $creditCardPaymentNew);
 
-							$primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($receivePaymentPrimeEntryBookId);
-							$receivePaymentGeneralLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryIdAndPrimeEntryBookId($receivePaymentJournalEntryId, $receivePaymentPrimeEntryBookId);
+                //Update sales note for the cash payment
+                $status = "Open";
+                if ($balancePaymentAmount == '0.00') {
+                    $status = "Claimed";
+                }
 
-							$amount = str_replace(',', '', $amount);
-							$oldAmount = str_replace(',', '', $creditCardPaymentOld);
+                $salesNoteData = array(
+                    'customer_id' => $customerId,
+                    'location_id' => $locationId,
+                    'credit_card_payment_amount' => $creditCardPaymentAmount,
+                    'balance_payment' => $balancePaymentAmount,
+                    'status' => $status,
+                    'actioned_user_id' => $this->user_id,
+                    'action_date' => $this->date,
+                    'last_action_status' => 'edited'
+                );
 
-							if ($receivePaymentGeneralLedgerTransactions && sizeof($receivePaymentGeneralLedgerTransactions) > 0) {
-								foreach($primeEntryBookChartOfAccounts as $primeEntryBookChartOfAccount) {
-									foreach($receivePaymentGeneralLedgerTransactions as $receivePaymentGeneralLedgerTransaction) {
-										if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'debit') {
-											$data = array(
-												'debit_value' => ($receivePaymentGeneralLedgerTransaction->debit_value - $oldAmount) + $amount,
-												'actioned_user_id' => $this->user_id,
-												'action_date' => $this->date,
-												'last_action_status' => 'edited'
-											);
+                $this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteData);
 
-											$this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+                //Update receive payment data
+                $receivePaymentDatanew = array(
+                    'date' => $date,
+                    'payer_id' => $customerId,
+                    'location_id' => $locationId,
+                    'actioned_user_id' => $this->user_id,
+                    'action_date' => $this->date,
+                    'last_action_status' => 'edited'
+                );
 
-											//Same time edit the data in previous years record table.
-											$this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-										} else if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'credit') {
-											$data = array(
-												'credit_value' => ($receivePaymentGeneralLedgerTransaction->credit_value - $oldAmount) + $amount,
-												'actioned_user_id' => $this->user_id,
-												'action_date' => $this->date,
-												'last_action_status' => 'edited'
-											);
+                $this->receive_payment_model->editReceivePaymentData($receivePaymentId, $receivePaymentDatanew);
 
-											$this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+                $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentId);
 
-											//Same time edit the data in previous years record table.
-											$this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
-										}
-									}
-								}
-							} else {
-								foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
-									if ($chartOfAccount->debit_or_credit == "debit") {
-										$data = array(
-											'journal_entry_id' => $receivePaymentJournalEntryId,
-											'prime_entry_book_id' => $receivePaymentPrimeEntryBookId,
-											'transaction_date' => $date,
-											'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-											'debit_value' => $amount,
-											'actioned_user_id' => $this->user_id,
-											'action_date' => $this->date,
-											'last_action_status' => 'added'
-										);
-									} else if ($chartOfAccount->debit_or_credit == "credit") {
-										$data = array(
-											'journal_entry_id' => $receivePaymentJournalEntryId,
-											'prime_entry_book_id' => $receivePaymentPrimeEntryBookId,
-											'transaction_date' => $date,
-											'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
-											'credit_value' => $amount,
-											'actioned_user_id' => $this->user_id,
-											'action_date' => $this->date,
-											'last_action_status' => 'added'
-										);
-									}
+                if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                    //Get general ledger transactions to update new location
+                    foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
 
-									$this->journal_entries_model->addGeneralLedgerTransaction($data);
+                        $receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
 
-									//Same time add the data to previous years record table.
-									$this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
-								}
-							}
-						}
-					}
-				}
-			}
-			
-			$result = 'ok';
-		} else {
-			$result = 'no_changes_to_save';
-		}
+                        $journalEntry = $this->journal_entries_model->getJournalEntryById($receivePaymentJournalEntryId);
+
+                        $journalEntryHistoryData = array(
+                            'journal_entry_id' => $journalEntry[0]->journal_entry_id,
+                            'prime_entry_book_id' => $journalEntry[0]->prime_entry_book_id,
+                            'location_id' => $journalEntry[0]->location_id,
+                            'payee_payer_type' => $journalEntry[0]->payee_payer_type,
+                            'delivery_route_id' => $journalEntry[0]->delivery_route_id,
+                            'payee_payer_id' => $journalEntry[0]->payee_payer_id,
+                            'due_date' => $journalEntry[0]->due_date,
+                            'transaction_date' => $journalEntry[0]->transaction_date,
+                            'reference_no' => $journalEntry[0]->reference_no,
+                            'should_have_a_payment_journal_entry' => $journalEntry[0]->should_have_a_payment_journal_entry,
+                            'reference_transaction_type_id' => $journalEntry[0]->reference_transaction_type_id,
+                            'reference_transaction_id' => $journalEntry[0]->reference_transaction_id,
+                            'reference_journal_entry_id' => $journalEntry[0]->reference_journal_entry_id,
+                            'description' => $journalEntry[0]->description,
+                            'post_type' => $journalEntry[0]->post_type,
+                            'actioned_user_id' => $journalEntry[0]->actioned_user_id,
+                            'action_date' => $journalEntry[0]->action_date,
+                            'last_action_status' => $journalEntry[0]->last_action_status
+                        );
+
+                        $this->journal_entries_model->addJournalEntryToHistory($journalEntryHistoryData);
+
+                        $data = array(
+                            'transaction_date' => $date,
+                            'location_id' => $locationId,
+                            'payee_payer_id' => $customerId,
+                            'actioned_user_id' => $this->user_id,
+                            'action_date' => $this->date,
+                            'last_action_status' => 'edited'
+                        );
+
+                        $this->journal_entries_model->editJournalEntry($receivePaymentJournalEntryId, $data);
+                    }
+
+                    $primeEntryBooksToUpdate = $this->getPrimeEntryBooksToUpdateForReceivePaymentCashTransaction();
+
+                    if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
+                        if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                            //Get general ledger transactions to update new amount
+                            foreach($receivePaymentJournalEntries as $receivePaymentJournalEntry) {
+                                $receivePaymentPrimeEntryBookId = $receivePaymentJournalEntry->prime_entry_book_id;
+                                $receivePaymentJournalEntryId = $receivePaymentJournalEntry->journal_entry_id;
+
+                                $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($receivePaymentPrimeEntryBookId);
+                                $receivePaymentGeneralLedgerTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryIdAndPrimeEntryBookId($receivePaymentJournalEntryId, $receivePaymentPrimeEntryBookId);
+
+                                $amount = str_replace(',', '', $amount);
+                                $oldAmount = str_replace(',', '', $creditCardPaymentOld);
+
+                                if ($receivePaymentGeneralLedgerTransactions && sizeof($receivePaymentGeneralLedgerTransactions) > 0) {
+                                    foreach($primeEntryBookChartOfAccounts as $primeEntryBookChartOfAccount) {
+                                        foreach($receivePaymentGeneralLedgerTransactions as $receivePaymentGeneralLedgerTransaction) {
+                                            if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'debit') {
+                                                $data = array(
+                                                    'debit_value' => ($receivePaymentGeneralLedgerTransaction->debit_value - $oldAmount) + $amount,
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'edited'
+                                                );
+
+                                                $this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+
+                                                //Same time edit the data in previous years record table.
+                                                $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+                                            } else if ($receivePaymentGeneralLedgerTransaction->chart_of_account_id == $primeEntryBookChartOfAccount->chart_of_account_id && $primeEntryBookChartOfAccount->debit_or_credit == 'credit') {
+                                                $data = array(
+                                                    'credit_value' => ($receivePaymentGeneralLedgerTransaction->credit_value - $oldAmount) + $amount,
+                                                    'actioned_user_id' => $this->user_id,
+                                                    'action_date' => $this->date,
+                                                    'last_action_status' => 'edited'
+                                                );
+
+                                                $this->journal_entries_model->editGeneralLedgerTransaction($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+
+                                                //Same time edit the data in previous years record table.
+                                                $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($receivePaymentJournalEntryId, $receivePaymentGeneralLedgerTransaction->chart_of_account_id, $data);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    foreach($primeEntryBookChartOfAccounts as $chartOfAccount) {
+                                        if ($chartOfAccount->debit_or_credit == "debit") {
+                                            $data = array(
+                                                'journal_entry_id' => $receivePaymentJournalEntryId,
+                                                'prime_entry_book_id' => $receivePaymentPrimeEntryBookId,
+                                                'transaction_date' => $date,
+                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                'debit_value' => $amount,
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'added'
+                                            );
+                                        } else if ($chartOfAccount->debit_or_credit == "credit") {
+                                            $data = array(
+                                                'journal_entry_id' => $receivePaymentJournalEntryId,
+                                                'prime_entry_book_id' => $receivePaymentPrimeEntryBookId,
+                                                'transaction_date' => $date,
+                                                'chart_of_account_id' => $chartOfAccount->chart_of_account_id,
+                                                'credit_value' => $amount,
+                                                'actioned_user_id' => $this->user_id,
+                                                'action_date' => $this->date,
+                                                'last_action_status' => 'added'
+                                            );
+                                        }
+
+                                        $this->journal_entries_model->addGeneralLedgerTransaction($data);
+
+                                        //Same time add the data to previous years record table.
+                                        $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                $result = 'ok';
+            } else {
+                $result = 'no_changes_to_save';
+            }
+        } else {
+            $result = "previous_financial_year_is_closed";
+        }
 		
 		echo json_encode(array('result' => $result, 'cashPaymentAmount' => number_format($cashPaymentAmount, 2), 
                                'chequePaymentAmount' => number_format($chequePaymentAmount, 2),
@@ -3358,238 +3479,246 @@ class Sales_note_controller extends CI_Controller {
 	public function cancelSalesNote() {
 		if(isset($this->data['ACM_Bookkeeping_Edit_Sales_Note_Permissions'])) {
 			$salesNoteId = $this->db->escape_str($this->input->post('sales_note_id'));
-			
-			$salesNoteSalesEntryJournalEntryId = '0';
-			$salesNoteCostEntryJournalEntryId = '0';
-			$salesNoteDiscountJournalEntryId = '0';
-			$salesNoteFreeIssuesJournalEntryId = '0';
-			$customerSaleableReturnSalesEntryJournalEntryId = '0';
-			$customerSaleableReturnCostEntryJournalEntryId = '0';
-			$customerMarketReturnSalesEntryJournalEntryId = '0';
-			$customerMarketReturnCostEntryJournalEntryId = '0';
-			
-			$salesNoteSalesEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '1');
-			$salesNoteCostEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '2');
-			$salesNoteDiscountJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '3');
-			$salesNoteFreeIssuesJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '4');
-			
-			$salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
-			
-			$customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
-			$customerMarketReturnId = $salesNote[0]->customer_market_return_id;
-			
-			$customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '1');
-			$customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '2');
-			$customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '3');
-			$customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '4');
-			
-			$salesNoteReceivePaymentEntries = $this->sales_note_model->getSalesNoteReceivePaymentEntries($salesNoteId);
-			
-			$cashPaymentMethodIds = array();
-			$chequePaymentMethodIds = array();
-            $cardPaymentMethodIds = array();
-			if ($salesNoteReceivePaymentEntries && sizeof($salesNoteReceivePaymentEntries) > 0) {
-				foreach($salesNoteReceivePaymentEntries as $salesNoteReceivePaymentEntry) {
-					if ($salesNoteReceivePaymentEntry->receive_cash_payment_method_id != '0') {
-						$cashPaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_cash_payment_method_id;
-					}
-					
-					if ($salesNoteReceivePaymentEntry->receive_cheque_payment_method_id != '0') {
-						$chequePaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_cheque_payment_method_id;
-					}
-                    
-                    if ($salesNoteReceivePaymentEntry->receive_credit_card_payment_method_id != '0') {
-						$cardPaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_credit_card_payment_method_id;
-					}
-				}
-			}
-			
-			$status = "deleted";
-			if ($salesNoteSalesEntryJournalEntries && sizeof($salesNoteSalesEntryJournalEntries) > 0) {
-				//Delete all journal entries of Sales Note
-				foreach($salesNoteSalesEntryJournalEntries as $salesNoteSalesEntryJournalEntry) {
-					$salesNoteSalesEntryJournalEntryId = $salesNoteSalesEntryJournalEntry->journal_entry_id;
-					$this->journal_entries_model->deleteJournalEntry($salesNoteSalesEntryJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($salesNoteSalesEntryJournalEntryId, $status, $this->user_id);
-				}
-			}
-			
-			if ($salesNoteCostEntryJournalEntries && sizeof($salesNoteCostEntryJournalEntries) > 0) {
-				//Delete all journal entries of Sales Note
-				foreach($salesNoteCostEntryJournalEntries as $salesNoteCostEntryJournalEntry) {
-					$salesNoteCostEntryJournalEntryId = $salesNoteCostEntryJournalEntry->journal_entry_id;
-					$this->journal_entries_model->deleteJournalEntry($salesNoteCostEntryJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($salesNoteCostEntryJournalEntryId, $status, $this->user_id);
-				}
-			}
-			
-			if ($salesNoteDiscountJournalEntries && sizeof($salesNoteDiscountJournalEntries) > 0) {
-				//Delete all journal entries of Sales Note
-				foreach($salesNoteDiscountJournalEntries as $salesNoteDiscountJournalEntry) {
-					$salesNoteDiscountJournalEntryId = $salesNoteDiscountJournalEntry->journal_entry_id;
-					$this->journal_entries_model->deleteJournalEntry($salesNoteDiscountJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($salesNoteDiscountJournalEntryId, $status, $this->user_id);
-				}
-			}
-			
-			if ($salesNoteFreeIssuesJournalEntries && sizeof($salesNoteFreeIssuesJournalEntries) > 0) {
-				//Delete all journal entries of Sales Note
-				foreach($salesNoteFreeIssuesJournalEntries as $salesNoteFreeIssuesJournalEntry) {
-					$salesNoteFreeIssuesJournalEntryId = $salesNoteFreeIssuesJournalEntry->journal_entry_id;
-					$this->journal_entries_model->deleteJournalEntry($salesNoteFreeIssuesJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($salesNoteFreeIssuesJournalEntryId, $status, $this->user_id);
-				}
-			}
-			
-			$this->customer_return_note_model->deleteCustomerReturnNote($customerSaleableReturnId, $status, $this->user_id);
-			
-			if ($customerSaleableReturnNoteSalesEntryJournalEntries && sizeof($customerSaleableReturnNoteSalesEntryJournalEntries) > 0) {
-				//Delete all journal entries of Sales Note
-				foreach($customerSaleableReturnNoteSalesEntryJournalEntries as $customerSaleableReturnNoteSalesEntryJournalEntry) {
-					$customerSaleableReturnSalesEntryJournalEntryId = $customerSaleableReturnNoteSalesEntryJournalEntry->journal_entry_id;
-                    $this->journal_entries_model->deleteJournalEntry($customerSaleableReturnSalesEntryJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($customerSaleableReturnSalesEntryJournalEntryId, $status, $this->user_id);
-                    
-                    $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($customerSaleableReturnSalesEntryJournalEntryId);
-                    
-                    if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
-                        foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
-                            $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
-
-                            $this->journal_entries_model->deleteJournalEntry($claimReferenceJournalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->deleteGeneralLedgerTransactions($claimReferenceJournalEntryId, $status, $this->user_id);
-                        }
-                    }
-				}
-			}
-			
-			if ($customerSaleableReturnNoteCostEntryJournalEntries && sizeof($customerSaleableReturnNoteCostEntryJournalEntries) > 0) {
-				//Delete all journal entries of Sales Note
-				foreach($customerSaleableReturnNoteCostEntryJournalEntries as $journalEntry) {
-					$customerSaleableReturnCostEntryJournalEntryId = $journalEntry->journal_entry_id;
-					$this->journal_entries_model->deleteJournalEntry($customerSaleableReturnCostEntryJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($customerSaleableReturnCostEntryJournalEntryId, $status, $this->user_id);
-				}
-			}
-			
-			$this->customer_return_note_model->deleteCustomerReturnNote($customerMarketReturnId, $status, $this->user_id);
-			
-			if ($customerMarketReturnNoteSalesEntryJournalEntries && sizeof($customerMarketReturnNoteSalesEntryJournalEntries) > 0) {
-				//Delete all journal entries of Sales Note
-				foreach($customerMarketReturnNoteSalesEntryJournalEntries as $customerMarketReturnNoteSalesEntryJournalEntry) {
-					$customerMarketReturnSalesEntryJournalEntryId = $customerMarketReturnNoteSalesEntryJournalEntry->journal_entry_id;
-                    $this->journal_entries_model->deleteJournalEntry($customerMarketReturnSalesEntryJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($customerMarketReturnSalesEntryJournalEntryId, $status, $this->user_id);
-                    
-                    $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($customerMarketReturnSalesEntryJournalEntryId);
-                    
-                    if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
-                        foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
-                            $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
-
-                            $this->journal_entries_model->deleteJournalEntry($claimReferenceJournalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->deleteGeneralLedgerTransactions($claimReferenceJournalEntryId, $status, $this->user_id);
-                        }
-                    }
-				}
-			}
-			
-			if ($customerMarketReturnNoteCostEntryJournalEntries && sizeof($customerMarketReturnNoteCostEntryJournalEntries) > 0) {
-				//Delete all journal entries of Sales Note
-				foreach($customerMarketReturnNoteCostEntryJournalEntries as $journalEntry) {
-					$customerMarketReturnCostEntryJournalEntryId = $journalEntry->journal_entry_id;
-					$this->journal_entries_model->deleteJournalEntry($customerMarketReturnCostEntryJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($customerMarketReturnCostEntryJournalEntryId, $status, $this->user_id);
-				}
-			}
-			
-			if ($cashPaymentMethodIds && sizeof($cashPaymentMethodIds) > 0) {
-				foreach ($cashPaymentMethodIds as $cashPaymentMethodId) {
-					
-                    $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($cashPaymentMethodId);
-                    
-					if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
-                        
-                        $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
-                        
-                        $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
-					
-                        if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-                            $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
-                            $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
-                        }
-					}
-				}
-			}
-			
-			if ($chequePaymentMethodIds && sizeof($chequePaymentMethodIds) > 0) {
-				foreach ($chequePaymentMethodIds as $chequePaymentMethodId) {
-					
-                    $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($chequePaymentMethodId);
-                    
-					if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
-                        
-                        $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
-                        $this->payments_model->deleteIncomeCheque($receivePaymentMethod[0]->cheque_id, $status, $this->user_id);
-                        
-                        $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
-					
-                        if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-                            $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
-                            $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
-                        }
-					}
-				}
-			}
             
-            if ($cardPaymentMethodIds && sizeof($cardPaymentMethodIds) > 0) {
-				foreach ($cardPaymentMethodIds as $cardPaymentMethodId) {
-					
-                    $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($cardPaymentMethodId);
-                    
-					if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
-                        
-                        $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
-                        
-                        $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
-					
-                        if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-                            $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
-                            $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+            $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
+            $salesNoteTransactionDate = $salesNote[0]->date;
+
+            $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($salesNoteTransactionDate);
+
+            if ($financialYear[0]->year_end_process_status != "Closed") {
+			
+                $salesNoteSalesEntryJournalEntryId = '0';
+                $salesNoteCostEntryJournalEntryId = '0';
+                $salesNoteDiscountJournalEntryId = '0';
+                $salesNoteFreeIssuesJournalEntryId = '0';
+                $customerSaleableReturnSalesEntryJournalEntryId = '0';
+                $customerSaleableReturnCostEntryJournalEntryId = '0';
+                $customerMarketReturnSalesEntryJournalEntryId = '0';
+                $customerMarketReturnCostEntryJournalEntryId = '0';
+
+                $salesNoteSalesEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '1');
+                $salesNoteCostEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '2');
+                $salesNoteDiscountJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '3');
+                $salesNoteFreeIssuesJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '4');
+
+                $customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
+                $customerMarketReturnId = $salesNote[0]->customer_market_return_id;
+
+                $customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '1');
+                $customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '2');
+                $customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '3');
+                $customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '4');
+
+                $salesNoteReceivePaymentEntries = $this->sales_note_model->getSalesNoteReceivePaymentEntries($salesNoteId);
+
+                $cashPaymentMethodIds = array();
+                $chequePaymentMethodIds = array();
+                $cardPaymentMethodIds = array();
+                if ($salesNoteReceivePaymentEntries && sizeof($salesNoteReceivePaymentEntries) > 0) {
+                    foreach($salesNoteReceivePaymentEntries as $salesNoteReceivePaymentEntry) {
+                        if ($salesNoteReceivePaymentEntry->receive_cash_payment_method_id != '0') {
+                            $cashPaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_cash_payment_method_id;
                         }
-					}
-				}
-			}
-			
-			$salesNoteCancelledJournalEntries = array(
-				'sales_note_id' => $salesNoteId,
-				'sales_note_sales_entry_journal_entry_id' => $salesNoteSalesEntryJournalEntryId,
-				'sales_note_cost_entry_journal_entry_id' => $salesNoteCostEntryJournalEntryId,
-				'sales_note_discount_entry_journal_entry_id' => $salesNoteDiscountJournalEntryId,
-				'sales_note_free_issue_entry_journal_entry_id' => $salesNoteFreeIssuesJournalEntryId,
-				'customer_saleable_return_sales_entry_journal_entry_id' => $customerSaleableReturnSalesEntryJournalEntryId,
-				'customer_saleable_return_cost_entry_journal_entry_id' => $customerSaleableReturnCostEntryJournalEntryId,
-				'customer_market_return_sales_entry_journal_entry_id' => $customerMarketReturnSalesEntryJournalEntryId,
-				'customer_market_return_cost_entry_journal_entry_id' => $customerMarketReturnCostEntryJournalEntryId,
-				'actioned_user_id' => $this->user_id,
-				'action_date' => $this->date,
-				'last_action_status' => 'added'
-			);
 
-			$this->sales_note_model->addSalesNoteCancelledJournalEntryData($salesNoteCancelledJournalEntries);
-			
-			$salesNoteDatanew = array(
-				'actioned_user_id' => $this->user_id,
-				'action_date' => $this->date,
-				'last_action_status' => 'cancelled'
-			);
+                        if ($salesNoteReceivePaymentEntry->receive_cheque_payment_method_id != '0') {
+                            $chequePaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_cheque_payment_method_id;
+                        }
 
-			$this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteDatanew);
-			
-			echo 'ok';
+                        if ($salesNoteReceivePaymentEntry->receive_credit_card_payment_method_id != '0') {
+                            $cardPaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_credit_card_payment_method_id;
+                        }
+                    }
+                }
+
+                $status = "deleted";
+                if ($salesNoteSalesEntryJournalEntries && sizeof($salesNoteSalesEntryJournalEntries) > 0) {
+                    //Delete all journal entries of Sales Note
+                    foreach($salesNoteSalesEntryJournalEntries as $salesNoteSalesEntryJournalEntry) {
+                        $salesNoteSalesEntryJournalEntryId = $salesNoteSalesEntryJournalEntry->journal_entry_id;
+                        $this->journal_entries_model->deleteJournalEntry($salesNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->deleteGeneralLedgerTransactions($salesNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                    }
+                }
+
+                if ($salesNoteCostEntryJournalEntries && sizeof($salesNoteCostEntryJournalEntries) > 0) {
+                    //Delete all journal entries of Sales Note
+                    foreach($salesNoteCostEntryJournalEntries as $salesNoteCostEntryJournalEntry) {
+                        $salesNoteCostEntryJournalEntryId = $salesNoteCostEntryJournalEntry->journal_entry_id;
+                        $this->journal_entries_model->deleteJournalEntry($salesNoteCostEntryJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->deleteGeneralLedgerTransactions($salesNoteCostEntryJournalEntryId, $status, $this->user_id);
+                    }
+                }
+
+                if ($salesNoteDiscountJournalEntries && sizeof($salesNoteDiscountJournalEntries) > 0) {
+                    //Delete all journal entries of Sales Note
+                    foreach($salesNoteDiscountJournalEntries as $salesNoteDiscountJournalEntry) {
+                        $salesNoteDiscountJournalEntryId = $salesNoteDiscountJournalEntry->journal_entry_id;
+                        $this->journal_entries_model->deleteJournalEntry($salesNoteDiscountJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->deleteGeneralLedgerTransactions($salesNoteDiscountJournalEntryId, $status, $this->user_id);
+                    }
+                }
+
+                if ($salesNoteFreeIssuesJournalEntries && sizeof($salesNoteFreeIssuesJournalEntries) > 0) {
+                    //Delete all journal entries of Sales Note
+                    foreach($salesNoteFreeIssuesJournalEntries as $salesNoteFreeIssuesJournalEntry) {
+                        $salesNoteFreeIssuesJournalEntryId = $salesNoteFreeIssuesJournalEntry->journal_entry_id;
+                        $this->journal_entries_model->deleteJournalEntry($salesNoteFreeIssuesJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->deleteGeneralLedgerTransactions($salesNoteFreeIssuesJournalEntryId, $status, $this->user_id);
+                    }
+                }
+
+                $this->customer_return_note_model->deleteCustomerReturnNote($customerSaleableReturnId, $status, $this->user_id);
+
+                if ($customerSaleableReturnNoteSalesEntryJournalEntries && sizeof($customerSaleableReturnNoteSalesEntryJournalEntries) > 0) {
+                    //Delete all journal entries of Sales Note
+                    foreach($customerSaleableReturnNoteSalesEntryJournalEntries as $customerSaleableReturnNoteSalesEntryJournalEntry) {
+                        $customerSaleableReturnSalesEntryJournalEntryId = $customerSaleableReturnNoteSalesEntryJournalEntry->journal_entry_id;
+                        $this->journal_entries_model->deleteJournalEntry($customerSaleableReturnSalesEntryJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->deleteGeneralLedgerTransactions($customerSaleableReturnSalesEntryJournalEntryId, $status, $this->user_id);
+
+                        $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($customerSaleableReturnSalesEntryJournalEntryId);
+
+                        if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
+                            foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
+                                $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
+
+                                $this->journal_entries_model->deleteJournalEntry($claimReferenceJournalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($claimReferenceJournalEntryId, $status, $this->user_id);
+                            }
+                        }
+                    }
+                }
+
+                if ($customerSaleableReturnNoteCostEntryJournalEntries && sizeof($customerSaleableReturnNoteCostEntryJournalEntries) > 0) {
+                    //Delete all journal entries of Sales Note
+                    foreach($customerSaleableReturnNoteCostEntryJournalEntries as $journalEntry) {
+                        $customerSaleableReturnCostEntryJournalEntryId = $journalEntry->journal_entry_id;
+                        $this->journal_entries_model->deleteJournalEntry($customerSaleableReturnCostEntryJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->deleteGeneralLedgerTransactions($customerSaleableReturnCostEntryJournalEntryId, $status, $this->user_id);
+                    }
+                }
+
+                $this->customer_return_note_model->deleteCustomerReturnNote($customerMarketReturnId, $status, $this->user_id);
+
+                if ($customerMarketReturnNoteSalesEntryJournalEntries && sizeof($customerMarketReturnNoteSalesEntryJournalEntries) > 0) {
+                    //Delete all journal entries of Sales Note
+                    foreach($customerMarketReturnNoteSalesEntryJournalEntries as $customerMarketReturnNoteSalesEntryJournalEntry) {
+                        $customerMarketReturnSalesEntryJournalEntryId = $customerMarketReturnNoteSalesEntryJournalEntry->journal_entry_id;
+                        $this->journal_entries_model->deleteJournalEntry($customerMarketReturnSalesEntryJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->deleteGeneralLedgerTransactions($customerMarketReturnSalesEntryJournalEntryId, $status, $this->user_id);
+
+                        $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($customerMarketReturnSalesEntryJournalEntryId);
+
+                        if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
+                            foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
+                                $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
+
+                                $this->journal_entries_model->deleteJournalEntry($claimReferenceJournalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($claimReferenceJournalEntryId, $status, $this->user_id);
+                            }
+                        }
+                    }
+                }
+
+                if ($customerMarketReturnNoteCostEntryJournalEntries && sizeof($customerMarketReturnNoteCostEntryJournalEntries) > 0) {
+                    //Delete all journal entries of Sales Note
+                    foreach($customerMarketReturnNoteCostEntryJournalEntries as $journalEntry) {
+                        $customerMarketReturnCostEntryJournalEntryId = $journalEntry->journal_entry_id;
+                        $this->journal_entries_model->deleteJournalEntry($customerMarketReturnCostEntryJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->deleteGeneralLedgerTransactions($customerMarketReturnCostEntryJournalEntryId, $status, $this->user_id);
+                    }
+                }
+
+                if ($cashPaymentMethodIds && sizeof($cashPaymentMethodIds) > 0) {
+                    foreach ($cashPaymentMethodIds as $cashPaymentMethodId) {
+
+                        $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($cashPaymentMethodId);
+
+                        if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
+
+                            $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
+
+                            $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
+
+                            if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                                $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
+                                $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                            }
+                        }
+                    }
+                }
+
+                if ($chequePaymentMethodIds && sizeof($chequePaymentMethodIds) > 0) {
+                    foreach ($chequePaymentMethodIds as $chequePaymentMethodId) {
+
+                        $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($chequePaymentMethodId);
+
+                        if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
+
+                            $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
+                            $this->payments_model->deleteIncomeCheque($receivePaymentMethod[0]->cheque_id, $status, $this->user_id);
+
+                            $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
+
+                            if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                                $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
+                                $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                            }
+                        }
+                    }
+                }
+
+                if ($cardPaymentMethodIds && sizeof($cardPaymentMethodIds) > 0) {
+                    foreach ($cardPaymentMethodIds as $cardPaymentMethodId) {
+
+                        $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($cardPaymentMethodId);
+
+                        if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
+
+                            $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
+
+                            $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
+
+                            if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                                $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
+                                $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                            }
+                        }
+                    }
+                }
+
+                $salesNoteCancelledJournalEntries = array(
+                    'sales_note_id' => $salesNoteId,
+                    'sales_note_sales_entry_journal_entry_id' => $salesNoteSalesEntryJournalEntryId,
+                    'sales_note_cost_entry_journal_entry_id' => $salesNoteCostEntryJournalEntryId,
+                    'sales_note_discount_entry_journal_entry_id' => $salesNoteDiscountJournalEntryId,
+                    'sales_note_free_issue_entry_journal_entry_id' => $salesNoteFreeIssuesJournalEntryId,
+                    'customer_saleable_return_sales_entry_journal_entry_id' => $customerSaleableReturnSalesEntryJournalEntryId,
+                    'customer_saleable_return_cost_entry_journal_entry_id' => $customerSaleableReturnCostEntryJournalEntryId,
+                    'customer_market_return_sales_entry_journal_entry_id' => $customerMarketReturnSalesEntryJournalEntryId,
+                    'customer_market_return_cost_entry_journal_entry_id' => $customerMarketReturnCostEntryJournalEntryId,
+                    'actioned_user_id' => $this->user_id,
+                    'action_date' => $this->date,
+                    'last_action_status' => 'added'
+                );
+
+                $this->sales_note_model->addSalesNoteCancelledJournalEntryData($salesNoteCancelledJournalEntries);
+
+                $salesNoteDatanew = array(
+                    'actioned_user_id' => $this->user_id,
+                    'action_date' => $this->date,
+                    'last_action_status' => 'cancelled'
+                );
+
+                $this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteDatanew);
+
+                echo 'ok';
+            } else {
+                echo "previous_financial_year_is_closed";
+            }
 		}
 	}
 	
@@ -3598,610 +3727,661 @@ class Sales_note_controller extends CI_Controller {
 		if(isset($this->data['ACM_Bookkeeping_Edit_Sales_Note_Permissions'])) {
 			$salesNoteId = $this->db->escape_str($this->input->post('sales_note_id'));
 			
-			$salesNoteDatanew = array(
-				'actioned_user_id' => $this->user_id,
-				'action_date' => $this->date,
-				'last_action_status' => 'edited'
-			);
+            $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
+            $salesNoteTransactionDate = $salesNote[0]->date;
 
-			$this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteDatanew);
-			
-			$salesNoteCancelledJournalEntries = $this->sales_note_model->getSalesNoteCancelledJournalEntryData($salesNoteId);
-			
-			if ($salesNoteCancelledJournalEntries && sizeof($salesNoteCancelledJournalEntries) > 0) {
-				$salesNoteSalesEntryJournalEntryId = $salesNoteCancelledJournalEntries[0]->sales_note_sales_entry_journal_entry_id;
-				$salesNoteCostEntryJournalEntryId = $salesNoteCancelledJournalEntries[0]->sales_note_cost_entry_journal_entry_id;
-				$salesNoteDiscountJournalEntryId = $salesNoteCancelledJournalEntries[0]->sales_note_discount_entry_journal_entry_id;
-				$salesNoteFreeIssuesJournalEntryId = $salesNoteCancelledJournalEntries[0]->sales_note_free_issue_entry_journal_entry_id;
-				$customerSaleableReturnSalesEntryJournalEntryId = $salesNoteCancelledJournalEntries[0]->customer_saleable_return_sales_entry_journal_entry_id;
-				$customerSaleableReturnCostEntryJournalEntryId = $salesNoteCancelledJournalEntries[0]->customer_saleable_return_cost_entry_journal_entry_id;
-				$customerMarketReturnSalesEntryJournalEntryId = $salesNoteCancelledJournalEntries[0]->customer_market_return_sales_entry_journal_entry_id;
-				$customerMarketReturnCostEntryJournalEntryId = $salesNoteCancelledJournalEntries[0]->customer_market_return_cost_entry_journal_entry_id;
-				
-				$salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
-				$salesNoteCustomerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
-				$salesNoteCustomerMarketReturnId = $salesNote[0]->customer_market_return_id;
-				$salesNoteReceivePaymentEntries = $this->sales_note_model->getSalesNoteReceivePaymentEntries($salesNoteId);
-			
-				$cashPaymentMethodIds = array();
-				$chequePaymentMethodIds = array();
-                $cardPaymentMethodIds = array();
-				if ($salesNoteReceivePaymentEntries && sizeof($salesNoteReceivePaymentEntries) > 0) {
-					foreach($salesNoteReceivePaymentEntries as $salesNoteReceivePaymentEntry) {
-						if ($salesNoteReceivePaymentEntry->receive_cash_payment_method_id != '0') {
-							$cashPaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_cash_payment_method_id;
-						}
+            $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($salesNoteTransactionDate);
 
-						if ($salesNoteReceivePaymentEntry->receive_cheque_payment_method_id != '0') {
-							$chequePaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_cheque_payment_method_id;
-						}
-                        
-                        if ($salesNoteReceivePaymentEntry->receive_credit_card_payment_method_id != '0') {
-							$cardPaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_credit_card_payment_method_id;
-						}
-					}
-				}
-				
-				$status = "edited";
-				
-				if ($salesNoteSalesEntryJournalEntryId != '0') {
-					$this->journal_entries_model->activateJournalEntry($salesNoteSalesEntryJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->activateGeneralLedgerTransactions($salesNoteSalesEntryJournalEntryId, $status, $this->user_id);
-				}
-				
-				if ($salesNoteCostEntryJournalEntryId != '0') {
-					$this->journal_entries_model->activateJournalEntry($salesNoteCostEntryJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->activateGeneralLedgerTransactions($salesNoteCostEntryJournalEntryId, $status, $this->user_id);
-				}
-				
-				if ($salesNoteDiscountJournalEntryId != '0') {
-					$this->journal_entries_model->activateJournalEntry($salesNoteDiscountJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->activateGeneralLedgerTransactions($salesNoteDiscountJournalEntryId, $status, $this->user_id);
-				}
-				
-				if ($salesNoteFreeIssuesJournalEntryId != '0') {
-					$this->journal_entries_model->activateJournalEntry($salesNoteFreeIssuesJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->activateGeneralLedgerTransactions($salesNoteFreeIssuesJournalEntryId, $status, $this->user_id);
-				}
-				
-				$this->customer_return_note_model->activateCustomerReturnNote($salesNoteCustomerSaleableReturnId, $status, $this->user_id);
-				
-				if ($customerSaleableReturnSalesEntryJournalEntryId != '0') {
-					$this->journal_entries_model->activateJournalEntry($customerSaleableReturnSalesEntryJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->activateGeneralLedgerTransactions($customerSaleableReturnSalesEntryJournalEntryId, $status, $this->user_id);
-                    
-                    $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($customerSaleableReturnSalesEntryJournalEntryId);
-                    
-                    if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
-                        foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
-                            $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
-                            
-                            $this->journal_entries_model->activateJournalEntry($claimReferenceJournalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->activateGeneralLedgerTransactions($claimReferenceJournalEntryId, $status, $this->user_id);
+            if ($financialYear[0]->year_end_process_status != "Closed") {
+            
+                $salesNoteDatanew = array(
+                    'actioned_user_id' => $this->user_id,
+                    'action_date' => $this->date,
+                    'last_action_status' => 'edited'
+                );
+
+                $this->sales_note_model->editSalesNoteData($salesNoteId, $salesNoteDatanew);
+
+                $salesNoteCancelledJournalEntries = $this->sales_note_model->getSalesNoteCancelledJournalEntryData($salesNoteId);
+
+                if ($salesNoteCancelledJournalEntries && sizeof($salesNoteCancelledJournalEntries) > 0) {
+                    $salesNoteSalesEntryJournalEntryId = $salesNoteCancelledJournalEntries[0]->sales_note_sales_entry_journal_entry_id;
+                    $salesNoteCostEntryJournalEntryId = $salesNoteCancelledJournalEntries[0]->sales_note_cost_entry_journal_entry_id;
+                    $salesNoteDiscountJournalEntryId = $salesNoteCancelledJournalEntries[0]->sales_note_discount_entry_journal_entry_id;
+                    $salesNoteFreeIssuesJournalEntryId = $salesNoteCancelledJournalEntries[0]->sales_note_free_issue_entry_journal_entry_id;
+                    $customerSaleableReturnSalesEntryJournalEntryId = $salesNoteCancelledJournalEntries[0]->customer_saleable_return_sales_entry_journal_entry_id;
+                    $customerSaleableReturnCostEntryJournalEntryId = $salesNoteCancelledJournalEntries[0]->customer_saleable_return_cost_entry_journal_entry_id;
+                    $customerMarketReturnSalesEntryJournalEntryId = $salesNoteCancelledJournalEntries[0]->customer_market_return_sales_entry_journal_entry_id;
+                    $customerMarketReturnCostEntryJournalEntryId = $salesNoteCancelledJournalEntries[0]->customer_market_return_cost_entry_journal_entry_id;
+
+                    $salesNoteCustomerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
+                    $salesNoteCustomerMarketReturnId = $salesNote[0]->customer_market_return_id;
+                    $salesNoteReceivePaymentEntries = $this->sales_note_model->getSalesNoteReceivePaymentEntries($salesNoteId);
+
+                    $cashPaymentMethodIds = array();
+                    $chequePaymentMethodIds = array();
+                    $cardPaymentMethodIds = array();
+                    if ($salesNoteReceivePaymentEntries && sizeof($salesNoteReceivePaymentEntries) > 0) {
+                        foreach($salesNoteReceivePaymentEntries as $salesNoteReceivePaymentEntry) {
+                            if ($salesNoteReceivePaymentEntry->receive_cash_payment_method_id != '0') {
+                                $cashPaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_cash_payment_method_id;
+                            }
+
+                            if ($salesNoteReceivePaymentEntry->receive_cheque_payment_method_id != '0') {
+                                $chequePaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_cheque_payment_method_id;
+                            }
+
+                            if ($salesNoteReceivePaymentEntry->receive_credit_card_payment_method_id != '0') {
+                                $cardPaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_credit_card_payment_method_id;
+                            }
                         }
                     }
-				}
-				
-				if ($customerSaleableReturnCostEntryJournalEntryId != '0') {
-					$this->journal_entries_model->activateJournalEntry($customerSaleableReturnCostEntryJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->activateGeneralLedgerTransactions($customerSaleableReturnCostEntryJournalEntryId, $status, $this->user_id);
-				}
-				
-				$this->customer_return_note_model->activateCustomerReturnNote($salesNoteCustomerMarketReturnId, $status, $this->user_id);
-				
-				if ($customerMarketReturnSalesEntryJournalEntryId != '0') {
-					$this->journal_entries_model->activateJournalEntry($customerMarketReturnSalesEntryJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->activateGeneralLedgerTransactions($customerMarketReturnSalesEntryJournalEntryId, $status, $this->user_id);
-                    
-                    $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($customerMarketReturnSalesEntryJournalEntryId);
-                    
-                    if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
-                        foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
-                            $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
-                            
-                            $this->journal_entries_model->activateJournalEntry($claimReferenceJournalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->activateGeneralLedgerTransactions($claimReferenceJournalEntryId, $status, $this->user_id);
+
+                    $status = "edited";
+
+                    if ($salesNoteSalesEntryJournalEntryId != '0') {
+                        $this->journal_entries_model->activateJournalEntry($salesNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->activateGeneralLedgerTransactions($salesNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                    }
+
+                    if ($salesNoteCostEntryJournalEntryId != '0') {
+                        $this->journal_entries_model->activateJournalEntry($salesNoteCostEntryJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->activateGeneralLedgerTransactions($salesNoteCostEntryJournalEntryId, $status, $this->user_id);
+                    }
+
+                    if ($salesNoteDiscountJournalEntryId != '0') {
+                        $this->journal_entries_model->activateJournalEntry($salesNoteDiscountJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->activateGeneralLedgerTransactions($salesNoteDiscountJournalEntryId, $status, $this->user_id);
+                    }
+
+                    if ($salesNoteFreeIssuesJournalEntryId != '0') {
+                        $this->journal_entries_model->activateJournalEntry($salesNoteFreeIssuesJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->activateGeneralLedgerTransactions($salesNoteFreeIssuesJournalEntryId, $status, $this->user_id);
+                    }
+
+                    $this->customer_return_note_model->activateCustomerReturnNote($salesNoteCustomerSaleableReturnId, $status, $this->user_id);
+
+                    if ($customerSaleableReturnSalesEntryJournalEntryId != '0') {
+                        $this->journal_entries_model->activateJournalEntry($customerSaleableReturnSalesEntryJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->activateGeneralLedgerTransactions($customerSaleableReturnSalesEntryJournalEntryId, $status, $this->user_id);
+
+                        $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($customerSaleableReturnSalesEntryJournalEntryId);
+
+                        if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
+                            foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
+                                $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
+
+                                $this->journal_entries_model->activateJournalEntry($claimReferenceJournalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->activateGeneralLedgerTransactions($claimReferenceJournalEntryId, $status, $this->user_id);
+                            }
                         }
                     }
-				}
-				
-				if ($customerMarketReturnCostEntryJournalEntryId != '0') {
-					$this->journal_entries_model->activateJournalEntry($customerMarketReturnCostEntryJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->activateGeneralLedgerTransactions($customerMarketReturnCostEntryJournalEntryId, $status, $this->user_id);
-				}
-				
-				if ($cashPaymentMethodIds && sizeof($cashPaymentMethodIds) > 0) {
-					foreach ($cashPaymentMethodIds as $cashPaymentMethodId) {
-						
-                        $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($cashPaymentMethodId);
-                    
-                        if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
-                            $this->receive_payment_model->activateReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
-                            $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
 
-                            if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-                                $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
-                                $this->journal_entries_model->activateJournalEntry($journalEntryId, $status, $this->user_id);
-                                $this->journal_entries_model->activateGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                    if ($customerSaleableReturnCostEntryJournalEntryId != '0') {
+                        $this->journal_entries_model->activateJournalEntry($customerSaleableReturnCostEntryJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->activateGeneralLedgerTransactions($customerSaleableReturnCostEntryJournalEntryId, $status, $this->user_id);
+                    }
+
+                    $this->customer_return_note_model->activateCustomerReturnNote($salesNoteCustomerMarketReturnId, $status, $this->user_id);
+
+                    if ($customerMarketReturnSalesEntryJournalEntryId != '0') {
+                        $this->journal_entries_model->activateJournalEntry($customerMarketReturnSalesEntryJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->activateGeneralLedgerTransactions($customerMarketReturnSalesEntryJournalEntryId, $status, $this->user_id);
+
+                        $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($customerMarketReturnSalesEntryJournalEntryId);
+
+                        if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
+                            foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
+                                $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
+
+                                $this->journal_entries_model->activateJournalEntry($claimReferenceJournalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->activateGeneralLedgerTransactions($claimReferenceJournalEntryId, $status, $this->user_id);
                             }
                         }
-					}
-				}
+                    }
 
-				if ($chequePaymentMethodIds && sizeof($chequePaymentMethodIds) > 0) {
-					foreach ($chequePaymentMethodIds as $chequePaymentMethodId) {
-						
-                        $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($chequePaymentMethodId);
-                        
-                        if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
-                            $this->receive_payment_model->activateReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
-                            $this->payments_model->activateIncomeCheque($receivePaymentMethod[0]->cheque_id, $status, $this->user_id);
-                            
-                            $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
+                    if ($customerMarketReturnCostEntryJournalEntryId != '0') {
+                        $this->journal_entries_model->activateJournalEntry($customerMarketReturnCostEntryJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->activateGeneralLedgerTransactions($customerMarketReturnCostEntryJournalEntryId, $status, $this->user_id);
+                    }
 
-                            if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-                                $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
-                                $this->journal_entries_model->activateJournalEntry($journalEntryId, $status, $this->user_id);
-                                $this->journal_entries_model->activateGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                    if ($cashPaymentMethodIds && sizeof($cashPaymentMethodIds) > 0) {
+                        foreach ($cashPaymentMethodIds as $cashPaymentMethodId) {
+
+                            $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($cashPaymentMethodId);
+
+                            if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
+                                $this->receive_payment_model->activateReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
+                                $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
+
+                                if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                                    $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
+                                    $this->journal_entries_model->activateJournalEntry($journalEntryId, $status, $this->user_id);
+                                    $this->journal_entries_model->activateGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                                }
                             }
                         }
-					}
-				}
-                
-                if ($cardPaymentMethodIds && sizeof($cardPaymentMethodIds) > 0) {
-					foreach ($cardPaymentMethodIds as $cardPaymentMethodId) {
-						
-                        $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($cardPaymentMethodId);
-                        
-                        if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
-                            $this->receive_payment_model->activateReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
-                            
-                            $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
+                    }
 
-                            if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-                                $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
-                                $this->journal_entries_model->activateJournalEntry($journalEntryId, $status, $this->user_id);
-                                $this->journal_entries_model->activateGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                    if ($chequePaymentMethodIds && sizeof($chequePaymentMethodIds) > 0) {
+                        foreach ($chequePaymentMethodIds as $chequePaymentMethodId) {
+
+                            $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($chequePaymentMethodId);
+
+                            if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
+                                $this->receive_payment_model->activateReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
+                                $this->payments_model->activateIncomeCheque($receivePaymentMethod[0]->cheque_id, $status, $this->user_id);
+
+                                $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
+
+                                if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                                    $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
+                                    $this->journal_entries_model->activateJournalEntry($journalEntryId, $status, $this->user_id);
+                                    $this->journal_entries_model->activateGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                                }
                             }
                         }
-					}
-				}
-			}
-			
-			echo 'ok';
+                    }
+
+                    if ($cardPaymentMethodIds && sizeof($cardPaymentMethodIds) > 0) {
+                        foreach ($cardPaymentMethodIds as $cardPaymentMethodId) {
+
+                            $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($cardPaymentMethodId);
+
+                            if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
+                                $this->receive_payment_model->activateReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
+
+                                $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
+
+                                if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                                    $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
+                                    $this->journal_entries_model->activateJournalEntry($journalEntryId, $status, $this->user_id);
+                                    $this->journal_entries_model->activateGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                echo 'ok';
+            } else {
+                echo "previous_financial_year_is_closed";
+            }
 		}
 	}
 
 	//Delete Sales Note
 	public function deleteSalesNote() {
 		if(isset($this->data['ACM_Bookkeeping_Delete_Sales_Note_Permissions'])) {
-			$salesNoteId = $this->db->escape_str($this->input->post('id'));
-
-			$salesNoteSalesEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '1');
-			$salesNoteCostEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '2');
-			$salesNoteDiscountJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '3');
-			$salesNoteFreeIssuesJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '4');
-			
-			$salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
-			
-			$customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
-			$customerMarketReturnId = $salesNote[0]->customer_market_return_id;
-			
-			$customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '1');
-			$customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '2');
-			$customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '3');
-			$customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '4');
-			
-			$salesNoteReceivePaymentEntries = $this->sales_note_model->getSalesNoteReceivePaymentEntries($salesNoteId);
-			
-			$cashPaymentMethodIds = array();
-			$chequePaymentMethodIds = array();
-            $creditCardPaymentMethodIds = array();
-			if ($salesNoteReceivePaymentEntries && sizeof($salesNoteReceivePaymentEntries) > 0) {
-				foreach($salesNoteReceivePaymentEntries as $salesNoteReceivePaymentEntry) {
-					if ($salesNoteReceivePaymentEntry->receive_cash_payment_method_id != '0') {
-						$cashPaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_cash_payment_method_id;
-					}
-					
-					if ($salesNoteReceivePaymentEntry->receive_cheque_payment_method_id != '0') {
-						$chequePaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_cheque_payment_method_id;
-					}
-                    
-                    if ($salesNoteReceivePaymentEntry->receive_credit_card_payment_method_id != '0') {
-						$creditCardPaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_credit_card_payment_method_id;
-					}
-				}
-			}
-			
-			$status = "deleted";
-			if ($salesNoteSalesEntryJournalEntries && sizeof($salesNoteSalesEntryJournalEntries) > 0) {
-				//Delete all journal entries of Sales Note
-				foreach($salesNoteSalesEntryJournalEntries as $salesNoteSalesEntryJournalEntry) {
-					$salesNoteSalesEntryJournalEntryId = $salesNoteSalesEntryJournalEntry->journal_entry_id;
-					$this->journal_entries_model->deleteJournalEntry($salesNoteSalesEntryJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($salesNoteSalesEntryJournalEntryId, $status, $this->user_id);
-				}
-			}
-			
-			if ($salesNoteCostEntryJournalEntries && sizeof($salesNoteCostEntryJournalEntries) > 0) {
-				//Delete all journal entries of Sales Note
-				foreach($salesNoteCostEntryJournalEntries as $salesNoteCostEntryJournalEntry) {
-					$salesNoteCostEntryJournalEntryId = $salesNoteCostEntryJournalEntry->journal_entry_id;
-					$this->journal_entries_model->deleteJournalEntry($salesNoteCostEntryJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($salesNoteCostEntryJournalEntryId, $status, $this->user_id);
-				}
-			}
-			
-			if ($salesNoteDiscountJournalEntries && sizeof($salesNoteDiscountJournalEntries) > 0) {
-				//Delete all journal entries of Sales Note
-				foreach($salesNoteDiscountJournalEntries as $salesNoteDiscountJournalEntry) {
-					$salesNoteDiscountJournalEntryId = $salesNoteDiscountJournalEntry->journal_entry_id;
-					$this->journal_entries_model->deleteJournalEntry($salesNoteDiscountJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($salesNoteDiscountJournalEntryId, $status, $this->user_id);
-				}
-			}
-			
-			if ($salesNoteFreeIssuesJournalEntries && sizeof($salesNoteFreeIssuesJournalEntries) > 0) {
-				//Delete all journal entries of Sales Note
-				foreach($salesNoteFreeIssuesJournalEntries as $salesNoteFreeIssuesJournalEntry) {
-					$salesNoteFreeIssuesJournalEntryId = $salesNoteFreeIssuesJournalEntry->journal_entry_id;
-					$this->journal_entries_model->deleteJournalEntry($salesNoteFreeIssuesJournalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($salesNoteFreeIssuesJournalEntryId, $status, $this->user_id);
-				}
-			}
-			
-			if ($customerSaleableReturnNoteSalesEntryJournalEntries && sizeof($customerSaleableReturnNoteSalesEntryJournalEntries) > 0) {
-				//Delete all journal entries of Sales Note
-				foreach($customerSaleableReturnNoteSalesEntryJournalEntries as $journalEntry) {
-					$journalEntryId = $journalEntry->journal_entry_id;
-					$this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
-                    
-                    $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
-                    
-                    if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
-                        foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
-                            $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
-                            
-                            $this->journal_entries_model->deleteJournalEntry($claimReferenceJournalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->deleteGeneralLedgerTransactions($claimReferenceJournalEntryId, $status, $this->user_id);
-                        }
-                    }
-				}
-			}
-			
-			if ($customerSaleableReturnNoteCostEntryJournalEntries && sizeof($customerSaleableReturnNoteCostEntryJournalEntries) > 0) {
-				//Delete all journal entries of Sales Note
-				foreach($customerSaleableReturnNoteCostEntryJournalEntries as $journalEntry) {
-					$journalEntryId = $journalEntry->journal_entry_id;
-					$this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
-				}
-			}
-			
-			if ($customerMarketReturnNoteSalesEntryJournalEntries && sizeof($customerMarketReturnNoteSalesEntryJournalEntries) > 0) {
-				//Delete all journal entries of Sales Note
-				foreach($customerMarketReturnNoteSalesEntryJournalEntries as $journalEntry) {
-					$journalEntryId = $journalEntry->journal_entry_id;
-					$this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
-                    
-                    $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
-                    
-                    if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
-                        foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
-                            $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
-                            
-                            $this->journal_entries_model->deleteJournalEntry($claimReferenceJournalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->deleteGeneralLedgerTransactions($claimReferenceJournalEntryId, $status, $this->user_id);
-                        }
-                    }
-				}
-			}
-			
-			if ($customerMarketReturnNoteCostEntryJournalEntries && sizeof($customerMarketReturnNoteCostEntryJournalEntries) > 0) {
-				//Delete all journal entries of Sales Note
-				foreach($customerMarketReturnNoteCostEntryJournalEntries as $journalEntry) {
-					$journalEntryId = $journalEntry->journal_entry_id;
-					$this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-					$this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
-				}
-			}
-			
-			if ($cashPaymentMethodIds && sizeof($cashPaymentMethodIds) > 0) {
-				foreach ($cashPaymentMethodIds as $cashPaymentMethodId) {
-                    
-                    $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($cashPaymentMethodId);
-                    
-                    if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
-                        $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
-
-                        $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
-
-                        if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-                            $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
-                            $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
-                        }
-                    }
-				}
-			}
-			
-			if ($chequePaymentMethodIds && sizeof($chequePaymentMethodIds) > 0) {
-				foreach ($chequePaymentMethodIds as $chequePaymentMethodId) {
-                    
-                    $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($chequePaymentMethodId);
-                    
-                    if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
-                        $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
-                        $this->payments_model->deleteIncomeCheque($receivePaymentMethod[0]->cheque_id, $status, $this->user_id);
-
-                        $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
-
-                        if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-                            $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
-                            $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
-                        }
-                    }
-				}
-			}
             
-            if ($creditCardPaymentMethodIds && sizeof($creditCardPaymentMethodIds) > 0) {
-				foreach ($creditCardPaymentMethodIds as $creditCardPaymentMethodId) {
-                    
-                    $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($creditCardPaymentMethodId);
-                    
-                    if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
-                        $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
+            $html = '';
+			$salesNoteId = $this->db->escape_str($this->input->post('id'));
+            
+            $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
+            $salesNoteTransactionDate = $salesNote[0]->date;
 
-                        $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
+            $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($salesNoteTransactionDate);
 
-                        if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
-                            $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
-                            $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
-                            $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+            if ($financialYear[0]->year_end_process_status != "Closed") {
+
+                $salesNoteSalesEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '1');
+                $salesNoteCostEntryJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '2');
+                $salesNoteDiscountJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '3');
+                $salesNoteFreeIssuesJournalEntries = $this->sales_note_model->getSalesNoteJournalEntries($salesNoteId, '4');
+
+                $customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
+                $customerMarketReturnId = $salesNote[0]->customer_market_return_id;
+
+                $customerSaleableReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '1');
+                $customerSaleableReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerSaleableReturnId, '2');
+                $customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '3');
+                $customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerMarketReturnId, '4');
+
+                $salesNoteReceivePaymentEntries = $this->sales_note_model->getSalesNoteReceivePaymentEntries($salesNoteId);
+
+                $cashPaymentMethodIds = array();
+                $chequePaymentMethodIds = array();
+                $creditCardPaymentMethodIds = array();
+                if ($salesNoteReceivePaymentEntries && sizeof($salesNoteReceivePaymentEntries) > 0) {
+                    foreach($salesNoteReceivePaymentEntries as $salesNoteReceivePaymentEntry) {
+                        if ($salesNoteReceivePaymentEntry->receive_cash_payment_method_id != '0') {
+                            $cashPaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_cash_payment_method_id;
+                        }
+
+                        if ($salesNoteReceivePaymentEntry->receive_cheque_payment_method_id != '0') {
+                            $chequePaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_cheque_payment_method_id;
+                        }
+
+                        if ($salesNoteReceivePaymentEntry->receive_credit_card_payment_method_id != '0') {
+                            $creditCardPaymentMethodIds[] = $salesNoteReceivePaymentEntry->receive_credit_card_payment_method_id;
                         }
                     }
-				}
-			}
-			
-			if ($this->sales_note_model->deleteSalesNote($salesNoteId, $status, $this->user_id)) {
-				$this->customer_return_note_model->deleteCustomerReturnNote($customerSaleableReturnId, $status, $this->user_id);
-				$this->customer_return_note_model->deleteCustomerReturnNote($customerMarketReturnId, $status, $this->user_id);
-				
-				$html = '<div class="alert alert-success alert-dismissable">
-					<a class="close" href="#" data-dismiss="alert">x </a>
-					<h4><i class="icon-ok-sign"></i>' . $this->lang->line('success') . '</h4>' .
-					$this->lang->line('success_deleted') .
-					'</div>';
-			}
-			
-			echo $html;
+                }
+
+                $status = "deleted";
+                if ($salesNoteSalesEntryJournalEntries && sizeof($salesNoteSalesEntryJournalEntries) > 0) {
+                    //Delete all journal entries of Sales Note
+                    foreach($salesNoteSalesEntryJournalEntries as $salesNoteSalesEntryJournalEntry) {
+                        $salesNoteSalesEntryJournalEntryId = $salesNoteSalesEntryJournalEntry->journal_entry_id;
+                        $this->journal_entries_model->deleteJournalEntry($salesNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->deleteGeneralLedgerTransactions($salesNoteSalesEntryJournalEntryId, $status, $this->user_id);
+                    }
+                }
+
+                if ($salesNoteCostEntryJournalEntries && sizeof($salesNoteCostEntryJournalEntries) > 0) {
+                    //Delete all journal entries of Sales Note
+                    foreach($salesNoteCostEntryJournalEntries as $salesNoteCostEntryJournalEntry) {
+                        $salesNoteCostEntryJournalEntryId = $salesNoteCostEntryJournalEntry->journal_entry_id;
+                        $this->journal_entries_model->deleteJournalEntry($salesNoteCostEntryJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->deleteGeneralLedgerTransactions($salesNoteCostEntryJournalEntryId, $status, $this->user_id);
+                    }
+                }
+
+                if ($salesNoteDiscountJournalEntries && sizeof($salesNoteDiscountJournalEntries) > 0) {
+                    //Delete all journal entries of Sales Note
+                    foreach($salesNoteDiscountJournalEntries as $salesNoteDiscountJournalEntry) {
+                        $salesNoteDiscountJournalEntryId = $salesNoteDiscountJournalEntry->journal_entry_id;
+                        $this->journal_entries_model->deleteJournalEntry($salesNoteDiscountJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->deleteGeneralLedgerTransactions($salesNoteDiscountJournalEntryId, $status, $this->user_id);
+                    }
+                }
+
+                if ($salesNoteFreeIssuesJournalEntries && sizeof($salesNoteFreeIssuesJournalEntries) > 0) {
+                    //Delete all journal entries of Sales Note
+                    foreach($salesNoteFreeIssuesJournalEntries as $salesNoteFreeIssuesJournalEntry) {
+                        $salesNoteFreeIssuesJournalEntryId = $salesNoteFreeIssuesJournalEntry->journal_entry_id;
+                        $this->journal_entries_model->deleteJournalEntry($salesNoteFreeIssuesJournalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->deleteGeneralLedgerTransactions($salesNoteFreeIssuesJournalEntryId, $status, $this->user_id);
+                    }
+                }
+
+                if ($customerSaleableReturnNoteSalesEntryJournalEntries && sizeof($customerSaleableReturnNoteSalesEntryJournalEntries) > 0) {
+                    //Delete all journal entries of Sales Note
+                    foreach($customerSaleableReturnNoteSalesEntryJournalEntries as $journalEntry) {
+                        $journalEntryId = $journalEntry->journal_entry_id;
+                        $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+
+                        $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
+
+                        if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
+                            foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
+                                $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
+
+                                $this->journal_entries_model->deleteJournalEntry($claimReferenceJournalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($claimReferenceJournalEntryId, $status, $this->user_id);
+                            }
+                        }
+                    }
+                }
+
+                if ($customerSaleableReturnNoteCostEntryJournalEntries && sizeof($customerSaleableReturnNoteCostEntryJournalEntries) > 0) {
+                    //Delete all journal entries of Sales Note
+                    foreach($customerSaleableReturnNoteCostEntryJournalEntries as $journalEntry) {
+                        $journalEntryId = $journalEntry->journal_entry_id;
+                        $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                    }
+                }
+
+                if ($customerMarketReturnNoteSalesEntryJournalEntries && sizeof($customerMarketReturnNoteSalesEntryJournalEntries) > 0) {
+                    //Delete all journal entries of Sales Note
+                    foreach($customerMarketReturnNoteSalesEntryJournalEntries as $journalEntry) {
+                        $journalEntryId = $journalEntry->journal_entry_id;
+                        $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+
+                        $journalEntryClaimReferences = $this->journal_entries_model->getJournalEntryClaimReferences($journalEntryId);
+
+                        if ($journalEntryClaimReferences && sizeof($journalEntryClaimReferences) > 0) {
+                            foreach($journalEntryClaimReferences as $journalEntryClaimReference) {
+                                $claimReferenceJournalEntryId = $journalEntryClaimReference->claim_reference_journal_entry_id;
+
+                                $this->journal_entries_model->deleteJournalEntry($claimReferenceJournalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($claimReferenceJournalEntryId, $status, $this->user_id);
+                            }
+                        }
+                    }
+                }
+
+                if ($customerMarketReturnNoteCostEntryJournalEntries && sizeof($customerMarketReturnNoteCostEntryJournalEntries) > 0) {
+                    //Delete all journal entries of Sales Note
+                    foreach($customerMarketReturnNoteCostEntryJournalEntries as $journalEntry) {
+                        $journalEntryId = $journalEntry->journal_entry_id;
+                        $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                        $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                    }
+                }
+
+                if ($cashPaymentMethodIds && sizeof($cashPaymentMethodIds) > 0) {
+                    foreach ($cashPaymentMethodIds as $cashPaymentMethodId) {
+
+                        $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($cashPaymentMethodId);
+
+                        if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
+                            $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
+
+                            $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
+
+                            if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                                $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
+                                $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                            }
+                        }
+                    }
+                }
+
+                if ($chequePaymentMethodIds && sizeof($chequePaymentMethodIds) > 0) {
+                    foreach ($chequePaymentMethodIds as $chequePaymentMethodId) {
+
+                        $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($chequePaymentMethodId);
+
+                        if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
+                            $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
+                            $this->payments_model->deleteIncomeCheque($receivePaymentMethod[0]->cheque_id, $status, $this->user_id);
+
+                            $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
+
+                            if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                                $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
+                                $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                            }
+                        }
+                    }
+                }
+
+                if ($creditCardPaymentMethodIds && sizeof($creditCardPaymentMethodIds) > 0) {
+                    foreach ($creditCardPaymentMethodIds as $creditCardPaymentMethodId) {
+
+                        $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($creditCardPaymentMethodId);
+
+                        if ($receivePaymentMethod && sizeof($receivePaymentMethod) > 0) {
+                            $this->receive_payment_model->deleteReceivePayment($receivePaymentMethod[0]->receive_payment_id, $status, $this->user_id);
+
+                            $receivePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentMethod[0]->receive_payment_id);
+
+                            if ($receivePaymentJournalEntries && sizeof($receivePaymentJournalEntries) > 0) {
+                                $journalEntryId = $receivePaymentJournalEntries[0]->journal_entry_id;
+                                $this->journal_entries_model->deleteJournalEntry($journalEntryId, $status, $this->user_id);
+                                $this->journal_entries_model->deleteGeneralLedgerTransactions($journalEntryId, $status, $this->user_id);
+                            }
+                        }
+                    }
+                }
+
+                if ($this->sales_note_model->deleteSalesNote($salesNoteId, $status, $this->user_id)) {
+                    $this->customer_return_note_model->deleteCustomerReturnNote($customerSaleableReturnId, $status, $this->user_id);
+                    $this->customer_return_note_model->deleteCustomerReturnNote($customerMarketReturnId, $status, $this->user_id);
+
+                    $html = '<div class="alert alert-success alert-dismissable">
+                        <a class="close" href="#" data-dismiss="alert">x </a>
+                        <h4><i class="icon-ok-sign"></i>' . $this->lang->line('success') . '</h4>' .
+                        $this->lang->line('success_deleted') .
+                        '</div>';
+                }
+
+                echo json_encode(array("result" => "ok", "html" => $html));
+            } else {
+                echo json_encode(array("result" => "previous_financial_year_is_closed", "html" => $html));
+            }
 		}
 	}
 	
 	public function deleteReceiveChequePayment() {
+        
+        $cashPaymentAmount = '';
+        $chequePaymentAmount = '';
+        $creditCardPaymentAmount = '';
+        $creditPaymentAmount = '';
+        
 		$salesNoteId = $this->db->escape_str($this->input->post('sales_note_id'));
-		$receiveChequePaymentMethodId = $this->db->escape_str($this->input->post('receive_cheque_payment_method_id'));
-
-		$result = '';
-		
-		$receiveChequePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($receiveChequePaymentMethodId);
-		$chequeId = $receiveChequePaymentMethod[0]->cheque_id;
-        $receiveChequePaymentId = $receiveChequePaymentMethod[0]->receive_payment_id;
         
-        $incomeCheque = $this->payments_model->getIncomeChequeById($chequeId);
-        $chequePaymentOld = $incomeCheque[0]->amount;
-		
-		$salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
-		$amountPayable = $salesNote[0]->amount_payable;
-		
-		$customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
-		$customerMarketReturnId = $salesNote[0]->customer_market_return_id;
+        $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
+        $salesNoteTransactionDate = $salesNote[0]->date;
 
-		$customerSaleableReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerSaleableReturnId);
-		$customerMarketReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerMarketReturnId);
+        $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($salesNoteTransactionDate);
 
-		$customerSaleableReturnAmount = 0;
-		if ($customerSaleableReturn && sizeof($customerSaleableReturn) > 0) {
-			$customerSaleableReturnAmount = $customerSaleableReturn[0]->amount;
-		}
+        if ($financialYear[0]->year_end_process_status != "Closed") {
+        
+            $receiveChequePaymentMethodId = $this->db->escape_str($this->input->post('receive_cheque_payment_method_id'));
 
-		$customerMarketReturnAmount = 0;
-		if ($customerMarketReturn && sizeof($customerMarketReturn) > 0) {
-			$customerMarketReturnAmount = $customerMarketReturn[0]->amount;
-		}
-		
-		$salesNoteReceivePaymentEntries = $this->sales_note_model->getSalesNoteReceivePaymentEntries($salesNoteId);
-		
-		$receiveCashPaymentMethodIdList = array();
-		$receiveChequePaymentMethodIdList = array();
-        $receiveCreditCardPaymentMethodIdList = array();
-		
-		if ($salesNoteReceivePaymentEntries && sizeof($salesNoteReceivePaymentEntries) > 0) {
-			foreach ($salesNoteReceivePaymentEntries as $salesNoteReceivePaymentEntry) {
-				if ($salesNoteReceivePaymentEntry->receive_cash_payment_method_id != '0') {
-					$receiveCashPaymentMethodIdList[] = $salesNoteReceivePaymentEntry->receive_cash_payment_method_id;
-				}
-				
-				if ($salesNoteReceivePaymentEntry->receive_cheque_payment_method_id != '0') {
-					$receiveChequePaymentMethodIdList[] = $salesNoteReceivePaymentEntry->receive_cheque_payment_method_id;
-				}
-                
-                if ($salesNoteReceivePaymentEntry->receive_credit_card_payment_method_id != '0') {
-					$receiveCreditCardPaymentMethodIdList[] = $salesNoteReceivePaymentEntry->receive_credit_card_payment_method_id;
-				}
-			}
-		}
-		
-		$cashPaymentAmount = 0;
-		if ($receiveCashPaymentMethodIdList && sizeof($receiveCashPaymentMethodIdList) > 0) {
-			foreach($receiveCashPaymentMethodIdList as $receiveCashPaymentMethodId) {
-                $receiveCashPaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($receiveCashPaymentMethodId);
-                
-                if ($receiveCashPaymentMethod && sizeof($receiveCashPaymentMethod) > 0) {
-                    $cashPaymentId = $receiveCashPaymentMethod[0]->cash_payment_id;
-                    $cashPayment = $this->payments_model->getCashPaymentById($cashPaymentId);
-                    $cashPaymentAmount = $cashPaymentAmount + $cashPayment[0]->amount;
+            $receiveChequePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($receiveChequePaymentMethodId);
+            $chequeId = $receiveChequePaymentMethod[0]->cheque_id;
+            $receiveChequePaymentId = $receiveChequePaymentMethod[0]->receive_payment_id;
+
+            $incomeCheque = $this->payments_model->getIncomeChequeById($chequeId);
+            $chequePaymentOld = $incomeCheque[0]->amount;
+
+            $amountPayable = $salesNote[0]->amount_payable;
+
+            $customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
+            $customerMarketReturnId = $salesNote[0]->customer_market_return_id;
+
+            $customerSaleableReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerSaleableReturnId);
+            $customerMarketReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerMarketReturnId);
+
+            $customerSaleableReturnAmount = 0;
+            if ($customerSaleableReturn && sizeof($customerSaleableReturn) > 0) {
+                $customerSaleableReturnAmount = $customerSaleableReturn[0]->amount;
+            }
+
+            $customerMarketReturnAmount = 0;
+            if ($customerMarketReturn && sizeof($customerMarketReturn) > 0) {
+                $customerMarketReturnAmount = $customerMarketReturn[0]->amount;
+            }
+
+            $salesNoteReceivePaymentEntries = $this->sales_note_model->getSalesNoteReceivePaymentEntries($salesNoteId);
+
+            $receiveCashPaymentMethodIdList = array();
+            $receiveChequePaymentMethodIdList = array();
+            $receiveCreditCardPaymentMethodIdList = array();
+
+            if ($salesNoteReceivePaymentEntries && sizeof($salesNoteReceivePaymentEntries) > 0) {
+                foreach ($salesNoteReceivePaymentEntries as $salesNoteReceivePaymentEntry) {
+                    if ($salesNoteReceivePaymentEntry->receive_cash_payment_method_id != '0') {
+                        $receiveCashPaymentMethodIdList[] = $salesNoteReceivePaymentEntry->receive_cash_payment_method_id;
+                    }
+
+                    if ($salesNoteReceivePaymentEntry->receive_cheque_payment_method_id != '0') {
+                        $receiveChequePaymentMethodIdList[] = $salesNoteReceivePaymentEntry->receive_cheque_payment_method_id;
+                    }
+
+                    if ($salesNoteReceivePaymentEntry->receive_credit_card_payment_method_id != '0') {
+                        $receiveCreditCardPaymentMethodIdList[] = $salesNoteReceivePaymentEntry->receive_credit_card_payment_method_id;
+                    }
                 }
-			}
-		}
-		
-		$chequePaymentAmount = 0;
-		if ($receiveChequePaymentMethodIdList && sizeof($receiveChequePaymentMethodIdList) > 0) {
-			foreach($receiveChequePaymentMethodIdList as $receiveChequePaymentMethodId) {
-                $receiveChequePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($receiveChequePaymentMethodId);
-                
-                if ($receiveChequePaymentMethod && sizeof($receiveChequePaymentMethod) > 0) {
-                    $chequeId = $receiveChequePaymentMethod[0]->cheque_id;
-                    $incomeCheque = $this->payments_model->getIncomeChequeById($chequeId);
-                    $chequePaymentAmount = $chequePaymentAmount + $incomeCheque[0]->amount;
-                }
-			}
-		}
-        
-        $creditCardPaymentAmount = 0;
-		if ($receiveCreditCardPaymentMethodIdList && sizeof($receiveCreditCardPaymentMethodIdList) > 0) {
-			foreach($receiveCreditCardPaymentMethodIdList as $receiveCreditCardPaymentMethodId) {
-                $receiveCreditCardPaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($receiveCreditCardPaymentMethodId);
-                
-                if ($receiveCreditCardPaymentMethod && sizeof($receiveCreditCardPaymentMethod) > 0) {
-                    $creditCardPaymentId = $receiveCreditCardPaymentMethod[0]->credit_card_payment_id;
-                    $creditCardPayment = $this->payments_model->getCardPaymentById($creditCardPaymentId);
-                    $creditCardPaymentAmount = $creditCardPaymentAmount + $creditCardPayment[0]->amount;
-                }
-			}
-		}
-		
-		$chequePaymentAmount = $chequePaymentAmount - $chequePaymentOld;
-		$creditPaymentAmount = str_replace(',', '', number_format(($amountPayable - ($customerSaleableReturnAmount + $customerMarketReturnAmount + $cashPaymentAmount + $chequePaymentAmount + $creditCardPaymentAmount)), 2));
-		$cashPaymentAmount = str_replace(',', '', number_format($cashPaymentAmount, 2));
-		$chequePaymentAmount = str_replace(',', '', number_format($chequePaymentAmount, 2));
-        $creditCardPaymentAmount = str_replace(',', '', number_format($creditCardPaymentAmount, 2));
-        
-        //Update sales note for the cheque payment
-        
-        $salesInvoiceData = array(
-            'cheque_payment_amount' => $chequePaymentAmount,
-            'balance_payment' => $creditPaymentAmount,
-            'status' => "Open",
-            'actioned_user_id' => $this->user_id,
-            'action_date' => $this->date,
-            'last_action_status' => 'edited'
-        );
+            }
 
-        $this->sales_note_model->editSalesNoteData($salesNoteId, $salesInvoiceData);
-		
-		$status  = "deleted";
-		$this->receive_payment_model->deleteReceivePayment($receiveChequePaymentId, $status, $this->user_id);
-		
-		$this->payments_model->deleteIncomeCheque($chequeId, $status, $this->user_id);
-        
-        $this->receive_payment_model->deleteReceivePaymentMethodRecord($receiveChequePaymentMethod[0]->receive_payment_method_id);
-        
-        $salesNoteReceivePayment = $this->sales_note_model->getSalesNoteReceivePaymentBySalesNoteIdAndReceiveChequePaymentMethodId($salesNoteId, $receiveChequePaymentMethodId);
-        
-        if ($salesNoteReceivePayment && sizeof($salesNoteReceivePayment) > 0) {
-            $salesNoteReceivePaymentId = $salesNoteReceivePayment[0]->sales_note_receive_payment_id;
-            $this->sales_note_model->deleteSalesNoteReceivePaymentEntry($salesNoteReceivePaymentId, $status, $this->user_id);
+            $cashPaymentAmount = 0;
+            if ($receiveCashPaymentMethodIdList && sizeof($receiveCashPaymentMethodIdList) > 0) {
+                foreach($receiveCashPaymentMethodIdList as $receiveCashPaymentMethodId) {
+                    $receiveCashPaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($receiveCashPaymentMethodId);
+
+                    if ($receiveCashPaymentMethod && sizeof($receiveCashPaymentMethod) > 0) {
+                        $cashPaymentId = $receiveCashPaymentMethod[0]->cash_payment_id;
+                        $cashPayment = $this->payments_model->getCashPaymentById($cashPaymentId);
+                        $cashPaymentAmount = $cashPaymentAmount + $cashPayment[0]->amount;
+                    }
+                }
+            }
+
+            $chequePaymentAmount = 0;
+            if ($receiveChequePaymentMethodIdList && sizeof($receiveChequePaymentMethodIdList) > 0) {
+                foreach($receiveChequePaymentMethodIdList as $receiveChequePaymentMethodId) {
+                    $receiveChequePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($receiveChequePaymentMethodId);
+
+                    if ($receiveChequePaymentMethod && sizeof($receiveChequePaymentMethod) > 0) {
+                        $chequeId = $receiveChequePaymentMethod[0]->cheque_id;
+                        $incomeCheque = $this->payments_model->getIncomeChequeById($chequeId);
+                        $chequePaymentAmount = $chequePaymentAmount + $incomeCheque[0]->amount;
+                    }
+                }
+            }
+
+            $creditCardPaymentAmount = 0;
+            if ($receiveCreditCardPaymentMethodIdList && sizeof($receiveCreditCardPaymentMethodIdList) > 0) {
+                foreach($receiveCreditCardPaymentMethodIdList as $receiveCreditCardPaymentMethodId) {
+                    $receiveCreditCardPaymentMethod = $this->receive_payment_model->getReceivePaymentMethodById($receiveCreditCardPaymentMethodId);
+
+                    if ($receiveCreditCardPaymentMethod && sizeof($receiveCreditCardPaymentMethod) > 0) {
+                        $creditCardPaymentId = $receiveCreditCardPaymentMethod[0]->credit_card_payment_id;
+                        $creditCardPayment = $this->payments_model->getCardPaymentById($creditCardPaymentId);
+                        $creditCardPaymentAmount = $creditCardPaymentAmount + $creditCardPayment[0]->amount;
+                    }
+                }
+            }
+
+            $chequePaymentAmount = $chequePaymentAmount - $chequePaymentOld;
+            $creditPaymentAmount = str_replace(',', '', number_format(($amountPayable - ($customerSaleableReturnAmount + $customerMarketReturnAmount + $cashPaymentAmount + $chequePaymentAmount + $creditCardPaymentAmount)), 2));
+            $cashPaymentAmount = str_replace(',', '', number_format($cashPaymentAmount, 2));
+            $chequePaymentAmount = str_replace(',', '', number_format($chequePaymentAmount, 2));
+            $creditCardPaymentAmount = str_replace(',', '', number_format($creditCardPaymentAmount, 2));
+
+            //Update sales note for the cheque payment
+
+            $salesInvoiceData = array(
+                'cheque_payment_amount' => $chequePaymentAmount,
+                'balance_payment' => $creditPaymentAmount,
+                'status' => "Open",
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'edited'
+            );
+
+            $this->sales_note_model->editSalesNoteData($salesNoteId, $salesInvoiceData);
+
+            $status  = "deleted";
+            $this->receive_payment_model->deleteReceivePayment($receiveChequePaymentId, $status, $this->user_id);
+
+            $this->payments_model->deleteIncomeCheque($chequeId, $status, $this->user_id);
+
+            $this->receive_payment_model->deleteReceivePaymentMethodRecord($receiveChequePaymentMethod[0]->receive_payment_method_id);
+
+            $salesNoteReceivePayment = $this->sales_note_model->getSalesNoteReceivePaymentBySalesNoteIdAndReceiveChequePaymentMethodId($salesNoteId, $receiveChequePaymentMethodId);
+
+            if ($salesNoteReceivePayment && sizeof($salesNoteReceivePayment) > 0) {
+                $salesNoteReceivePaymentId = $salesNoteReceivePayment[0]->sales_note_receive_payment_id;
+                $this->sales_note_model->deleteSalesNoteReceivePaymentEntry($salesNoteReceivePaymentId, $status, $this->user_id);
+            }
+
+            $receiveChequePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receiveChequePaymentId);
+
+            if ($receiveChequePaymentJournalEntries && sizeof($receiveChequePaymentJournalEntries) > 0) {
+                //Delete all journal entries of GDN
+                foreach($receiveChequePaymentJournalEntries as $receiveChequePaymentJournalEntry) {
+                    $receiveChequePaymentJournalEntryId = $receiveChequePaymentJournalEntry->journal_entry_id;
+                    $this->journal_entries_model->deleteJournalEntry($receiveChequePaymentJournalEntryId, $status, $this->user_id);
+                    $this->journal_entries_model->deleteGeneralLedgerTransactions($receiveChequePaymentJournalEntryId, $status, $this->user_id);
+                }
+            }
+
+            $result = 'ok';
+        } else {
+            $result = "previous_financial_year_is_closed";
         }
-
-		$receiveChequePaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receiveChequePaymentId);
-		
-		if ($receiveChequePaymentJournalEntries && sizeof($receiveChequePaymentJournalEntries) > 0) {
-			//Delete all journal entries of GDN
-			foreach($receiveChequePaymentJournalEntries as $receiveChequePaymentJournalEntry) {
-				$receiveChequePaymentJournalEntryId = $receiveChequePaymentJournalEntry->journal_entry_id;
-				$this->journal_entries_model->deleteJournalEntry($receiveChequePaymentJournalEntryId, $status, $this->user_id);
-				$this->journal_entries_model->deleteGeneralLedgerTransactions($receiveChequePaymentJournalEntryId, $status, $this->user_id);
-			}
-		}
 
 		echo json_encode(array('result' => $result, 'cashPaymentAmount' => $cashPaymentAmount, 'chequePaymentAmount' => $chequePaymentAmount, 
                                'creditCardPaymentAmount' => $creditCardPaymentAmount, 'creditPaymentAmount' => number_format($creditPaymentAmount, 2)));
 	}
 	
 	public function deleteCashPayment() {
+        
+        $cashPaymentAmount = '';
+        $chequePaymentAmount = '';
+        $creditCardPaymentAmount = '';
+        $balancePaymentAmount = '';
+        
 		$salesNoteId = $this->db->escape_str($this->input->post('sales_note_id'));
-		$cashPaymentId = $this->db->escape_str($this->input->post('cash_payment_id'));
-
-		$result = '';
-		
-		$cashPayment = $this->payments_model->getCashPaymentById($cashPaymentId);
-		$cashPaymentOld = $cashPayment[0]->amount;
-		
-		$salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
-		$amountPayable = $salesNote[0]->amount_payable;
-        $cashPaymentAmount = $salesNote[0]->cash_payment_amount;
-        $chequePaymentAmount = $salesNote[0]->cheque_payment_amount;
-        $creditCardPaymentAmount = $salesNote[0]->credit_card_payment_amount;
-		
-		$customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
-		$customerMarketReturnId = $salesNote[0]->customer_market_return_id;
-
-		$customerSaleableReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerSaleableReturnId);
-		$customerMarketReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerMarketReturnId);
-
-		$customerSaleableReturnAmount = 0;
-		if ($customerSaleableReturn && sizeof($customerSaleableReturn) > 0) {
-			$customerSaleableReturnAmount = $customerSaleableReturn[0]->amount;
-		}
-
-		$customerMarketReturnAmount = 0;
-		if ($customerMarketReturn && sizeof($customerMarketReturn) > 0) {
-			$customerMarketReturnAmount = $customerMarketReturn[0]->amount;
-		}
-		
-		$cashPaymentAmount = $cashPaymentAmount - $cashPaymentOld;
-		$balancePaymentAmount = str_replace(',', '', number_format(($amountPayable - ($customerSaleableReturnAmount + $customerMarketReturnAmount + $cashPaymentAmount + $chequePaymentAmount)), 2));
-		$cashPaymentAmount = str_replace(',', '', number_format($cashPaymentAmount, 2));
-		$chequePaymentAmount = str_replace(',', '', number_format($chequePaymentAmount, 2));
         
-        //Update sales note for the cash payment
-        
-        $salesInvoiceData = array(
-            'cash_payment_amount' => $cashPaymentAmount,
-            'balance_payment' => $balancePaymentAmount,
-            'status' => "Open",
-            'actioned_user_id' => $this->user_id,
-            'action_date' => $this->date,
-            'last_action_status' => 'edited'
-        );
+        $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
+        $salesNoteTransactionDate = $salesNote[0]->date;
 
-        $this->sales_note_model->editSalesNoteData($salesNoteId, $salesInvoiceData);
-		
-		$status  = "deleted";
-		$this->payments_model->deleteCashPayment($cashPaymentId, $status, $this->user_id);
+        $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($salesNoteTransactionDate);
+
+        if ($financialYear[0]->year_end_process_status != "Closed") {
         
-        $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodRecordForCashPayment($cashPaymentId);
-        $this->receive_payment_model->deleteReceivePaymentMethodRecord($receivePaymentMethod[0]->receive_payment_method_id);
-        
-        $receivePaymentId = $receivePaymentMethod[0]->receive_payment_id;
-        $receiveCashPaymentMethodId = $receivePaymentMethod[0]->receive_payment_method_id;
-        $receivePaymentMethods = $this->receive_payment_model->getReceivePaymentMethodList($receivePaymentId);
-        
-        if ($receivePaymentMethods == false) {
-            $this->receive_payment_model->deleteReceivePayment($receivePaymentId, $status, $this->user_id);
+            $cashPaymentId = $this->db->escape_str($this->input->post('cash_payment_id'));
+
+            $cashPayment = $this->payments_model->getCashPaymentById($cashPaymentId);
+            $cashPaymentOld = $cashPayment[0]->amount;
+
+            $amountPayable = $salesNote[0]->amount_payable;
+            $cashPaymentAmount = $salesNote[0]->cash_payment_amount;
+            $chequePaymentAmount = $salesNote[0]->cheque_payment_amount;
+            $creditCardPaymentAmount = $salesNote[0]->credit_card_payment_amount;
+
+            $customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
+            $customerMarketReturnId = $salesNote[0]->customer_market_return_id;
+
+            $customerSaleableReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerSaleableReturnId);
+            $customerMarketReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerMarketReturnId);
+
+            $customerSaleableReturnAmount = 0;
+            if ($customerSaleableReturn && sizeof($customerSaleableReturn) > 0) {
+                $customerSaleableReturnAmount = $customerSaleableReturn[0]->amount;
+            }
+
+            $customerMarketReturnAmount = 0;
+            if ($customerMarketReturn && sizeof($customerMarketReturn) > 0) {
+                $customerMarketReturnAmount = $customerMarketReturn[0]->amount;
+            }
+
+            $cashPaymentAmount = $cashPaymentAmount - $cashPaymentOld;
+            $balancePaymentAmount = str_replace(',', '', number_format(($amountPayable - ($customerSaleableReturnAmount + $customerMarketReturnAmount + $cashPaymentAmount + $chequePaymentAmount)), 2));
+            $cashPaymentAmount = str_replace(',', '', number_format($cashPaymentAmount, 2));
+            $chequePaymentAmount = str_replace(',', '', number_format($chequePaymentAmount, 2));
+
+            //Update sales note for the cash payment
+
+            $salesInvoiceData = array(
+                'cash_payment_amount' => $cashPaymentAmount,
+                'balance_payment' => $balancePaymentAmount,
+                'status' => "Open",
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'edited'
+            );
+
+            $this->sales_note_model->editSalesNoteData($salesNoteId, $salesInvoiceData);
+
+            $status  = "deleted";
+            $this->payments_model->deleteCashPayment($cashPaymentId, $status, $this->user_id);
+
+            $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodRecordForCashPayment($cashPaymentId);
+            $this->receive_payment_model->deleteReceivePaymentMethodRecord($receivePaymentMethod[0]->receive_payment_method_id);
+
+            $receivePaymentId = $receivePaymentMethod[0]->receive_payment_id;
+            $receiveCashPaymentMethodId = $receivePaymentMethod[0]->receive_payment_method_id;
+            $receivePaymentMethods = $this->receive_payment_model->getReceivePaymentMethodList($receivePaymentId);
+
+            if ($receivePaymentMethods == false) {
+                $this->receive_payment_model->deleteReceivePayment($receivePaymentId, $status, $this->user_id);
+            }
+
+            $salesNoteReceivePayment = $this->sales_note_model->getSalesNoteReceivePaymentBySalesNoteIdAndReceiveCashPaymentMethodId($salesNoteId, $receiveCashPaymentMethodId);
+
+            if ($salesNoteReceivePayment && sizeof($salesNoteReceivePayment) > 0) {
+                $salesNoteReceivePaymentId = $salesNoteReceivePayment[0]->sales_note_receive_payment_id;
+                $this->sales_note_model->deleteSalesNoteReceivePaymentEntry($salesNoteReceivePaymentId, $status, $this->user_id);
+            }
+
+            $receiveCashPaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentId);
+
+            if ($receiveCashPaymentJournalEntries && sizeof($receiveCashPaymentJournalEntries) > 0) {
+                //Delete all journal entries of GDN
+                foreach($receiveCashPaymentJournalEntries as $receiveCashPaymentJournalEntry) {
+                    $receiveCashPaymentJournalEntryId = $receiveCashPaymentJournalEntry->journal_entry_id;
+                    $this->journal_entries_model->deleteJournalEntry($receiveCashPaymentJournalEntryId, $status, $this->user_id);
+                    $this->journal_entries_model->deleteGeneralLedgerTransactions($receiveCashPaymentJournalEntryId, $status, $this->user_id);
+                }
+            }
+            
+            $result = 'ok';
+        } else {
+            $result = "previous_financial_year_is_closed";
         }
-        
-        $salesNoteReceivePayment = $this->sales_note_model->getSalesNoteReceivePaymentBySalesNoteIdAndReceiveCashPaymentMethodId($salesNoteId, $receiveCashPaymentMethodId);
-        
-        if ($salesNoteReceivePayment && sizeof($salesNoteReceivePayment) > 0) {
-            $salesNoteReceivePaymentId = $salesNoteReceivePayment[0]->sales_note_receive_payment_id;
-            $this->sales_note_model->deleteSalesNoteReceivePaymentEntry($salesNoteReceivePaymentId, $status, $this->user_id);
-        }
-
-		$receiveCashPaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentId);
-		
-		if ($receiveCashPaymentJournalEntries && sizeof($receiveCashPaymentJournalEntries) > 0) {
-			//Delete all journal entries of GDN
-			foreach($receiveCashPaymentJournalEntries as $receiveCashPaymentJournalEntry) {
-				$receiveCashPaymentJournalEntryId = $receiveCashPaymentJournalEntry->journal_entry_id;
-				$this->journal_entries_model->deleteJournalEntry($receiveCashPaymentJournalEntryId, $status, $this->user_id);
-				$this->journal_entries_model->deleteGeneralLedgerTransactions($receiveCashPaymentJournalEntryId, $status, $this->user_id);
-			}
-		}
 
 		echo json_encode(array('result' => $result, 'cashPaymentAmount' => $cashPaymentAmount, 'chequePaymentAmount' => $chequePaymentAmount, 
                                'creditCardPaymentAmount' => $creditCardPaymentAmount, 'balancePaymentAmount' => number_format($balancePaymentAmount, 2)));
@@ -4209,87 +4389,102 @@ class Sales_note_controller extends CI_Controller {
     
     public function deleteCreditCardPayment() {
         
+        $cashPaymentAmount = '';
+        $chequePaymentAmount = '';
+        $creditCardPaymentAmount = '';
+        $balancePaymentAmount = '';
+        
 		$salesNoteId = $this->db->escape_str($this->input->post('sales_note_id'));
-		$creditCardPaymentId = $this->db->escape_str($this->input->post('credit_card_payment_id'));
-
-		$result = '';
-		
-		$cardPayment = $this->payments_model->getCardPaymentById($creditCardPaymentId);
-		$cardPaymentOld = $cardPayment[0]->amount;
-		
-		$salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
-		$amountPayable = $salesNote[0]->amount_payable;
-        $cashPaymentAmount = $salesNote[0]->cash_payment_amount;
-        $chequePaymentAmount = $salesNote[0]->cheque_payment_amount;
-        $creditCardPaymentAmount = $salesNote[0]->credit_card_payment_amount;
-		
-		$customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
-		$customerMarketReturnId = $salesNote[0]->customer_market_return_id;
-
-		$customerSaleableReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerSaleableReturnId);
-		$customerMarketReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerMarketReturnId);
-
-		$customerSaleableReturnAmount = 0;
-		if ($customerSaleableReturn && sizeof($customerSaleableReturn) > 0) {
-			$customerSaleableReturnAmount = $customerSaleableReturn[0]->amount;
-		}
-
-		$customerMarketReturnAmount = 0;
-		if ($customerMarketReturn && sizeof($customerMarketReturn) > 0) {
-			$customerMarketReturnAmount = $customerMarketReturn[0]->amount;
-		}
-		
-		$creditCardPaymentAmount = $creditCardPaymentAmount - $cardPaymentOld;
-		$balancePaymentAmount = str_replace(',', '', number_format(($amountPayable - ($customerSaleableReturnAmount + $customerMarketReturnAmount + $cashPaymentAmount + $chequePaymentAmount + $creditCardPaymentAmount)), 2));
-		$cashPaymentAmount = str_replace(',', '', number_format($cashPaymentAmount, 2));
-		$chequePaymentAmount = str_replace(',', '', number_format($chequePaymentAmount, 2));
-        $creditCardPaymentAmount = str_replace(',', '', number_format($creditCardPaymentAmount, 2));
         
-        //Update sales note for the cash payment
-        
-        $salesInvoiceData = array(
-            'credit_card_payment_amount' => $creditCardPaymentAmount,
-            'balance_payment' => $balancePaymentAmount,
-            'status' => "Open",
-            'actioned_user_id' => $this->user_id,
-            'action_date' => $this->date,
-            'last_action_status' => 'edited'
-        );
+        $salesNote = $this->sales_note_model->getSalesNoteById($salesNoteId);
+        $salesNoteTransactionDate = $salesNote[0]->date;
 
-        $this->sales_note_model->editSalesNoteData($salesNoteId, $salesInvoiceData);
-		
-		$status  = "deleted";
-		$this->payments_model->deleteCardPayment($creditCardPaymentId, $status, $this->user_id);
+        $financialYear = $this->financial_year_ends_model->getFinancialYearOfSelectedTransaction($salesNoteTransactionDate);
+
+        if ($financialYear[0]->year_end_process_status != "Closed") {
         
-        $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodRecordForCreditCardPayment($creditCardPaymentId);
-        $this->receive_payment_model->deleteReceivePaymentMethodRecord($receivePaymentMethod[0]->receive_payment_method_id);
-        
-        $receivePaymentId = $receivePaymentMethod[0]->receive_payment_id;
-        $receiveCardPaymentMethodId = $receivePaymentMethod[0]->receive_payment_method_id;
-        $receivePaymentMethods = $this->receive_payment_model->getReceivePaymentMethodList($receivePaymentId);
-        
-        if ($receivePaymentMethods == false) {
-            $this->receive_payment_model->deleteReceivePayment($receivePaymentId, $status, $this->user_id);
+            $creditCardPaymentId = $this->db->escape_str($this->input->post('credit_card_payment_id'));
+
+            $cardPayment = $this->payments_model->getCardPaymentById($creditCardPaymentId);
+            $cardPaymentOld = $cardPayment[0]->amount;
+
+            $amountPayable = $salesNote[0]->amount_payable;
+            $cashPaymentAmount = $salesNote[0]->cash_payment_amount;
+            $chequePaymentAmount = $salesNote[0]->cheque_payment_amount;
+            $creditCardPaymentAmount = $salesNote[0]->credit_card_payment_amount;
+
+            $customerSaleableReturnId = $salesNote[0]->customer_saleable_return_id;
+            $customerMarketReturnId = $salesNote[0]->customer_market_return_id;
+
+            $customerSaleableReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerSaleableReturnId);
+            $customerMarketReturn = $this->customer_return_note_model->getCustomerReturnNoteById($customerMarketReturnId);
+
+            $customerSaleableReturnAmount = 0;
+            if ($customerSaleableReturn && sizeof($customerSaleableReturn) > 0) {
+                $customerSaleableReturnAmount = $customerSaleableReturn[0]->amount;
+            }
+
+            $customerMarketReturnAmount = 0;
+            if ($customerMarketReturn && sizeof($customerMarketReturn) > 0) {
+                $customerMarketReturnAmount = $customerMarketReturn[0]->amount;
+            }
+
+            $creditCardPaymentAmount = $creditCardPaymentAmount - $cardPaymentOld;
+            $balancePaymentAmount = str_replace(',', '', number_format(($amountPayable - ($customerSaleableReturnAmount + $customerMarketReturnAmount + $cashPaymentAmount + $chequePaymentAmount + $creditCardPaymentAmount)), 2));
+            $cashPaymentAmount = str_replace(',', '', number_format($cashPaymentAmount, 2));
+            $chequePaymentAmount = str_replace(',', '', number_format($chequePaymentAmount, 2));
+            $creditCardPaymentAmount = str_replace(',', '', number_format($creditCardPaymentAmount, 2));
+
+            //Update sales note for the cash payment
+
+            $salesInvoiceData = array(
+                'credit_card_payment_amount' => $creditCardPaymentAmount,
+                'balance_payment' => $balancePaymentAmount,
+                'status' => "Open",
+                'actioned_user_id' => $this->user_id,
+                'action_date' => $this->date,
+                'last_action_status' => 'edited'
+            );
+
+            $this->sales_note_model->editSalesNoteData($salesNoteId, $salesInvoiceData);
+
+            $status  = "deleted";
+            $this->payments_model->deleteCardPayment($creditCardPaymentId, $status, $this->user_id);
+
+            $receivePaymentMethod = $this->receive_payment_model->getReceivePaymentMethodRecordForCreditCardPayment($creditCardPaymentId);
+            $this->receive_payment_model->deleteReceivePaymentMethodRecord($receivePaymentMethod[0]->receive_payment_method_id);
+
+            $receivePaymentId = $receivePaymentMethod[0]->receive_payment_id;
+            $receiveCardPaymentMethodId = $receivePaymentMethod[0]->receive_payment_method_id;
+            $receivePaymentMethods = $this->receive_payment_model->getReceivePaymentMethodList($receivePaymentId);
+
+            if ($receivePaymentMethods == false) {
+                $this->receive_payment_model->deleteReceivePayment($receivePaymentId, $status, $this->user_id);
+            }
+
+            $salesNoteReceivePayment = $this->sales_note_model->getSalesNoteReceivePaymentBySalesNoteIdAndReceiveCardPaymentMethodId($salesNoteId, $receiveCardPaymentMethodId);
+
+            if ($salesNoteReceivePayment && sizeof($salesNoteReceivePayment) > 0) {
+                $salesNoteReceivePaymentId = $salesNoteReceivePayment[0]->sales_note_receive_payment_id;
+                $this->sales_note_model->deleteSalesNoteReceivePaymentEntry($salesNoteReceivePaymentId, $status, $this->user_id);
+            }
+
+            $receiveCardPaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentId);
+
+            if ($receiveCardPaymentJournalEntries && sizeof($receiveCardPaymentJournalEntries) > 0) {
+                //Delete all journal entries of GDN
+                foreach($receiveCardPaymentJournalEntries as $receiveCardPaymentJournalEntry) {
+                    $receiveCardPaymentJournalEntryId = $receiveCardPaymentJournalEntry->journal_entry_id;
+                    $this->journal_entries_model->deleteJournalEntry($receiveCardPaymentJournalEntryId, $status, $this->user_id);
+                    $this->journal_entries_model->deleteGeneralLedgerTransactions($receiveCardPaymentJournalEntryId, $status, $this->user_id);
+                }
+            }
+
+            $result = 'ok';
+        } else {
+            $result = "previous_financial_year_is_closed";
         }
         
-        $salesNoteReceivePayment = $this->sales_note_model->getSalesNoteReceivePaymentBySalesNoteIdAndReceiveCardPaymentMethodId($salesNoteId, $receiveCardPaymentMethodId);
-        
-        if ($salesNoteReceivePayment && sizeof($salesNoteReceivePayment) > 0) {
-            $salesNoteReceivePaymentId = $salesNoteReceivePayment[0]->sales_note_receive_payment_id;
-            $this->sales_note_model->deleteSalesNoteReceivePaymentEntry($salesNoteReceivePaymentId, $status, $this->user_id);
-        }
-
-		$receiveCardPaymentJournalEntries = $this->receive_payment_model->getReceivePaymentJournalEntries($receivePaymentId);
-		
-		if ($receiveCardPaymentJournalEntries && sizeof($receiveCardPaymentJournalEntries) > 0) {
-			//Delete all journal entries of GDN
-			foreach($receiveCardPaymentJournalEntries as $receiveCardPaymentJournalEntry) {
-				$receiveCardPaymentJournalEntryId = $receiveCardPaymentJournalEntry->journal_entry_id;
-				$this->journal_entries_model->deleteJournalEntry($receiveCardPaymentJournalEntryId, $status, $this->user_id);
-				$this->journal_entries_model->deleteGeneralLedgerTransactions($receiveCardPaymentJournalEntryId, $status, $this->user_id);
-			}
-		}
-
 		echo json_encode(array('result' => $result, 'cashPaymentAmount' => $cashPaymentAmount, 'chequePaymentAmount' => $chequePaymentAmount, 
                                'creditCardPaymentAmount' => $creditCardPaymentAmount, 'balancePaymentAmount' => number_format($balancePaymentAmount, 2)));
 	}

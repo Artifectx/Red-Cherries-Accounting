@@ -5100,3 +5100,12 @@ SET @languageStringId = LAST_INSERT_ID();
 
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Previous financial year is not closed! Please close the previous financal year before add transactions.');
+
+/*Data for the table `system_language_strings` */
+INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('The financial year of the transaction you are trying to delete is already closed!', 'message', '7', 'Journal Entries Screen');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','The financial year of the transaction you are trying to delete is already closed!');

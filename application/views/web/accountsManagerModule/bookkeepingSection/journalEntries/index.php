@@ -1357,6 +1357,13 @@
 				'<?php echo $this->lang->line('success')?></h4>' +
 				'<?php echo $this->lang->line('success_saved')?>' +
 				'</div>';
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to edit is already closed!')?>' +
+				'</div>';
 
 			// send the formData
 			var debitChartOfAccountIdList = new Array();
@@ -1458,14 +1465,22 @@
 						$(".msg_data").html(msg);
 					} else {
 						$(".msg_data").show();
-						$(".msg_data").html(response);
+						$(".msg_data").html(msgError);
 						$("#btnSaveJournalEntry:input").attr('disabled', false);
 					}
 				}
-			})
+			});
 		},
 
 		deleteData: function (primeEntryTransactionId) {
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('The financial year of the transaction you are trying to delete is already closed!')?>' +
+				'</div>';
+        
 			var bConfirm = confirm("<?php echo $this->lang->line('Are you sure you want to delete this').$this->lang->line('journal entry') ?>?");
 			if (bConfirm) {
                 
@@ -1480,22 +1495,27 @@
 						'<?php echo $this->security->get_csrf_token_name(); ?>':
 						'<?php echo $this->security->get_csrf_hash(); ?>'
 					},
-					dataType: 'html',
+					dataType: 'json',
 					success: function (response) {
-                        
-						clearForm();
-						$(".form").hide();
-						$(".edit_form").hide();
-						
-						var year = $("#current_year").val();
-						var month = $("#current_month").val();
-						getTableData(year, month);
-                        
-                        $(".msg_instant").hide();
-						$(".msg_delete").show();
-						$(".msg_delete").html(response);
+                        if (response.result == 'ok') {
+                            clearForm();
+                            $(".form").hide();
+                            $(".edit_form").hide();
+
+                            var year = $("#current_year").val();
+                            var month = $("#current_month").val();
+                            getTableData(year, month);
+
+                            $(".msg_instant").hide();
+                            $(".msg_delete").show();
+                            $(".msg_delete").html(response);
+                        } else {
+                            $(".msg_instant").hide();
+                            $(".msg_data").show();
+                            $(".msg_data").html(msgError);
+                        }
 					}
-				})
+				});
 			}
 		},
 
@@ -1574,7 +1594,7 @@
 						format: 'YYYY-MM-DD'
 					});
 				}
-			})
+			});
 		},
 
 		//get prime entry books drop down
@@ -1587,13 +1607,12 @@
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
 				dataType: 'html',
-				success:
-					function (response) {
-						$('#prime_entry_book_name_init').hide();
-						$("#prime_entry_book_name_dropdown").html(response);
-						$("#prime_entry_book_id").select2();
-					}
-			})
+				success: function (response) {
+                    $('#prime_entry_book_name_init').hide();
+                    $("#prime_entry_book_name_dropdown").html(response);
+                    $("#prime_entry_book_id").select2();
+                }
+			});
 		},
 
 		getChartOfAccounts: function(){
@@ -1707,7 +1726,7 @@
 					$('#reference_transaction_type_init').hide();
 					$("#reference_transaction_type_dropdown").html(response);
 				}
-			})
+			});
 		},
 		
 		//get reference transaction list drop down
@@ -1732,7 +1751,7 @@
 						JournalEntry.getReferenceJournalEntryListForSelectedTransaction(transactionTypeId, '')
 					}
 				}
-			})
+			});
 		},
 		
 		//get reference journal entry list drop down
@@ -1753,7 +1772,7 @@
 					$("#reference_journal_entry_dropdown").html(response);
 					$("#reference_journal_entry_id").select2();
 				}
-			})
+			});
 		},
 		
 		checkWhetherPrimeEntryBookHasAReferenceTransactionJournalEntry: function (primeEntryBookId) {
@@ -1773,7 +1792,7 @@
 						PrimeEntryBookHasAReferenceTransactionJournalEntry = "No";
 					}
 				}
-			})
+			});
 		},
 		
 		getPayeePayerList: function (payeePayerType) {
@@ -1800,7 +1819,7 @@
 					$("#sales_rep_id").prop({id : "people_id"});
 					$("#people_id").select2();
 				}
-			})
+			});
 		},
 		
 		init : function () {
