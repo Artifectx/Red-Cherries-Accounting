@@ -50,6 +50,18 @@ class Financial_year_ends_model extends CI_Model {
 		}
 	}
     
+    public function getFinancialYearEndById($financialYearId) {
+		$this->db->where('financial_year_id', $financialYearId);
+		$this->db->where('last_action_status !=','deleted');
+        $this->db->limit(1);
+		$query = $this->db->get('acm_admin_financial_year_ends');
+		if ($query->num_rows() == 1) {
+			return $query->result();
+		} else {
+			return false;
+		}
+	}
+    
     public function getFinancialYearEndByFinancialYearStartAndEndDates($financialYearStartDate, $financialYearEndDate) {
 		$this->db->where('financial_year_start_date', $financialYearStartDate);
         $this->db->where('financial_year_end_date', $financialYearEndDate);

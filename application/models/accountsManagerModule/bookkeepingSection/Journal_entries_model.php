@@ -130,6 +130,13 @@ class Journal_entries_model extends CI_Model {
 		$this->db->update('acm_bookkeeping_journal_entries');
 		return true;
 	}
+    
+    public function clearGeneralLedgerByYearEndProcess($openingBalanceDate) {
+        $this->db->where('transaction_date !=', $openingBalanceDate);
+        $this->db->limit(10000000);
+		$this->db->delete('acm_bookkeeping_gl_transactions');
+		return true;
+	}
 	
 	public function activateJournalEntry($id, $status, $user_id) {
 		$this->db->where('journal_entry_id', $id);
@@ -736,10 +743,11 @@ class Journal_entries_model extends CI_Model {
 	}
     
     public function getFilteredJournalEntriesOfParentChartOfAccount($fromDate=null, $toDate=null, $locationId=null, $parentChartOfAccountId=null, 
-                        $onlyCompletedTransactions=null, $specialChartOfAccountsToCheckCompletedTransactionsStatus=null, $chartofAccountId=null) {
+                        $onlyCompletedTransactions=null, $specialChartOfAccountsToCheckCompletedTransactionsStatus=null, $chartofAccountId=null,
+                        $getSeparateEntriesForPayeeOrPayer=null) {
 		
         $condition = "SELECT GLTransaction.gl_transaction_id, GLTransaction.chart_of_account_id, GLTransaction.journal_entry_id, GLTransaction.prime_entry_book_id, ChartOfAccount.parent_id, GLTransaction.debit_value AS debit_amount, "
-                    ."GLTransaction.credit_value AS credit_amount, GLTransaction.transaction_complete AS transaction_complete "
+                    ."GLTransaction.credit_value AS credit_amount, GLTransaction.transaction_complete AS transaction_complete, JournalEntry.payee_payer_id AS payee_payer_id "
                     ."FROM `acm_bookkeeping_gl_transactions` AS GLTransaction "
                     ."LEFT JOIN acm_admin_chart_of_accounts AS ChartOfAccount ON GLTransaction.chart_of_account_id = ChartOfAccount.chart_of_account_id "
                     ."LEFT JOIN acm_bookkeeping_journal_entries AS JournalEntry ON GLTransaction.journal_entry_id = JournalEntry.journal_entry_id "
@@ -825,14 +833,19 @@ class Journal_entries_model extends CI_Model {
 
             $finalArray = array();
 
-            foreach ($intermediateArray as $record) {
+            if ($getSeparateEntriesForPayeeOrPayer == '') {
+                
+                foreach ($intermediateArray as $record) {
 
-                if (array_key_exists($record['chart_of_account_id'], $finalArray)) {
-                    $finalArray[$record['chart_of_account_id']]['debit_amount'] = $finalArray[$record['chart_of_account_id']]['debit_amount'] + $record['debit_amount'];
-                    $finalArray[$record['chart_of_account_id']]['credit_amount'] = $finalArray[$record['chart_of_account_id']]['credit_amount'] + $record['credit_amount'];
-                } else {
-                    $finalArray[$record['chart_of_account_id']] = $record;
+                    if (array_key_exists($record['chart_of_account_id'], $finalArray)) {
+                        $finalArray[$record['chart_of_account_id']]['debit_amount'] = $finalArray[$record['chart_of_account_id']]['debit_amount'] + $record['debit_amount'];
+                        $finalArray[$record['chart_of_account_id']]['credit_amount'] = $finalArray[$record['chart_of_account_id']]['credit_amount'] + $record['credit_amount'];
+                    } else {
+                        $finalArray[$record['chart_of_account_id']] = $record;
+                    }
                 }
+            } else {
+                $finalArray = $intermediateArray;
             }
 
             return $finalArray;
@@ -888,8 +901,13 @@ class Journal_entries_model extends CI_Model {
 		}
     }
     
-    public function getAccountOpeningBalancesForLocation($locationId) {
+    public function getAccountOpeningBalancesForLocation($locationId, $openingBalanceDate=null) {
         $this->db->where('location_id', $locationId);
+        
+        if ($openingBalanceDate != '') {
+            $this->db->where('transaction_date', $openingBalanceDate);
+        }
+        
         $this->db->where('remark', "OB");
         $this->db->where('acm_bookkeeping_journal_entries.last_action_status !=','deleted');
 		$query = $this->db->get('acm_bookkeeping_journal_entries');
@@ -904,6 +922,20 @@ class Journal_entries_model extends CI_Model {
         $this->db->limit(1);
         $query = $this->db->get('acm_bookkeeping_journal_entries');
 		if ($query->num_rows() == 1) {
+			return $query->result();
+		} else {
+			return false;
+		}
+    }
+    
+    public function getAvailableOpeningBalancesDateList($locationId) {
+        
+        $this->db->select("DISTINCT(transaction_date)");
+        $this->db->where('location_id', $locationId);
+        $this->db->where('remark', "OB");
+        $this->db->where('acm_bookkeeping_journal_entries.last_action_status !=','deleted');
+		$query = $this->db->get('acm_bookkeeping_journal_entries');
+		if ($query->num_rows() > 0) {
 			return $query->result();
 		} else {
 			return false;

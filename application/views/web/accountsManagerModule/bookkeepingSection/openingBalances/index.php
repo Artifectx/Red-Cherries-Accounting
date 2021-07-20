@@ -113,6 +113,32 @@
 					</div>
 				</div>
 			</div>
+            
+            <div class='modal fade modal-opening_balance_year_select' id='modal-bookkeeping_opening_balance_year_select'>
+				<div class='modal-dialog' style="height:100px;width:350px;">
+					<div class='modal-content'>
+						<div class='modal-body' style="background-color: #5882FA;">
+							<div id='table'>
+								<div class='row'>
+									<div class='col-sm-12'>
+										<div class='box'>
+											<div class='box-header <?php echo BOXHEADER; ?>-background'>
+												<div class='title'><?php echo $this->lang->line('Available Opening Balances') ?></div>
+												<div class='actions'>
+													<a class='btn box-collapse btn-xs btn-link' href='#'><i></i>
+													</a>
+												</div>
+											</div>
+											<div class='box-content' id="opening_balance_year_content">
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 
 <script src="<?php echo base_url(); ?>ajax/jquery.js"></script>
@@ -134,13 +160,13 @@
 			format: 'YYYY-MM-DD'
 		});
         
-		getTableData("");
+		getTableData("", "");
 	});
     
 	function searchData() {
 		var locationId = $("#location_search_id").val();
 		
-		getTableData(locationId);
+		getTableData(locationId, "");
 	}
     
     function addMoreRows() {
@@ -391,6 +417,83 @@
         $("#cr_" + rowCount).val('');
         $("#description_" + rowCount).val('');
     }
+    
+    function openOpeningBalanceYearSelectDialog(locationId, openingBalanceYearList, openingBalanceDateList) {
+		
+		var openingBalanceYearCount = 0;
+		var openingBalanceYearContent = '';
+		
+		$("#opening_balance_year_content").empty();
+		
+		jQuery.each(openingBalanceYearList, function(id, year) {
+			if (year != '') {
+				var openingBalanceDate = openingBalanceDateList[id];
+				openingBalanceYearCount = parseInt(openingBalanceYearCount) + 1;
+				openingBalanceYearContent =  "<div>"+
+                                        "<input class='form-control' id='location_id_" + openingBalanceYearCount + "' name='location_id_" + openingBalanceYearCount + "' type='hidden' value='" + locationId + "'>"+
+										"<input class='form-control' id='opening_balance_date_" + openingBalanceYearCount + "' name='opening_balance_date_" + openingBalanceYearCount + "' type='hidden' value='" + openingBalanceDate + "'>"+
+										"<input class='opening_balance_year_check_box' type='checkbox' name='opening_balance_year_group' id='opening_balance_year_" + openingBalanceYearCount + "' style='vertical-align: text-bottom;'";
+						
+				if (openingBalanceYearCount == 1) {
+					openingBalanceYearContent = openingBalanceYearContent + " checked";
+				}
+				
+				openingBalanceYearContent = openingBalanceYearContent + ">  <label for='opening_balance_year_" + openingBalanceYearCount + "' style='color: white;'> " + year + "</label>"+
+									"</div>";
+
+				$("#opening_balance_year_content").append(openingBalanceYearContent);
+			}
+		});
+							   
+		$('#modal-bookkeeping_opening_balance_year_select').modal({backdrop: 'static', keyboard: false});
+	}
+    
+    $(document).keydown(function(e) {
+        
+        if ($("#modal-bookkeeping_opening_balance_year_select").hasClass('in')) {
+			if (e.keyCode == "40" || e.which == "40") {
+				//Down arrow key is pressed
+				var id = e.target.id;
+				var openingBalanceYearCount = id.substring(21,50);
+				var oldOpeningBalanceYearCount = openingBalanceYearCount;
+				
+				openingBalanceYearCount = parseInt(openingBalanceYearCount) + 1;
+				
+				if ($("#opening_balance_year_" + openingBalanceYearCount).length) {
+					$("#opening_balance_year_" + oldOpeningBalanceYearCount).prop('checked', false);
+					$("#opening_balance_year_" + openingBalanceYearCount).prop('checked', true);
+					$("#opening_balance_year_" + openingBalanceYearCount).focus();
+				}
+			} else if (e.keyCode == "38" || e.which == "38") {
+				//Up arrow key is pressed
+				var id = e.target.id;
+				var openingBalanceYearCount = id.substring(21,50);
+				var oldOpeningBalanceYearCount = openingBalanceYearCount;
+				
+				openingBalanceYearCount = parseInt(openingBalanceYearCount) - 1;
+				
+				if (openingBalanceYearCount > 0) {
+					$("#opening_balance_year_" + oldOpeningBalanceYearCount).prop('checked', false);
+					$("#opening_balance_year_" + openingBalanceYearCount).prop('checked', true);
+					$("#opening_balance_year_" + openingBalanceYearCount).focus();
+				}
+			} else if (e.keyCode == "13" || e.which == "13") {
+				var id = $('input[name=opening_balance_year_group]:checked')[0].id;
+				var openingBalanceYearCount = id.substring(21,50);
+                
+                var locationId = $("#location_id_" + openingBalanceYearCount).val();
+                var openingBalanceDate = $("#opening_balance_date_" + openingBalanceYearCount).val();
+                
+                getTableData(locationId, openingBalanceDate);
+				
+				$("#modal-bookkeeping_opening_balance_year_select").modal('hide');
+			}
+		}
+    });
+    
+    function handleLocationSelect() {
+        
+    }
 	
 	var OpeningBalances = {
 		
@@ -522,32 +625,42 @@
 	};
 
 	//get all data
-	function getTableData(locationId){
+	function getTableData(locationId, openingBalanceDate){
 		$(".loader").show();
 		$.ajax({
 			type: "POST",
 			url: "<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/opening_balances_controller/getTableData",
 			data: {
 				'location_id' : locationId,
+                'opening_balance_date' : openingBalanceDate,
 				<?php echo $this->security->get_csrf_token_name(); ?>:'<?php echo $this->security->get_csrf_hash(); ?>'
 			},
 			dataType: 'json',
 			success: function (response) {
-                $("#dataTable").empty();
-				$("#dataTable").html(response.html);
-				$(".loader").hide();
-                
-                if (response.openingBalanceDate != '') {
-                    $("#opening_balance_date").val(response.openingBalanceDate);
+                if (response.result == 'ok') {
+                    $("#dataTable").empty();
+                    $("#dataTable").html(response.html);
+                    $(".loader").hide();
+
+                    if (response.openingBalanceDate != '') {
+                        $("#opening_balance_date").val(response.openingBalanceDate);
+                    }
+
+                    OpeningBalanceRowCount = response.rowCount;
+                    DrAmountTotal = response.drTotal;
+                    CrAmountTotal = response.crTotal;
+
+                    $('.openingBalancesDataTable').dataTable({
+                        "iDisplayLength":<?php echo $default_row_count_for_table; ?>
+                    });
+                } else if (response.result == 'multiple_opening_balance_years') {
+                    $(".loader").hide();
+                    openOpeningBalanceYearSelectDialog(locationId, response.openingBalanceYearList, response.openingBalanceDateList);
+                    
+                    setTimeout(function(){
+                        $("#opening_balance_year_1").focus();	
+                    }, 500);
                 }
-				
-                OpeningBalanceRowCount = response.rowCount;
-                DrAmountTotal = response.drTotal;
-                CrAmountTotal = response.crTotal;
-                
-				$('.openingBalancesDataTable').dataTable({
-					"iDisplayLength":<?php echo $default_row_count_for_table; ?>
-				});
 			}
 		});
 	}

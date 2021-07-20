@@ -37,7 +37,8 @@
                 </div>
 
                 <div id='table'>
-                    <div class="msg_delete"></div>
+                    <div class="msg_data"></div>
+                    <div class='msg_instant' align="center"></div>
                     <div class='row'>
                         <div class='col-sm-12'>
                             <div class='box bordered-box <?php echo BOXHEADER; ?>-border' style='margin-bottom:0;'>
@@ -63,71 +64,62 @@
 		getTableData();
 	});
 
-	function editData() {
-        Bank.editData();
+	function processYearEndData(financialYearEndId) {
+        FinancialYearEnd.processYearEndData(financialYearEndId);
 	}
 
-	var Bank = {
+	var FinancialYearEnd = {
 		
-		editData: function () {
+		processYearEndData : function (financialYearEndId) {
 			var msg = '<div class="alert alert-success alert-dismissable">' +
 				'<a class="close" href="#" data-dismiss="alert">× </a>' +
 				'<h4><i class="icon-ok-sign"></i>' +
 				'<?php echo $this->lang->line('success')?></h4>' +
-				'<?php echo $this->lang->line('success_updated')?>' +
+				'<?php echo $this->lang->line('year_end_successfuly_processed')?>' +
 				'</div>';
-		
-			var branchList = new Array();
+        
+            var msgError = '<div class="alert alert-warning alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-info-sign"></i>' +
+				'<?php echo $this->lang->line('warning')?></h4>' +
+				'<?php echo $this->lang->line('Financial year end processing chart of accounts are not configured')?>' +
+				'</div>';
+        
+            var bConfirm = confirm("<?php echo $this->lang->line('Are you sure you want to process the year end now')?>?");
+			if (bConfirm) {
+                
+                $(".msg_instant").show();
+                $(".msg_instant").html('<img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/>Processing the year end, please wait...');
 
-			var cloneCount = 1;
-			var element = $("#branch_data_group_edit").find("#branch_data_edit_1");
+                $.ajax({
+                    type: "POST",
+                    url: "<?php echo base_url(); ?>accountsManagerModule/adminSection/financial_year_ends_controller/processYearEndData",
+                    data: {
+                        'financial_year_id': financialYearEndId,
+                        '<?php echo $this->security->get_csrf_token_name(); ?>':
+                        '<?php echo $this->security->get_csrf_hash(); ?>'
+                    },
+                    dataType: 'html',
+                    beforeSend : function () {
+                        $("#process_year_end_" + financialYearEndId).attr('disabled', true);
+                    },
+                    success: function (response) {
 
-			while (element.length == 1) {
-				branchList.push($("#branch_data_edit_"+cloneCount).val());
-				cloneCount++;
-				element = $("#branch_data_group_edit").find("#branch_data_edit_" + cloneCount);
-			}
-				
-			$.ajax({
-				type: "POST",
-				url: "<?php echo base_url(); ?>accountsManagerModule/adminSection/bank_controller/edit",
-				data: {
-					'id': $("#id").val(),
-					'bank_code' : $("#bank_code_edit").val(),
-					'bank_name' : $("#bank_name_edit").val(),
-					'branch_name': $("#branch_name_edit").val(),
-					'branch_list' : branchList,
-					'<?php echo $this->security->get_csrf_token_name(); ?>':
-					'<?php echo $this->security->get_csrf_hash(); ?>'
-				},
-				dataType: 'html',
-					beforeSend
-				:
-				function () {
-					$(".save:input").attr('disabled', true);
-				},
-				success: function (response) {
-                    
-                    $(".msg_instant").hide();
-                    
-					if (response == 'ok') {
-						$(".validation").hide();
-						$(".msg_data").show();
-						$(".msg_data").html(msg);
-						$(".save:input").attr('disabled', false);
+                        $(".msg_instant").hide();
 
-						$(".form").hide();
-						$(".edit_form").hide();
-						getTableData();
-					}
-					else {
-						$(".msg_data").hide();
-						$(".validation").show();
-						$(".validation").html(response);
-						$(".save:input").attr('disabled', false);
-					}
-				}
-			});
+                        if (response == 'ok') {
+                            $(".msg_data").show();
+                            $(".msg_data").html(msg);
+                            $("#process_year_end_" + financialYearEndId).attr('disabled', false);
+                            getTableData();
+                        } else if (response == 'chart_of_accounts_not_configured') {
+                            $(".msg_data").show();
+                            $(".msg_data").html(msgError);
+                            $("#process_year_end_" + financialYearEndId).attr('disabled', false);
+                        }
+                    }
+                });
+            }
 		}
 	};
 

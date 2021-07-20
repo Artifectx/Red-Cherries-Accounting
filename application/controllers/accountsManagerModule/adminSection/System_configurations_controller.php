@@ -315,7 +315,42 @@ class System_configurations_controller extends CI_Controller {
 		echo 'ok';
 	}
     
-    public function saveOpeningBalanceEquityConfigData () {
+    public function saveFinancialYearEndsConfigData () {
+		$parentLiabilitiesChartOfAccountId = $this->db->escape_str($this->input->post('parent_liabilities_chart_of_account'));
+        $parentAssetsChartOfAccountId = $this->db->escape_str($this->input->post('parent_assets_chart_of_account'));
+        $reatainedEarningsChartOfAccountId = $this->db->escape_str($this->input->post('retained_earnings_chart_of_account'));
+
+        $data = array(
+            'config_filed_value' => $parentLiabilitiesChartOfAccountId,
+            'actioned_user_id' => $this->user_id,
+            'action_date' => $this->date,
+            'last_action_status' => 'edited'
+        );
+
+        $this->system_configurations_model->updateConfigurationField("parent_liabilities_chart_of_account", $data);
+        
+        $data = array(
+            'config_filed_value' => $parentAssetsChartOfAccountId,
+            'actioned_user_id' => $this->user_id,
+            'action_date' => $this->date,
+            'last_action_status' => 'edited'
+        );
+
+        $this->system_configurations_model->updateConfigurationField("parent_assets_chart_of_account", $data);
+        
+        $data = array(
+            'config_filed_value' => $reatainedEarningsChartOfAccountId,
+            'actioned_user_id' => $this->user_id,
+            'action_date' => $this->date,
+            'last_action_status' => 'edited'
+        );
+
+        $this->system_configurations_model->updateConfigurationField("retained_earnings_chart_of_account", $data);
+		
+		echo 'ok';
+	}
+    
+    public function saveOpeningBalancesConfigData () {
 		$chartOfAccountId = $this->db->escape_str($this->input->post('opening_balance_equity_chart_of_account'));
 
         $data = array(

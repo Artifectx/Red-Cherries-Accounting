@@ -242,6 +242,42 @@ class System_configurations_model extends CI_Model {
 			return false;
 		}
 	}
+    
+    public function getParentLiabilitiesChartOfAccountConfigurationData() {
+		$this->db->where('config_filed_name', 'parent_liabilities_chart_of_account');
+		$this->db->limit(1);
+		$query = $this->db->get('system_common_configurations');
+		if ($query->num_rows() > 0) {
+            $result = $query->result();
+			return $result[0]->config_filed_value;
+		} else {
+			return false;
+		}
+	}
+    
+    public function getParentAssetsChartOfAccountConfigurationData() {
+		$this->db->where('config_filed_name', 'parent_assets_chart_of_account');
+		$this->db->limit(1);
+		$query = $this->db->get('system_common_configurations');
+		if ($query->num_rows() > 0) {
+            $result = $query->result();
+			return $result[0]->config_filed_value;
+		} else {
+			return false;
+		}
+	}
+    
+    public function getRetainedEarningsChartOfAccountConfigurationData() {
+		$this->db->where('config_filed_name', 'retained_earnings_chart_of_account');
+		$this->db->limit(1);
+		$query = $this->db->get('system_common_configurations');
+		if ($query->num_rows() > 0) {
+            $result = $query->result();
+			return $result[0]->config_filed_value;
+		} else {
+			return false;
+		}
+	}
 
     public function getOpeninngBalanceEquityChartOfAccountConfigurationData() {
 		$this->db->where('config_filed_name', 'opening_balance_equity_chart_of_account');

@@ -424,8 +424,64 @@ class Opening_balances_controller extends CI_Controller {
 		if(isset($this->data['ACM_Bookkeeping_View_Opening_Balances_Permissions'])) {
 			
 			$locationId = $this->db->escape_str($this->input->post('location_id'));
+            $openingBalanceDate = $this->db->escape_str($this->input->post('opening_balance_date'));
             
-            $openingBalanceDate = '';
+            $availableOpeningBalancesList = '';
+            $openingBalanceYearList = array();
+            $openingBalanceDateList = array();
+            
+            if ($openingBalanceDate == '') {
+                
+                $availableOpeningBalancesList = $this->journal_entries_model->getAvailableOpeningBalancesDateList($locationId);
+
+                if ($availableOpeningBalancesList && sizeof($availableOpeningBalancesList) > 0) {
+                    
+                    $openingBalanceYearCount = 1;
+                    
+                    foreach ($availableOpeningBalancesList as $availableOpeningBalance) {
+                        $transactionDate = $availableOpeningBalance->transaction_date;
+
+                        $year = date('Y', strtotime($transactionDate));
+
+                        $financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
+                        $financialYearStartDay = $this->system_configurations_model->getFinancialYearStartDayNo();
+                        $financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
+                        $financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
+
+                        $financialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+
+                        if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($financialYearEndDateToCompare) < strtotime($transactionDate)) {
+                            $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                            $financialYearEndDate = ($year + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                        } else {
+                            if ($financialYearStartMonth > 1 || $financialYearStartDay > 1) {
+                                $financialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                                $financialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                            } else {
+                                $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                                $financialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                            }
+                        }
+                        
+                        $financialYearStartYear = date('Y', strtotime($financialYearStartDate));
+                        $financialYearEndYear = date('Y', strtotime($financialYearEndDate));
+
+                        $financialYear = '';
+
+                        if ($financialYearStartYear == $financialYearEndYear) {
+                            $financialYear = $financialYearStartYear;
+                        } else {
+                            $financialYear = $financialYearStartYear . "/" . $financialYearEndYear;
+                        }
+                        
+                        $openingBalanceYearList[$openingBalanceYearCount] = $financialYear;
+                        $openingBalanceDateList[$openingBalanceYearCount] = $transactionDate;
+                        
+                        $openingBalanceYearCount++;
+                    }
+                }
+            }
+            
             $rowCount = 1;
 			
 			$html = "";
@@ -445,8 +501,12 @@ class Opening_balances_controller extends CI_Controller {
 								</thead>
 								<tbody id='opening_balance_rows'>";
 			
-			$openingBalancesList = $this->journal_entries_model->getAccountOpeningBalancesForLocation($locationId);
-			
+            $openingBalancesList = '';
+            
+            if ($openingBalanceDate != '' || $availableOpeningBalancesList == '') {
+                $openingBalancesList = $this->journal_entries_model->getAccountOpeningBalancesForLocation($locationId, $openingBalanceDate);
+            }
+            
             $drTotal = 0;
             $crTotal = 0;
             
@@ -468,6 +528,10 @@ class Opening_balances_controller extends CI_Controller {
                     $journalEntryId = $row->journal_entry_id;
                     $payeePayerId = $row->payee_payer_id;
                     $glEntries = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+                    
+                    if (!$glEntries) {
+                        $glEntries = $this->journal_entries_model->getPreviousYearsGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
+                    }
                     
                     if ($glEntries && sizeof($glEntries) > 0) {
                         
@@ -598,9 +662,16 @@ class Opening_balances_controller extends CI_Controller {
 						</div>
 					</div>
 				</div>";
+            
+            if ($availableOpeningBalancesList && sizeof($availableOpeningBalancesList) > 0) {
+                $result = 'multiple_opening_balance_years';
+            } else {
+                $result = 'ok';
+            }
 			
 			echo json_encode (array('html' => $html, 'openingBalanceDate' => $openingBalanceDate, 'rowCount' => $rowCount,
-                                    'drTotal' => $drTotal, 'crTotal' => $crTotal));
+                                    'drTotal' => $drTotal, 'crTotal' => $crTotal, 'result' => $result,
+                                    'openingBalanceYearList' => $openingBalanceYearList, 'openingBalanceDateList' => $openingBalanceDateList));
 		}
 	}
 	

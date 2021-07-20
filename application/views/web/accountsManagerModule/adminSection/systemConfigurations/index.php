@@ -59,6 +59,9 @@
 														<li class='active'>
 															<a data-toggle='tab' class="tab-header" href='#admin_general_configurations'><?php echo $this->lang->line('General') ?></a>
 														</li>
+                                                        <li class=''>
+															<a data-toggle='tab' class="tab-header" href='#admin_financial_year_ends_configurations'><?php echo $this->lang->line('Financial Year Ends') ?></a>
+														</li>
 													</ul>
 													<div class='tab-content'>
 														<div id="admin_general_configurations" class="tab-pane active">
@@ -182,6 +185,78 @@
 																</div>
 															</div>
 														</div>
+                                                        <div id="admin_financial_year_ends_configurations" class="tab-pane">
+															<div class='box'>
+																<div class='box-content light_color_background'>
+                                                                    <div class='form-group'>
+																		 <div class='col-sm-12 controls'>
+																		   <label style="text-align: left;" class='control-label col-sm-6'><?php echo $this->lang->line('Select parent liabilities chart of account') ?></label>
+																		 </div>
+																	</div>
+																	<div class='form-group'>
+																		<div class='col-sm-12 controls'>
+																			<label class='control-label col-sm-2'><?php echo $this->lang->line('Chart of Account') ?></label>
+																			<div class='col-sm-5 controls'  id="parent_liabilities_chart_of_account_div">
+																				<select class='select form-control' id='parent_liabilities_chart_of_account' name='chart_of_account'>
+																					<option value='' selected="selected"><?php echo $this->lang->line('None') ?></option>
+																				</select>
+																				<div id='parent_liabilities_chart_of_accountError' class='red'></div>
+																			</div>
+																		</div>
+																	</div>
+                                                                    
+                                                                    <div class='form-group'>
+																		 <div class='col-sm-12 controls'>
+																		   <label style="text-align: left;" class='control-label col-sm-6'><?php echo $this->lang->line('Select parent assets chart of account') ?></label>
+																		 </div>
+																	</div>
+																	<div class='form-group'>
+																		<div class='col-sm-12 controls'>
+																			<label class='control-label col-sm-2'><?php echo $this->lang->line('Chart of Account') ?></label>
+																			<div class='col-sm-5 controls'  id="parent_assets_chart_of_account_div">
+																				<select class='select form-control' id='parent_assets_chart_of_account' name='chart_of_account'>
+																					<option value='' selected="selected"><?php echo $this->lang->line('None') ?></option>
+																				</select>
+																				<div id='parent_assets_chart_of_accountError' class='red'></div>
+																			</div>
+																		</div>
+																	</div>
+                                                                    
+                                                                    <div class='form-group'>
+																		 <div class='col-sm-12 controls'>
+																		   <label style="text-align: left;" class='control-label col-sm-6'><?php echo $this->lang->line('Select retained earnings chart of account') ?></label>
+																		 </div>
+																	</div>
+																	<div class='form-group'>
+																		<div class='col-sm-12 controls'>
+																			<label class='control-label col-sm-2'><?php echo $this->lang->line('Chart of Account') ?></label>
+																			<div class='col-sm-5 controls'  id="retained_earnings_chart_of_account_div">
+																				<select class='select form-control' id='retained_earnings_chart_of_account' name='chart_of_account'>
+																					<option value='' selected="selected"><?php echo $this->lang->line('None') ?></option>
+																				</select>
+																				<div id='retained_earnings_chart_of_accountError' class='red'></div>
+																			</div>
+																		</div>
+																	</div>
+                                                                    
+                                                                    <div class='form-group'>
+																		<hr class="light">
+																		<div class='col-sm-5'>
+																			<?php
+																			if (isset($ACM_Admin_Edit_System_Configurations_Permissions)) {
+																				?>
+																				<button class='btn btn-success' type='button' id="admin_save_financial_year_ends_config_data" <?php echo $menuFormatting; ?>>
+																					<i class='icon-save'></i>
+																					<?php echo $this->lang->line('Save') ?>
+																				</button>
+																				<?php
+																			}
+																			?>
+																		</div>
+																	</div>
+																</div>
+															</div>
+                                                        </div>
 													</div>
 												</div>
 											</div>
@@ -1387,7 +1462,7 @@
 																			<?php
 																			if (isset($ACM_Admin_Edit_System_Configurations_Permissions)) {
 																				?>
-																				<button class='btn btn-success' type='button' id="bookkeeping_save_opening_balance_equity_config_data" <?php echo $menuFormatting; ?>>
+																				<button class='btn btn-success' type='button' id="bookkeeping_save_opening_balances_config_data" <?php echo $menuFormatting; ?>>
 																					<i class='icon-save'></i>
 																					<?php echo $this->lang->line('Save') ?>
 																				</button>
@@ -3092,11 +3167,20 @@
 		SysConfig.saveAdminGeneralConfigData();
 	});
     
-    $("#bookkeeping_save_opening_balance_equity_config_data").click(function () {
+    $("#admin_save_financial_year_ends_config_data").click(function () {
+        
+        var parentLiabilitiesChartOfAccountId = $("#parent_liabilities_chart_of_account").val();
+        var parentAssetsChartOfAccountId = $("#parent_assets_chart_of_account").val();
+        var reatainedEarningsChartOfAccountId = $("#retained_earnings_chart_of_account").val();
+        
+		SysConfig.saveFinancialYearEndsConfigData(parentLiabilitiesChartOfAccountId, parentAssetsChartOfAccountId, reatainedEarningsChartOfAccountId);
+    });
+    
+    $("#bookkeeping_save_opening_balances_config_data").click(function () {
         
         var chartOfAccountId = $("#opening_balance_equity_chart_of_account").val();
         
-		SysConfig.saveOpeningBalanceEquityConfigData(chartOfAccountId);
+		SysConfig.saveOpeningBalancesConfigData(chartOfAccountId);
     });
 
 	$("#reports_save_trial_balance_config_data").click(function () {
@@ -4500,10 +4584,10 @@
 						window.scrollTo(0,0);
 					}
 				}
-			})
+			});
 		},
         
-        saveOpeningBalanceEquityConfigData: function (chartOfAccountId) {
+        saveFinancialYearEndsConfigData: function (parentLiabilitiesChartOfAccountId, parentAssetsChartOfAccountId, reatainedEarningsChartOfAccountId) {
 			var msg = '<div class="alert alert-success alert-dismissable">' +
 				'<a class="close" href="#" data-dismiss="alert">x </a>' +
 				'<h4><i class="icon-ok-sign"></i>' +
@@ -4513,7 +4597,41 @@
 
 			$.ajax({
 				type: "POST",
-				url: "<?php echo base_url(); ?>accountsManagerModule/adminSection/system_configurations_controller/saveOpeningBalanceEquityConfigData",
+				url: "<?php echo base_url(); ?>accountsManagerModule/adminSection/system_configurations_controller/saveFinancialYearEndsConfigData",
+				data: {
+					'parent_liabilities_chart_of_account': parentLiabilitiesChartOfAccountId,
+                    'parent_assets_chart_of_account': parentAssetsChartOfAccountId,
+                    'retained_earnings_chart_of_account': reatainedEarningsChartOfAccountId,
+					'<?php echo $this->security->get_csrf_token_name(); ?>':
+					'<?php echo $this->security->get_csrf_hash(); ?>'
+				},
+				dataType: 'html',
+				beforeSend: function () {
+					$(".save:input").attr('disabled', true);
+				},
+				success: function (response) {
+					if (response == 'ok') {
+						$(".validation").hide();
+						$(".msg_data").show();
+						$(".msg_data").html(msg);
+						$(".save:input").attr('disabled', false);
+						window.scrollTo(0,0);
+					}
+				}
+			});
+		},
+        
+        saveOpeningBalancesConfigData: function (chartOfAccountId) {
+			var msg = '<div class="alert alert-success alert-dismissable">' +
+				'<a class="close" href="#" data-dismiss="alert">x </a>' +
+				'<h4><i class="icon-ok-sign"></i>' +
+				'<?php echo $this->lang->line('success')?></h4>' +
+				'<?php echo $this->lang->line('success_saved')?>' +
+				'</div>';
+
+			$.ajax({
+				type: "POST",
+				url: "<?php echo base_url(); ?>accountsManagerModule/adminSection/system_configurations_controller/saveOpeningBalancesConfigData",
 				data: {
 					'opening_balance_equity_chart_of_account': chartOfAccountId,
 					'<?php echo $this->security->get_csrf_token_name(); ?>':
@@ -4636,7 +4754,7 @@
 						window.scrollTo(0,0);
 					}
 				}
-			})
+			});
 		},
 		
 		//save profit and loss config data
@@ -4673,7 +4791,7 @@
 						window.scrollTo(0,0);
 					}
 				}
-			})
+			});
 		},
 		
 		//save purchase note config data
@@ -4975,7 +5093,7 @@
 				success: function (response) {
 					$("#trial_balance_chart_of_account_category_group").append(response.chartOfAccountCategoryData);
 				}
-			})
+			});
 		},
 		
 		getReportsBalanceSheetConfigurationData : function () {
@@ -4997,7 +5115,7 @@
 					$("#non_current_liabilities_chart_of_account_category_group").append(response.nonCurrentLiabilitiesChartOfAccountCategoryData);
 					$("#current_liabilities_chart_of_account_category_group").append(response.currentLiabilitiesChartOfAccountCategoryData);
 				}
-			})
+			});
 		},
 		
 		getReportsProfitAndLossConfigurationData : function () {
@@ -5019,7 +5137,7 @@
 					$("#profit_calculating_chart_of_account_category_group").append(response.profitCalculatingChartOfAccountCategoryData);
 					$("#net_profit_calculating_chart_of_account_category_group").append(response.netProfitCalculatingChartOfAccountCategoryData);
 				}
-			})
+			});
 		},
 
 		//get month dropdown
@@ -5076,7 +5194,7 @@
 					}
 					?>
 				}
-			})
+			});
 		},
 
 		getChartOfAccounts: function(){
@@ -5089,6 +5207,24 @@
 				dataType: 'html',
 				success: function(chartOfAccountsDropDown) {
 					
+                    $("#parent_liabilities_chart_of_account_div").empty();
+					$("#parent_liabilities_chart_of_account_div").append(chartOfAccountsDropDown);
+					$("#parent_liabilities_chart_of_account_div").find("#chart_of_account").prop({ id: "parent_liabilities_chart_of_account"});
+					$("#parent_liabilities_chart_of_account_div").find("#chart_of_accountError").prop({ id: "parent_liabilities_chart_of_accountError"});
+                    $("#parent_liabilities_chart_of_account").val(<?php echo $systemConfigData['parent_liabilities_chart_of_account']; ?>);
+                    
+                    $("#parent_assets_chart_of_account_div").empty();
+					$("#parent_assets_chart_of_account_div").append(chartOfAccountsDropDown);
+					$("#parent_assets_chart_of_account_div").find("#chart_of_account").prop({ id: "parent_assets_chart_of_account"});
+					$("#parent_assets_chart_of_account_div").find("#chart_of_accountError").prop({ id: "parent_assets_chart_of_accountError"});
+                    $("#parent_assets_chart_of_account").val(<?php echo $systemConfigData['parent_assets_chart_of_account']; ?>);
+                    
+                    $("#retained_earnings_chart_of_account_div").empty();
+					$("#retained_earnings_chart_of_account_div").append(chartOfAccountsDropDown);
+					$("#retained_earnings_chart_of_account_div").find("#chart_of_account").prop({ id: "retained_earnings_chart_of_account"});
+					$("#retained_earnings_chart_of_account_div").find("#chart_of_accountError").prop({ id: "retained_earnings_chart_of_accountError"});
+                    $("#retained_earnings_chart_of_account").val(<?php echo $systemConfigData['retained_earnings_chart_of_account']; ?>);
+                    
 					$("#cash_related_chart_of_account_for_cash_accounting_method_div").empty();
 					$("#cash_related_chart_of_account_for_cash_accounting_method_div").append(chartOfAccountsDropDown);
 					$("#cash_related_chart_of_account_for_cash_accounting_method_div").find("#chart_of_account").prop({ id: "cash_related_chart_of_account_for_cash_accounting_method"});

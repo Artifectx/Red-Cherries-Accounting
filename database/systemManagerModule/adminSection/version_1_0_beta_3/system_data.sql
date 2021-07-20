@@ -116,9 +116,10 @@ INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_va
 ('si_print_markup_price_on_sales_invoice_detail_bill', 'No');
 
 /*From ERP Version 10.0 Beta 2 */
-
-
-
+INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
+('parent_liabilities_chart_of_account', ''),
+('parent_assets_chart_of_account', ''),
+('retained_earnings_chart_of_account', '');
 
 /*From ERP Version 9.0 Beta 1 */
 /*Data for the table `system_language_strings` */
@@ -5109,3 +5110,81 @@ SET @languageStringId = LAST_INSERT_ID();
 
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','The financial year of the transaction you are trying to delete is already closed!');
+
+/*Data for the table `system_language_strings` */
+INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Are you sure you want to process the year end now', 'message', '7', 'Financial Year Ends Screen');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Are you sure you want to process the year end now');
+
+/*Data for the table `system_language_strings` */
+INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('year_end_successfuly_processed', 'message', '7', 'Financial Year Ends Screen');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Year end successefully processed and account balances brought forward to next financial year.');
+
+/*Data for the table `system_language_strings` */
+INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Select parent liabilities chart of account', 'display_string', '7', 'System Configurations Screen');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Select parent liabilities chart of account');
+
+/*Data for the table `system_language_strings` */
+INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Select parent assets chart of account', 'display_string', '7', 'System Configurations Screen');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Select parent assets chart of account');
+
+/*Data for the table `system_language_strings` */
+INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Select retained earnings chart of account', 'display_string', '7', 'System Configurations Screen');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Select retained earnings chart of account');
+
+/*Data for the table `system_language_strings` */
+INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Financial year end processing chart of accounts are not configured', 'message', '7', 'Financial Year Ends Screen');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Financial year end processing chart of accounts are not configured');
+
+/*Data for the table `system_language_strings` */
+INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Available Opening Balances', 'display_string', '7', 'Opening Balances Screen');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Available Opening Balances');
+
+UPDATE `system_language_strings` SET `language_string` = 'This module consists of five sections called Administration, Finished Good Inventory, Raw Material Inventory, Sales and Reports. The Administration section allows to manage warehouses, unit and unit conversions, tax details, vehicles, delivery' WHERE `language_string_id` = '1251';
+UPDATE `system_language_strings` SET `language_string` = 'Enter the Email Address associated with your account and click Submit to receive a password.' WHERE `language_string_id` = '1510';
+UPDATE `system_language_translations` SET `translated_string` = 'Enter the Email Address associated with your account and click Submit to receive a password.' WHERE `language_translation_id` = '1510';
+UPDATE `system_language_translations` SET `translated_string` = 'Data not found for search criterias to generate a chart. Select search filters and click on Search button to generate a chart.' WHERE `language_translation_id` = '2717';
+UPDATE `system_language_translations` SET `translated_string` = 'Sales Invoice No not specified. Please specify a Sales Invoice No before close the sales invoice.' WHERE `language_translation_id` = '2783';
+UPDATE `system_language_translations` SET `translated_string` = 'Data import workbook has errors. Please click on Download Data Import Workbook Error Log File button to see errors and take required actions before re-upload.' WHERE `language_translation_id` = '2860';
+UPDATE `system_language_translations` SET `translated_string` = 'There are errors with data import. Please click on Download Data Import Error Log File button to see errors and take required actions before import again.' WHERE `language_translation_id` = '2862';
+UPDATE `system_language_strings` SET `language_string` = 'Punch time already exists and is marked as deleted. Click on Reuse Existing Attendance Record button to reuse the deleted attendance record' WHERE `language_string_id` = '2893';
+UPDATE `system_language_translations` SET `translated_string` = 'Punch time already exists and is marked as deleted. Click on Reuse Existing Attendance Record button to reuse the deleted attendance record' WHERE `language_translation_id` = '2893';
+UPDATE `system_language_strings` SET `language_string` = 'Report is not selected/created to add fields. Please select or create a report in Step 1 first.' WHERE `language_string_id` = '2901';
+UPDATE `system_language_translations` SET `translated_string` = 'Report is not selected/created to add fields. Please select or create a report in Step 1 first.' WHERE `language_translation_id` = '2901';
+
+DELETE FROM `system_language_strings` WHERE `language_string_id` = '2731';
+DELETE FROM `system_language_translations` WHERE `language_translation_id` = '2731';
