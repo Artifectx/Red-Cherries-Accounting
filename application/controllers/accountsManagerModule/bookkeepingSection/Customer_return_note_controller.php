@@ -234,18 +234,24 @@ class Customer_return_note_controller extends CI_Controller {
                                     $customerSaleableReturnNoteSalesEntryJournalEntries, '1', $customerReturnNoteDate, $referenceNo, 
                                     $locationId, $customerId, $customerReturnAmount, '0', $description);
                             $description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $referenceNo;
+//                            $this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $customerReturnNoteId, 
+//                                    $customerSaleableReturnNoteCostEntryJournalEntries, '2', $customerReturnNoteDate, $referenceNo, 
+//                                    $locationId, $customerId, $salesCost, '0', $description);
                             $this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $customerReturnNoteId, 
                                     $customerSaleableReturnNoteCostEntryJournalEntries, '2', $customerReturnNoteDate, $referenceNo, 
-                                    $locationId, $customerId, $salesCost, '0', $description);
+                                    $locationId, '0', $salesCost, '0', $description);
                         } else if ($type == "market_return") {
                             $description = $this->lang->line('Journal entry for market return sales entry for Customer Return Note number : ') . $referenceNo;
                             $this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnSalesEntry, $customerReturnNoteId, 
                                     $customerMarketReturnNoteSalesEntryJournalEntries, '3', $customerReturnNoteDate, $referenceNo, 
                                     $locationId, $customerId, $customerReturnAmount, '0', $description);
                             $description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $referenceNo;
+//                            $this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $customerReturnNoteId, 
+//                                    $customerMarketReturnNoteCostEntryJournalEntries, '4', $customerReturnNoteDate, $referenceNo, 
+//                                    $locationId, $customerId, $salesCost, '0', $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, '0');
                             $this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $customerReturnNoteId, 
                                     $customerMarketReturnNoteCostEntryJournalEntries, '4', $customerReturnNoteDate, $referenceNo, 
-                                    $locationId, $customerId, $salesCost, '0', $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, '0');
+                                    $locationId, '0', $salesCost, '0', $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, '0');
                         }
                     } else {
                         $result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
@@ -388,7 +394,8 @@ class Customer_return_note_controller extends CI_Controller {
                                 $costAmount = $amount - ($amount/100) * $salesProfitMargin;
 
                                 $description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $referenceNo;
-                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $salesNoteId, $customerSaleableReturnNoteCostEntryJournalEntries, '2', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $costAmount, $costOldAmount, $description);
+//                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $salesNoteId, $customerSaleableReturnNoteCostEntryJournalEntries, '2', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $costAmount, $costOldAmount, $description);
+                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $salesNoteId, $customerSaleableReturnNoteCostEntryJournalEntries, '2', $customerReturnNoteDate, $referenceNo, $locationId, '0', $costAmount, $costOldAmount, $description);
                             } else if ($type == "market_return") {
                                 $customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '3');
                                 $customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '4');
@@ -409,7 +416,8 @@ class Customer_return_note_controller extends CI_Controller {
                                 }
 
                                 $description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $referenceNo;
-                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $salesNoteId, $customerMarketReturnNoteCostEntryJournalEntries, '4', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $costAmount, $costOldAmount, $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, $profitPortionOld);
+//                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $salesNoteId, $customerMarketReturnNoteCostEntryJournalEntries, '4', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $costAmount, $costOldAmount, $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, $profitPortionOld);
+                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $salesNoteId, $customerMarketReturnNoteCostEntryJournalEntries, '4', $customerReturnNoteDate, $referenceNo, $locationId, '0', $costAmount, $costOldAmount, $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, $profitPortionOld);
                             }
                         } else {
                             if ($oldType == "saleable_return") {
@@ -448,7 +456,8 @@ class Customer_return_note_controller extends CI_Controller {
                                 $costAmount = $amount - ($amount/100) * $salesProfitMargin;
 
                                 $description = $this->lang->line('Journal entry for saleable return cost entry for Customer Return Note number : ') . $referenceNo;
-                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $salesNoteId, $customerMarketReturnNoteCostEntryJournalEntries, '4', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $costAmount, $costOldAmount, $description);
+//                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $salesNoteId, $customerMarketReturnNoteCostEntryJournalEntries, '4', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $costAmount, $costOldAmount, $description);
+                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerMarketReturnCostEntry, $salesNoteId, $customerMarketReturnNoteCostEntryJournalEntries, '4', $customerReturnNoteDate, $referenceNo, $locationId, '0', $costAmount, $costOldAmount, $description);
                             } else if ($oldType == "market_return") {
                                 $customerMarketReturnNoteSalesEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '1');
                                 $customerMarketReturnNoteCostEntryJournalEntries = $this->customer_return_note_model->getCustomerReturnNoteJournalEntries($customerReturnNoteId, '2');
@@ -493,7 +502,8 @@ class Customer_return_note_controller extends CI_Controller {
                                 }
 
                                 $description = $this->lang->line('Journal entry for market return cost entry for Customer Return Note number : ') . $referenceNo;
-                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $salesNoteId, $customerSaleableReturnNoteCostEntryJournalEntries, '2', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $costAmount, $costOldAmount, $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, $profitPortionOld);
+//                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $salesNoteId, $customerSaleableReturnNoteCostEntryJournalEntries, '2', $customerReturnNoteDate, $referenceNo, $locationId, $customerId, $costAmount, $costOldAmount, $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, $profitPortionOld);
+                                $this->postJournalEntries($primeEntryBooksToUpdateForCustomerSaleableReturnCostEntry, $salesNoteId, $customerSaleableReturnNoteCostEntryJournalEntries, '2', $customerReturnNoteDate, $referenceNo, $locationId, '0', $costAmount, $costOldAmount, $description, $CustomerMarketReturnCostEntryProfitMarginCreditChartOfAccountId, $profitPortion, $profitPortionOld);
                             }
                         }
 

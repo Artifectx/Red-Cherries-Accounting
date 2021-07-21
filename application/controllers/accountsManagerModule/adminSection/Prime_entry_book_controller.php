@@ -464,6 +464,8 @@ class Prime_entry_book_controller extends CI_Controller {
 					<thead>
 						<tr>
 							<th>{$this->lang->line('Prime Entry Book Name')}</th>
+                            <th>{$this->lang->line('Debit Chart of Account')}</th>
+                            <th>{$this->lang->line('Credit Chart of Account')}</th>
 							<th>{$this->lang->line('Applicable Module')}</th>
 							<th>{$this->lang->line('Actions')}</th>
 						</tr>
@@ -505,7 +507,24 @@ class Prime_entry_book_controller extends CI_Controller {
 			if ($primeEntryBooks != null) {
 				foreach ($primeEntryBooks as $row) {
 					
+                    $primeEntryBookId = $row->prime_entry_book_id;
 					$systemModuleId = $row->applicable_module_id;
+                    
+                    $primeEntryBookChartOfAccounts = $this->prime_entry_book_model->getPrimeEntryBookChartOfAccountsByPrimeEntryBookId($primeEntryBookId);
+                    
+                    $debitChartOfAccountName = '';
+                    $creditChartOfAccountName = '';
+                    
+                    foreach ($primeEntryBookChartOfAccounts as $primeEntryBookChartOfAccount) {
+                        $chartOfAccountId = $primeEntryBookChartOfAccount->chart_of_account_id;
+                        $chartOfAccount = $this->chart_of_accounts_model->get($chartOfAccountId);
+                        
+                        if ($primeEntryBookChartOfAccount->debit_or_credit == "debit") {
+                            $debitChartOfAccountName = $chartOfAccount[0]->text;
+                        } else if ($primeEntryBookChartOfAccount->debit_or_credit == "credit") {
+                            $creditChartOfAccountName = $chartOfAccount[0]->text;
+                        }
+                    }
 					
 					if (in_array($systemModuleId, $moduleArray)) {
 						$systemModule = $this->common_model->getSystemModuleById($systemModuleId);
@@ -517,6 +536,8 @@ class Prime_entry_book_controller extends CI_Controller {
 
 						$html .= "<tr>";
 						$html .= "<td>" . $row->prime_entry_book_name . "</td>";
+                        $html .= "<td>" . $debitChartOfAccountName . "</td>";
+                        $html .= "<td>" . $creditChartOfAccountName . "</td>";
 						$html .= "<td>" . $systemModuleName . "</td>";
 						$html .= "<td>
 											<div class='text-left'>";

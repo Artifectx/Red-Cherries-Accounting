@@ -204,6 +204,7 @@ class Purchase_note_controller extends CI_Controller {
 
                                 if ($type == "receive_free_issues") {
                                     $shouldHaveAPaymentJournalEntry = "No";
+                                    $supplierId = '0';
                                 }
 
                                 if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
@@ -565,6 +566,13 @@ class Purchase_note_controller extends CI_Controller {
                             if ($correctChartOfAccountsFoundInPrimeEntryBooks == true) {
                                 if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
 
+                                    $shouldHaveAPaymentJournalEntry = "Yes";
+                                    
+                                    if ($type == "receive_free_issues") {
+                                        $shouldHaveAPaymentJournalEntry = "No";
+                                        $supplierId = '0';
+                                    }
+
                                     if ($primeEntryBooksToUpdate && sizeof($primeEntryBooksToUpdate) > 0) {
                                         foreach ($primeEntryBooksToUpdate as $primeEntryBook) {
                                             $primeEntryBookId = $primeEntryBook->config_filed_value;
@@ -572,7 +580,7 @@ class Purchase_note_controller extends CI_Controller {
                                                 'prime_entry_book_id' => $primeEntryBookId,
                                                 'transaction_date' => $purchaseNoteDate,
                                                 'reference_no' => $referenceNo,
-                                                'should_have_a_payment_journal_entry' => "Yes",
+                                                'should_have_a_payment_journal_entry' => $shouldHaveAPaymentJournalEntry,
                                                 'location_id' => $locationId,
                                                 'payee_payer_type' => "Supplier",
                                                 'payee_payer_id' => $supplierId,

@@ -234,9 +234,13 @@ class Sales_note_controller extends CI_Controller {
                                 $salesNoteDate, $referenceNo, $locationId, $customerId, $discount, '0', "No", '','', '', '', $salesJournalEntryId);
                         }
 
+//                        if ($freeIssueAmount > 0) {
+//                            $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForForFreeIssueAmount, '2', $salesNoteId, $salesNoteFreeIssuesJournalEntries, '4', 
+//                                    $salesNoteDate, $referenceNo, $locationId, $customerId, $freeIssueAmount, '0', "No", '','', '', '', $salesJournalEntryId);
+//                        }
                         if ($freeIssueAmount > 0) {
                             $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForForFreeIssueAmount, '2', $salesNoteId, $salesNoteFreeIssuesJournalEntries, '4', 
-                                    $salesNoteDate, $referenceNo, $locationId, $customerId, $freeIssueAmount, '0', "No", '','', '', '', $salesJournalEntryId);
+                                    $salesNoteDate, $referenceNo, $locationId, '0', $freeIssueAmount, '0', "No", '','', '', '', $salesJournalEntryId);
                         }
                     }else {
                         $result = 'incorrect_prime_entry_book_selected_for_sales_note_transaction';
@@ -1099,8 +1103,11 @@ class Sales_note_controller extends CI_Controller {
                             $salesProfitMargin = $this->getSalesProfitMargin();
                             $salesCost = $salesAmount - ($salesAmount/100) * $salesProfitMargin;
 
+//                            $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleCostEntry, '2', $salesNoteId, $salesNoteCostEntryJournalEntries, 
+//                                    '2', $salesNoteDate, $referenceNo, $locationId, $customerId, $salesCost, $salesCostOldAmount, "No", 
+//                                    '', '', '', true);
                             $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForSaleCostEntry, '2', $salesNoteId, $salesNoteCostEntryJournalEntries, 
-                                    '2', $salesNoteDate, $referenceNo, $locationId, $customerId, $salesCost, $salesCostOldAmount, "No", 
+                                    '2', $salesNoteDate, $referenceNo, $locationId, '0', $salesCost, $salesCostOldAmount, "No", 
                                     '', '', '', true);
                         }
 
@@ -1110,9 +1117,14 @@ class Sales_note_controller extends CI_Controller {
                                     '', '', '', true);
                         }
 
+//                        if ($freeIssueAmountChanged || $customerChanged || $locationChanged || $salesNoteDateChanged) {
+//                            $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForForFreeIssueAmount, '2', $salesNoteId, $salesNoteFreeIssuesJournalEntries, 
+//                                    '4', $salesNoteDate, $referenceNo, $locationId, $customerId, $freeIssueAmount, $freeIssueOldAmount, "No", 
+//                                    '', '', '', true);
+//                        }
                         if ($freeIssueAmountChanged || $customerChanged || $locationChanged || $salesNoteDateChanged) {
                             $this->postSalesNoteJournalEntries($primeEntryBooksToUpdateForForFreeIssueAmount, '2', $salesNoteId, $salesNoteFreeIssuesJournalEntries, 
-                                    '4', $salesNoteDate, $referenceNo, $locationId, $customerId, $freeIssueAmount, $freeIssueOldAmount, "No", 
+                                    '4', $salesNoteDate, $referenceNo, $locationId, '0', $freeIssueAmount, $freeIssueOldAmount, "No", 
                                     '', '', '', true);
                         }
 
