@@ -319,6 +319,8 @@ class System_configurations_controller extends CI_Controller {
 		$parentLiabilitiesChartOfAccountId = $this->db->escape_str($this->input->post('parent_liabilities_chart_of_account'));
         $parentAssetsChartOfAccountId = $this->db->escape_str($this->input->post('parent_assets_chart_of_account'));
         $reatainedEarningsChartOfAccountId = $this->db->escape_str($this->input->post('retained_earnings_chart_of_account'));
+        $tradeDebtorChartOfAccountId = $this->db->escape_str($this->input->post('trade_debtor_chart_of_account'));
+        $parentExpenseChartOfAccountId = $this->db->escape_str($this->input->post('parent_expense_chart_of_account'));
 
         $data = array(
             'config_filed_value' => $parentLiabilitiesChartOfAccountId,
@@ -346,6 +348,24 @@ class System_configurations_controller extends CI_Controller {
         );
 
         $this->system_configurations_model->updateConfigurationField("retained_earnings_chart_of_account", $data);
+        
+        $data = array(
+            'config_filed_value' => $tradeDebtorChartOfAccountId,
+            'actioned_user_id' => $this->user_id,
+            'action_date' => $this->date,
+            'last_action_status' => 'edited'
+        );
+
+        $this->system_configurations_model->updateConfigurationField("trade_debtor_chart_of_account", $data);
+        
+        $data = array(
+            'config_filed_value' => $parentExpenseChartOfAccountId,
+            'actioned_user_id' => $this->user_id,
+            'action_date' => $this->date,
+            'last_action_status' => 'edited'
+        );
+
+        $this->system_configurations_model->updateConfigurationField("parent_expense_chart_of_account", $data);
 		
 		echo 'ok';
 	}

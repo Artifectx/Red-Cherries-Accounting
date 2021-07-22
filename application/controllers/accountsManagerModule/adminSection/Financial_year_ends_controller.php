@@ -254,7 +254,9 @@ class Financial_year_ends_controller extends CI_Controller {
             $parentLiabilitiesChartOfAccountId = $this->system_configurations_model->getParentLiabilitiesChartOfAccountConfigurationData();
             $parentAssetsChartOfAccountId = $this->system_configurations_model->getParentAssetsChartOfAccountConfigurationData();
             $retainedEarningsChartOfAccountId = $this->system_configurations_model->getRetainedEarningsChartOfAccountConfigurationData();
-			
+			$tradeDebtorChartOfAccountId = $this->system_configurations_model->getTradeDebtorChartOfAccountConfigurationData();
+            $parentExpenseChartOfAccountId = $this->system_configurations_model->getParentExpenseChartOfAccountConfigurationData();
+            
             if ($parentLiabilitiesChartOfAccountId != '' && $parentAssetsChartOfAccountId != '' && $retainedEarningsChartOfAccountId != '' &&
                 $parentLiabilitiesChartOfAccountId != '0' && $parentAssetsChartOfAccountId != '0' && $retainedEarningsChartOfAccountId != '0') {
                 
@@ -314,12 +316,12 @@ class Financial_year_ends_controller extends CI_Controller {
                             
                             $chartOfAccountsProcessorForDebtorAccounts = new Chart_of_accounts_processor();
 
-                            $chartOfAccountMultiwayTreeForDebtorAccounts = $chartOfAccountsProcessorForDebtorAccounts->prepareChartOfAccountsMultiwayTree("102");
+                            $chartOfAccountMultiwayTreeForDebtorAccounts = $chartOfAccountsProcessorForDebtorAccounts->prepareChartOfAccountsMultiwayTree($tradeDebtorChartOfAccountId);
                             $leafChartOfAccountIdsForDebtorAccounts = $chartOfAccountsProcessorForDebtorAccounts->depthFirstTraversalAndFindLeafChartOfAccounts($chartOfAccountMultiwayTreeForDebtorAccounts);
                             
                             $chartOfAccountsProcessorForExpenseAccounts = new Chart_of_accounts_processor();
 
-                            $chartOfAccountMultiwayTreeForExpenseAccounts = $chartOfAccountsProcessorForExpenseAccounts->prepareChartOfAccountsMultiwayTree("5");
+                            $chartOfAccountMultiwayTreeForExpenseAccounts = $chartOfAccountsProcessorForExpenseAccounts->prepareChartOfAccountsMultiwayTree($parentExpenseChartOfAccountId);
                             $leafChartOfAccountIdsForExpenseAccounts = $chartOfAccountsProcessorForExpenseAccounts->depthFirstTraversalAndFindLeafChartOfAccounts($chartOfAccountMultiwayTreeForExpenseAccounts);
                             //print_r($leafChartOfAccountIdsForLiabilityAccounts);die;
                             foreach ($completeAssetsAccountBalanceList as $record) {
@@ -331,17 +333,16 @@ class Financial_year_ends_controller extends CI_Controller {
                                     $processingJournalEntryChartOfAccountIsAnAssetAccount = "No";
                                     $processingJournalEntryChartOfAccountIsADebtorAccount = "No";
                                     
-                                    if ($glTransactionId == '157' || $glTransactionId == '158') {
+                                    if ($glTransactionId == '117' || $glTransactionId == '118') {
                                         $x = 1;
                                     }
 
                                     $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
 
+                                    //For some gl transactions, payee or payer is not required to consider when get account
+                                    //balances to the next financial year. Remove such payee or payer as necessary.
                                     if ($payeePayerId != '0') {
                                         
-                                        //Remove the payee or payer when the other gl transaction of the gl transaction pair is a liability
-                                        //account. This is because, only the credit part of gl transaction affects for the creditor balance in 
-                                        //this case.
                                         if ($glTransactions && sizeof($glTransactions) > 0) {
                                             
                                             foreach ($leafChartOfAccountIdsForAssetAccounts as $leafChartOfAccountId) {
@@ -397,11 +398,10 @@ class Financial_year_ends_controller extends CI_Controller {
                                         }
                                     }
 
+                                    //For some gl transactions, payee or payer is not required to consider when get account
+                                    //balances to the next financial year. Remove such payee or payer as necessary.
                                     if ($payeePayerId != '0') {
                                         
-                                        //Remove the payee or payer when both debit and credit chart of accounts are asset accounts and
-                                        //dibit amount of the gl transaction is greater than zero. This is because, only the credit part
-                                        //of gl transaction affects for the debtor balance in this case.
                                         if ($glTransactions && sizeof($glTransactions) > 0) {
                                             foreach ($glTransactions as $glTransaction) {
                                                 if ($glTransaction->gl_transaction_id != $glTransactionId) {
@@ -420,7 +420,8 @@ class Financial_year_ends_controller extends CI_Controller {
                                                     
                                                     foreach ($leafChartOfAccountIdsForAssetAccounts as $leafChartOfAccountId) {
 
-                                                        if ($leafChartOfAccountId == $consideringChartOfAccountId && $glTransaction->debit_value != "0.00" && $glTransaction->credit_value == "0.00") {
+                                                        if ($leafChartOfAccountId == $consideringChartOfAccountId && $processingJournalEntryChartOfAccountIsADebtorAccount == "No" 
+                                                            && $glTransaction->debit_value != "0.00" && $glTransaction->credit_value == "0.00") {
                                                         //if ($leafChartOfAccountId == $consideringChartOfAccountId && $record['debit_amount'] != "0.00" && $record['credit_amount'] == "0.00") {
                                                         //if ($leafChartOfAccountId == $consideringChartOfAccountId) {
                                                             $payeePayerId = '0';
@@ -437,6 +438,10 @@ class Financial_year_ends_controller extends CI_Controller {
                                                             && $glTransaction->debit_value != "0.00" && $glTransaction->credit_value == "0.00") {
                                                         //if ($leafChartOfAccountId == $consideringChartOfAccountId && $record['debit_amount'] != "0.00" && $record['credit_amount'] == "0.00") {
                                                         //if ($leafChartOfAccountId == $consideringChartOfAccountId) {   
+                                                            $payeePayerId = '0';
+                                                        } else if ($leafChartOfAccountId == $consideringChartOfAccountId && $processingJournalEntryChartOfAccountIsAnAssetAccount == "Yes"
+                                                                   && $processingJournalEntryChartOfAccountIsADebtorAccount == "No" 
+                                                                   && $glTransaction->debit_value != "0.00" && $glTransaction->credit_value == "0.00") {
                                                             $payeePayerId = '0';
                                                         }
                                                     }
@@ -466,23 +471,30 @@ class Financial_year_ends_controller extends CI_Controller {
                                     $payeePayerId = $record['payee_payer_id'];
                                     $journalEntryId = $record['journal_entry_id'];
                                     $glTransactionId = $record['gl_transaction_id'];
+                                    $processingJournalEntryChartOfAccountIsAnAssetAccount = "No";
+                                    $processingJournalEntryChartOfAccountIsADebtorAccount = "No";
 
-                                    if ($glTransactionId == '157' || $glTransactionId == '158') {
+                                    if ($glTransactionId == '117' || $glTransactionId == '118') {
                                         $x = 1;
                                     }
                                     
                                     $glTransactions = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($journalEntryId);
 
+                                    //For some gl transactions, payee or payer is not required to consider when get account
+                                    //balances to the next financial year. Remove such payee or payer as necessary.
                                     if ($payeePayerId != '0') {
                                         
-                                        //Remove the payee or payer when the other gl transaction of the gl transaction pair is a liability
-                                        //account. This is because, only the credit part of gl transaction affects for the creditor balance in 
-                                        //this case.
                                         if ($glTransactions && sizeof($glTransactions) > 0) {
                                             
                                             foreach ($leafChartOfAccountIdsForAssetAccounts as $leafChartOfAccountId) {
                                                 if ($leafChartOfAccountId == $record['chart_of_account_id']) {
                                                     $processingJournalEntryChartOfAccountIsAnAssetAccount = "Yes";
+                                                }
+                                            }
+                                            
+                                            foreach ($leafChartOfAccountIdsForDebtorAccounts as $leafChartOfAccountId) {
+                                                if ($leafChartOfAccountId == $record['chart_of_account_id']) {
+                                                    $processingJournalEntryChartOfAccountIsADebtorAccount = "Yes";
                                                 }
                                             }
                                                 
@@ -527,11 +539,10 @@ class Financial_year_ends_controller extends CI_Controller {
                                         }
                                     }
 
+                                    //For some gl transactions, payee or payer is not required to consider when get account
+                                    //balances to the next financial year. Remove such payee or payer as necessary.
                                     if ($payeePayerId != '0') {
                                         
-                                        //Remove the payee or payer when both debit and credit chart of accounts are asset accounts and
-                                        //dibit amount of the gl transaction is greater than zero. This is because, only the credit part
-                                        //of gl transaction affects for the debtor balance in this case.
                                         if ($glTransactions && sizeof($glTransactions) > 0) {
                                             foreach ($glTransactions as $glTransaction) {
                                                 if ($glTransaction->gl_transaction_id != $glTransactionId) {
@@ -550,7 +561,8 @@ class Financial_year_ends_controller extends CI_Controller {
                                                     
                                                     foreach ($leafChartOfAccountIdsForAssetAccounts as $leafChartOfAccountId) {
 
-                                                        if ($leafChartOfAccountId == $consideringChartOfAccountId && $glTransaction->debit_value != "0.00" && $glTransaction->credit_value == "0.00") {
+                                                        if ($leafChartOfAccountId == $consideringChartOfAccountId && $processingJournalEntryChartOfAccountIsADebtorAccount == "No"
+                                                            && $glTransaction->debit_value != "0.00" && $glTransaction->credit_value == "0.00") {
                                                         //if ($leafChartOfAccountId == $consideringChartOfAccountId && $record['debit_amount'] != "0.00" && $record['credit_amount'] == "0.00") {
                                                         //if ($leafChartOfAccountId == $consideringChartOfAccountId) {
                                                             $payeePayerId = '0';
@@ -567,6 +579,10 @@ class Financial_year_ends_controller extends CI_Controller {
                                                             && $glTransaction->debit_value != "0.00" && $glTransaction->credit_value == "0.00") {
                                                         //if ($leafChartOfAccountId == $consideringChartOfAccountId && $record['debit_amount'] != "0.00" && $record['credit_amount'] == "0.00") {
                                                         //if ($leafChartOfAccountId == $consideringChartOfAccountId) {   
+                                                            $payeePayerId = '0';
+                                                        } else if ($leafChartOfAccountId == $consideringChartOfAccountId && $processingJournalEntryChartOfAccountIsAnAssetAccount == "Yes"
+                                                                   && $processingJournalEntryChartOfAccountIsADebtorAccount == "No" 
+                                                                   && $glTransaction->debit_value != "0.00" && $glTransaction->credit_value == "0.00") {
                                                             $payeePayerId = '0';
                                                         }
                                                     }

@@ -278,6 +278,30 @@ class System_configurations_model extends CI_Model {
 			return false;
 		}
 	}
+    
+    public function getTradeDebtorChartOfAccountConfigurationData() {
+		$this->db->where('config_filed_name', 'trade_debtor_chart_of_account');
+		$this->db->limit(1);
+		$query = $this->db->get('system_common_configurations');
+		if ($query->num_rows() > 0) {
+            $result = $query->result();
+			return $result[0]->config_filed_value;
+		} else {
+			return false;
+		}
+	}
+    
+    public function getParentExpenseChartOfAccountConfigurationData() {
+		$this->db->where('config_filed_name', 'parent_expense_chart_of_account');
+		$this->db->limit(1);
+		$query = $this->db->get('system_common_configurations');
+		if ($query->num_rows() > 0) {
+            $result = $query->result();
+			return $result[0]->config_filed_value;
+		} else {
+			return false;
+		}
+	}
 
     public function getOpeninngBalanceEquityChartOfAccountConfigurationData() {
 		$this->db->where('config_filed_name', 'opening_balance_equity_chart_of_account');

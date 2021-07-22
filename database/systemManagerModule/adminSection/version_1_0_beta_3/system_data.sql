@@ -119,7 +119,9 @@ INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_va
 INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
 ('parent_liabilities_chart_of_account', ''),
 ('parent_assets_chart_of_account', ''),
-('retained_earnings_chart_of_account', '');
+('retained_earnings_chart_of_account', ''),
+('trade_debtor_chart_of_account', ''),
+('parent_expense_chart_of_account', '');
 
 /*From ERP Version 9.0 Beta 1 */
 /*Data for the table `system_language_strings` */
@@ -5186,5 +5188,25 @@ UPDATE `system_language_translations` SET `translated_string` = 'Punch time alre
 UPDATE `system_language_strings` SET `language_string` = 'Report is not selected/created to add fields. Please select or create a report in Step 1 first.' WHERE `language_string_id` = '2901';
 UPDATE `system_language_translations` SET `translated_string` = 'Report is not selected/created to add fields. Please select or create a report in Step 1 first.' WHERE `language_translation_id` = '2901';
 
+DELETE FROM `system_language_strings` WHERE `language_string_id` = '2730';
+DELETE FROM `system_language_translations` WHERE `language_translation_id` = '2730';
 DELETE FROM `system_language_strings` WHERE `language_string_id` = '2731';
 DELETE FROM `system_language_translations` WHERE `language_translation_id` = '2731';
+
+/*Data for the table `system_language_strings` */
+INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Select trade debtor chart of account', 'display_string', '7', 'System Configurations Screen');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Select trade debtor chart of account');
+
+/*Data for the table `system_language_strings` */
+INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Select parent expense chart of account', 'display_string', '7', 'System Configurations Screen');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Select parent expense chart of account');

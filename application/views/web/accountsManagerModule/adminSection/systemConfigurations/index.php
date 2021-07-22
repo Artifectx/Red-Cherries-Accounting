@@ -240,6 +240,40 @@
 																	</div>
                                                                     
                                                                     <div class='form-group'>
+																		 <div class='col-sm-12 controls'>
+																		   <label style="text-align: left;" class='control-label col-sm-6'><?php echo $this->lang->line('Select trade debtor chart of account') ?></label>
+																		 </div>
+																	</div>
+																	<div class='form-group'>
+																		<div class='col-sm-12 controls'>
+																			<label class='control-label col-sm-2'><?php echo $this->lang->line('Chart of Account') ?></label>
+																			<div class='col-sm-5 controls'  id="trade_debtor_chart_of_account_div">
+																				<select class='select form-control' id='trade_debtor_chart_of_account' name='chart_of_account'>
+																					<option value='' selected="selected"><?php echo $this->lang->line('None') ?></option>
+																				</select>
+																				<div id='trade_debtor_chart_of_accountError' class='red'></div>
+																			</div>
+																		</div>
+																	</div>
+                                                                    
+                                                                    <div class='form-group'>
+																		 <div class='col-sm-12 controls'>
+																		   <label style="text-align: left;" class='control-label col-sm-6'><?php echo $this->lang->line('Select parent expense chart of account') ?></label>
+																		 </div>
+																	</div>
+																	<div class='form-group'>
+																		<div class='col-sm-12 controls'>
+																			<label class='control-label col-sm-2'><?php echo $this->lang->line('Chart of Account') ?></label>
+																			<div class='col-sm-5 controls'  id="parent_expense_chart_of_account_div">
+																				<select class='select form-control' id='parent_expense_chart_of_account' name='chart_of_account'>
+																					<option value='' selected="selected"><?php echo $this->lang->line('None') ?></option>
+																				</select>
+																				<div id='parent_expense_chart_of_accountError' class='red'></div>
+																			</div>
+																		</div>
+																	</div>
+                                                                    
+                                                                    <div class='form-group'>
 																		<hr class="light">
 																		<div class='col-sm-5'>
 																			<?php
@@ -3172,8 +3206,11 @@
         var parentLiabilitiesChartOfAccountId = $("#parent_liabilities_chart_of_account").val();
         var parentAssetsChartOfAccountId = $("#parent_assets_chart_of_account").val();
         var reatainedEarningsChartOfAccountId = $("#retained_earnings_chart_of_account").val();
+        var tradeDebtorChartOfAccountId = $("#trade_debtor_chart_of_account").val();
+        var parentExpenseChartOfAccountId = $("#parent_expense_chart_of_account").val();
         
-		SysConfig.saveFinancialYearEndsConfigData(parentLiabilitiesChartOfAccountId, parentAssetsChartOfAccountId, reatainedEarningsChartOfAccountId);
+		SysConfig.saveFinancialYearEndsConfigData(parentLiabilitiesChartOfAccountId, parentAssetsChartOfAccountId, 
+                                    reatainedEarningsChartOfAccountId, tradeDebtorChartOfAccountId, parentExpenseChartOfAccountId);
     });
     
     $("#bookkeeping_save_opening_balances_config_data").click(function () {
@@ -4587,7 +4624,8 @@
 			});
 		},
         
-        saveFinancialYearEndsConfigData: function (parentLiabilitiesChartOfAccountId, parentAssetsChartOfAccountId, reatainedEarningsChartOfAccountId) {
+        saveFinancialYearEndsConfigData: function (parentLiabilitiesChartOfAccountId, parentAssetsChartOfAccountId, 
+                    reatainedEarningsChartOfAccountId, tradeDebtorChartOfAccountId, parentExpenseChartOfAccountId) {
 			var msg = '<div class="alert alert-success alert-dismissable">' +
 				'<a class="close" href="#" data-dismiss="alert">x </a>' +
 				'<h4><i class="icon-ok-sign"></i>' +
@@ -4602,6 +4640,8 @@
 					'parent_liabilities_chart_of_account': parentLiabilitiesChartOfAccountId,
                     'parent_assets_chart_of_account': parentAssetsChartOfAccountId,
                     'retained_earnings_chart_of_account': reatainedEarningsChartOfAccountId,
+                    'trade_debtor_chart_of_account': tradeDebtorChartOfAccountId,
+                    'parent_expense_chart_of_account': parentExpenseChartOfAccountId,
 					'<?php echo $this->security->get_csrf_token_name(); ?>':
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
@@ -5224,6 +5264,18 @@
 					$("#retained_earnings_chart_of_account_div").find("#chart_of_account").prop({ id: "retained_earnings_chart_of_account"});
 					$("#retained_earnings_chart_of_account_div").find("#chart_of_accountError").prop({ id: "retained_earnings_chart_of_accountError"});
                     $("#retained_earnings_chart_of_account").val(<?php echo $systemConfigData['retained_earnings_chart_of_account']; ?>);
+                    
+                    $("#trade_debtor_chart_of_account_div").empty();
+					$("#trade_debtor_chart_of_account_div").append(chartOfAccountsDropDown);
+					$("#trade_debtor_chart_of_account_div").find("#chart_of_account").prop({ id: "trade_debtor_chart_of_account"});
+					$("#trade_debtor_chart_of_account_div").find("#chart_of_accountError").prop({ id: "trade_debtor_chart_of_accountError"});
+                    $("#trade_debtor_chart_of_account").val(<?php echo $systemConfigData['trade_debtor_chart_of_account']; ?>);
+                    
+                    $("#parent_expense_chart_of_account_div").empty();
+					$("#parent_expense_chart_of_account_div").append(chartOfAccountsDropDown);
+					$("#parent_expense_chart_of_account_div").find("#chart_of_account").prop({ id: "parent_expense_chart_of_account"});
+					$("#parent_expense_chart_of_account_div").find("#chart_of_accountError").prop({ id: "parent_expense_chart_of_accountError"});
+                    $("#parent_expense_chart_of_account").val(<?php echo $systemConfigData['parent_expense_chart_of_account']; ?>);
                     
 					$("#cash_related_chart_of_account_for_cash_accounting_method_div").empty();
 					$("#cash_related_chart_of_account_for_cash_accounting_method_div").append(chartOfAccountsDropDown);
