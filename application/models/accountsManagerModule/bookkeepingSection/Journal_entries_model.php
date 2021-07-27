@@ -232,7 +232,7 @@ class Journal_entries_model extends CI_Model {
 	}
 	
 	public function getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo=null, $descriptionContains=null, 
-                                                                       $status=null, $peopleId=null, $locationId=null) {
+                                        $status=null, $peopleId=null, $locationId=null, $fromDate=null, $toDate=null) {
 		if ($transactionReferenceNo != '') {
 			$this->db->where('acm_bookkeeping_journal_entries.reference_no =', $transactionReferenceNo);
 		}
@@ -251,6 +251,11 @@ class Journal_entries_model extends CI_Model {
         
         if ($locationId != '') {
             $this->db->like('acm_bookkeeping_journal_entries.location_id', $locationId);
+        }
+        
+        if ($fromDate != '' && $toDate != '') {
+            $this->db->where('acm_bookkeeping_journal_entries.transaction_date >=', $fromDate);
+            $this->db->where('acm_bookkeeping_journal_entries.transaction_date <=', $toDate);
         }
 		
 		$this->db->where('acm_bookkeeping_journal_entries.should_have_a_payment_journal_entry =', 'Yes');

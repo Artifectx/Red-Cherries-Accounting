@@ -208,6 +208,28 @@ class Journal_entries_controller extends CI_Controller {
                     if ($saveOption == "save_with_chart_of_account_values") {
 
                         if ($journalEntryId == '') {
+                            
+                            $shouldHaveAPaymentJournalEntry = "Yes";
+                            
+                            if ($referenceJournalEntryId != '' && $referenceJournalEntryId != '0') {
+                                
+                                $shouldHaveAPaymentJournalEntry = "No";
+                                
+                                if ($payeePayerId == '' || $payeePayerId == '0') {
+                                    $referenceJournalEntry = $this->journal_entries_model->getJournalEntryById($referenceJournalEntryId);
+                                    
+                                    if ($referenceJournalEntry && sizeof($referenceJournalEntry) > 0) {
+                                        $payeePayerType = $referenceJournalEntry[0]->payee_payer_type;
+                                        $payeePayerId = $referenceJournalEntry[0]->payee_payer_id;
+                                        
+                                        if ($payeePayerType == '') {
+                                            $people = $this->peoples_model->getById($payeePayerId);
+                                            $payeePayerType = $people[0]->people_type;
+                                        }
+                                    }
+                                }
+                            }
+                            
                             $data = array(
                                 'prime_entry_book_id' => $primeEntryBookId,
                                 'transaction_date' => $transactionDate,
@@ -215,7 +237,7 @@ class Journal_entries_controller extends CI_Controller {
                                 'payee_payer_id' => $payeePayerId,
                                 'due_date' => $dueDate,
                                 'reference_no' => $referenceNo,
-                                'should_have_a_payment_journal_entry' => "Yes",
+                                'should_have_a_payment_journal_entry' => $shouldHaveAPaymentJournalEntry,
                                 'reference_transaction_type_id' => $referenceTransactionTypeId,
                                 'reference_transaction_id' => $referenceTransactionId,
                                 'reference_journal_entry_id' => $referenceJournalEntryId,
@@ -1137,12 +1159,40 @@ class Journal_entries_controller extends CI_Controller {
 		return $this->common_functions->getReferenceTransactionTypesToDropDownWithSavedOption($selectedIndex);
 	}
 	
-	public function getReferenceTransactionListForSelectedType($transactionTypeId=null, $selectedIndex=null, $peopleId=null, $locationId=null) {
+	public function getReferenceTransactionListForSelectedType($transactionTypeId=null, $selectedIndex=null, $peopleId=null, $locationId=null,
+                                                               $financialYearStartDate=null, $financialYearEndDate=null) {
 		
 		if ($transactionTypeId == '') {
 			$transactionTypeId = $this->db->escape_str($this->input->post('transaction_type_id'));
 			$peopleId = $this->db->escape_str($this->input->post('people_id'));
             $locationId = $this->db->escape_str($this->input->post('location_id'));
+            $transactionDate = $this->db->escape_str($this->input->post('transaction_date'));
+            
+            if ($transactionDate == '') {
+                $transactionDate = date('Y-m-d');
+            }
+            
+            $year = date('Y', strtotime($transactionDate));
+
+            $financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
+            $financialYearStartDay = $this->system_configurations_model->getFinancialYearStartDayNo();
+            $financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
+            $financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
+
+            $financialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+
+            if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($financialYearEndDateToCompare) < strtotime($transactionDate)) {
+                $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                $financialYearEndDate = ($year + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+            } else {
+                if ($financialYearStartMonth > 1 || $financialYearStartDay > 1) {
+                    $financialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                    $financialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                } else {
+                    $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                    $financialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                }
+            }
 		}
 		
 		$transactionTypeList = '';
@@ -1152,7 +1202,7 @@ class Journal_entries_controller extends CI_Controller {
             //Purchase Note
 			case '1':
 
-				$allPurchaseNotes = $this->purchase_note_model->getAllOpenProductPurchasingPurchaseNoteIdsAndAllReferenceNumbers('reference_no', 'asc', $peopleId, $locationId);
+				$allPurchaseNotes = $this->purchase_note_model->getAllOpenProductPurchasingPurchaseNoteIdsAndAllReferenceNumbers('reference_no', 'asc', $peopleId, $locationId, $financialYearStartDate, $financialYearEndDate);
 				$transactionTypeList = "<select class='select2 form-control' id='reference_transaction_id' onchange='handleReferenceTransactionSelect(this.id);' >
 										<option value='0' >{$this->lang->line('-- Select --')}</option>";
 										
@@ -1177,7 +1227,7 @@ class Journal_entries_controller extends CI_Controller {
 			//Sales Note
 			case '2':
 
-				$allSalesNotes = $this->sales_note_model->getAllOpenSalesNoteIdsAndAllReferenceNumbers('reference_no', 'asc', $peopleId, $locationId);
+				$allSalesNotes = $this->sales_note_model->getAllOpenSalesNoteIdsAndAllReferenceNumbers('reference_no', 'asc', $peopleId, $locationId, $financialYearStartDate, $financialYearEndDate);
 				$transactionTypeList = "<select class='select2 form-control' id='reference_transaction_id' onchange='handleReferenceTransactionSelect(this.id);' >
 										<option value='0' >{$this->lang->line('-- Select --')}</option>";
 										
@@ -1202,7 +1252,7 @@ class Journal_entries_controller extends CI_Controller {
             //Supplier Return Note
 			case '3':
 
-				$allSupplierReturnNotes = $this->supplier_return_note_model->getAllOpenSupplierReturnNoteIdsAndAllReferenceNumbers('reference_no', 'asc', $peopleId, $locationId);
+				$allSupplierReturnNotes = $this->supplier_return_note_model->getAllOpenSupplierReturnNoteIdsAndAllReferenceNumbers('reference_no', 'asc', $peopleId, $locationId, $financialYearStartDate, $financialYearEndDate);
 				$transactionTypeList = "<select class='select2 form-control' id='reference_transaction_id' onchange='handleReferenceTransactionSelect(this.id);' >
 										<option value='0' >{$this->lang->line('-- Select --')}</option>";
 										
@@ -1227,7 +1277,7 @@ class Journal_entries_controller extends CI_Controller {
             //Customer Return Note
 			case '4':
 
-				$allCustomerReturnNotes = $this->customer_return_note_model->getAllOpenCustomerReturnNoteIdsAndAllReferenceNumbers('reference_no', 'asc', $peopleId, $locationId);
+				$allCustomerReturnNotes = $this->customer_return_note_model->getAllOpenCustomerReturnNoteIdsAndAllReferenceNumbers('reference_no', 'asc', $peopleId, $locationId, $financialYearStartDate, $financialYearEndDate);
 				$transactionTypeList = "<select class='select2 form-control' id='reference_transaction_id' onchange='handleReferenceTransactionSelect(this.id);' >
 										<option value='0' >{$this->lang->line('-- Select --')}</option>";
 										
@@ -1266,7 +1316,7 @@ class Journal_entries_controller extends CI_Controller {
 	}
 	
 	public function getReferenceJournalEntryListForSelectedTransaction($transactionTypeId=null, $transactionReferenceId=null, 
-                                                                       $selectedIndex=null, $status=null, $peopleId=null, $locationId=null) {
+        $selectedIndex=null, $status=null, $peopleId=null, $locationId=null, $financialYearStartDate=null, $financialYearEndDate=null) {
 		
 		$transactionReferenceNo = '';
         $transactionReferenceNoData = '';
@@ -1276,6 +1326,33 @@ class Journal_entries_controller extends CI_Controller {
             $status = $this->db->escape_str($this->input->post('status'));
             $peopleId = $this->db->escape_str($this->input->post('people_id'));
             $locationId = $this->db->escape_str($this->input->post('location_id'));
+            $transactionDate = $this->db->escape_str($this->input->post('transaction_date'));
+            
+            if ($transactionDate == '') {
+                $transactionDate = date('Y-m-d');
+            }
+            
+            $year = date('Y', strtotime($transactionDate));
+
+            $financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
+            $financialYearStartDay = $this->system_configurations_model->getFinancialYearStartDayNo();
+            $financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
+            $financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
+
+            $financialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+
+            if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($financialYearEndDateToCompare) < strtotime($transactionDate)) {
+                $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                $financialYearEndDate = ($year + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+            } else {
+                if ($financialYearStartMonth > 1 || $financialYearStartDay > 1) {
+                    $financialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                    $financialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                } else {
+                    $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                    $financialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                }
+            }
 		}
 		
 		$journalEntries = '';
@@ -1290,11 +1367,11 @@ class Journal_entries_controller extends CI_Controller {
 			case '1':
 
 				if ($transactionReferenceNo != '') {
-					$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo, 'Purchase Note');
+					$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo, 'Purchase Note', $financialYearStartDate, $financialYearEndDate);
 				} else {
 					$purchaseNote = $this->purchase_note_model->getPurchaseNoteById($transactionReferenceId);
 					if ($purchaseNote && sizeof($purchaseNote) > 0) {
-						$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($purchaseNote[0]->reference_no, 'Purchase Note');
+						$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($purchaseNote[0]->reference_no, 'Purchase Note', $financialYearStartDate, $financialYearEndDate);
 					}
 				}
 				
@@ -1323,11 +1400,11 @@ class Journal_entries_controller extends CI_Controller {
 			case '2':
 
 				if ($transactionReferenceNo != '') {
-					$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo, 'Sales Note');
+					$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo, 'Sales Note', $financialYearStartDate, $financialYearEndDate);
 				} else {
 					$salesNote = $this->sales_note_model->getSalesNoteById($transactionReferenceId);
 					if ($salesNote && sizeof($salesNote) > 0) {
-						$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($salesNote[0]->reference_no, 'Sales Note');
+						$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($salesNote[0]->reference_no, 'Sales Note', $financialYearStartDate, $financialYearEndDate);
 					}
 				}
 				
@@ -1356,11 +1433,11 @@ class Journal_entries_controller extends CI_Controller {
 			case '3':
 
 				if ($transactionReferenceNo != '') {
-					$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo, 'Supplier Return Note');
+					$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo, 'Supplier Return Note', $financialYearStartDate, $financialYearEndDate);
 				} else {
 					$supplierReturnNote = $this->supplier_return_note_model->getSupplierReturnNoteById($transactionReferenceId);
 					if ($supplierReturnNote && sizeof($supplierReturnNote) > 0) {
-						$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($supplierReturnNote[0]->reference_no, 'Supplier Return Note');
+						$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($supplierReturnNote[0]->reference_no, 'Supplier Return Note', $financialYearStartDate, $financialYearEndDate);
 					}
 				}
 				
@@ -1389,11 +1466,11 @@ class Journal_entries_controller extends CI_Controller {
 			case '4':
 
 				if ($transactionReferenceNo != '') {
-					$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo, 'Customer Return Note');
+					$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo, 'Customer Return Note', $financialYearStartDate, $financialYearEndDate);
 				} else {
 					$customerReturnNote = $this->customer_return_note_model->getCustomerReturnNoteById($transactionReferenceId);
 					if ($customerReturnNote && sizeof($customerReturnNote) > 0) {
-						$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($customerReturnNote[0]->reference_no, 'Customer Return Note');
+						$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($customerReturnNote[0]->reference_no, 'Customer Return Note', $financialYearStartDate, $financialYearEndDate);
 					}
 				}
 				
@@ -1421,7 +1498,7 @@ class Journal_entries_controller extends CI_Controller {
 			//Other
 			case '5':
 				
-				$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType('', '', $status, $peopleId, $locationId);
+				$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType('', '', $status, $peopleId, $locationId, $financialYearStartDate, $financialYearEndDate);
 				
 				$journalEntryList = "   <select class='select2 form-control' id='reference_journal_entry_id' onchange='handleReferenceJournalEntrySelect(this.id);'>
 										<option value='0' >{$this->lang->line('-- Select --')}</option>";

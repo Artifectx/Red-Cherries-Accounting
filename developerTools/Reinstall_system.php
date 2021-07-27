@@ -19,7 +19,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-define("versionNo", "1.0 Beta 3");
+define("versionNo", "1.1");
 
 class Reinstall_system {
 

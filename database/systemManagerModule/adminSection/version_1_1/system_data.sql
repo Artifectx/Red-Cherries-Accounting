@@ -1,6 +1,6 @@
 
 /*Update version number*/
-UPDATE `system_common_configurations` SET `config_filed_value` =  '1.0 Beta 3' WHERE id = 1;
+UPDATE `system_common_configurations` SET `config_filed_value` =  '1.1' WHERE id = 1;
 UPDATE `system_common_configurations` SET `config_filed_value` =  '10.0 Beta 2' WHERE id = 2;
 
 /*From ERP Version 9.0 Beta 1 */

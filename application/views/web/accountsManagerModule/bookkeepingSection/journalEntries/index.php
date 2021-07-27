@@ -1065,7 +1065,8 @@
 	}
 	
 	function handleReferenceTransactionTypeSelect(id) {
-		JournalEntry.getReferenceTransactionListForSelectedType($("#" + id).val());
+        var date = $("#transaction_date").val();
+		JournalEntry.getReferenceTransactionListForSelectedType($("#" + id).val(), date);
 	}
 	
 	function handleReferenceTransactionSelect(id) {
@@ -1730,12 +1731,13 @@
 		},
 		
 		//get reference transaction list drop down
-		getReferenceTransactionListForSelectedType: function (transactionTypeId) {
+		getReferenceTransactionListForSelectedType: function (transactionTypeId, date) {
 			$.ajax({
 				type: "POST",
 				url: "<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/journal_entries_controller/getReferenceTransactionListForSelectedType",
 				data: {
 					'transaction_type_id' : transactionTypeId,
+                    'transaction_date' : date,
 					'<?php echo $this->security->get_csrf_token_name(); ?>':
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
@@ -1748,20 +1750,21 @@
 						$("#reference_transaction_id").select2();
 					} else {
 						$("#reference_transaction_div").hide();
-						JournalEntry.getReferenceJournalEntryListForSelectedTransaction(transactionTypeId, '')
+						JournalEntry.getReferenceJournalEntryListForSelectedTransaction(transactionTypeId, '', date);
 					}
 				}
 			});
 		},
 		
 		//get reference journal entry list drop down
-		getReferenceJournalEntryListForSelectedTransaction: function (transactionTypeId, transactionReferenceNo) {
+		getReferenceJournalEntryListForSelectedTransaction: function (transactionTypeId, transactionReferenceNo, date) {
 			$.ajax({
 				type: "POST",
 				url: "<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/journal_entries_controller/getReferenceJournalEntryListForSelectedTransaction",
 				data: {
 					'transaction_type_id' : transactionTypeId,
 					'transaction_reference_no' : transactionReferenceNo,
+                    'transaction_date' : date,
 					'<?php echo $this->security->get_csrf_token_name(); ?>':
 					'<?php echo $this->security->get_csrf_hash(); ?>'
 				},
@@ -2040,7 +2043,7 @@
 					"iDisplayLength":<?php echo $default_row_count_for_table; ?>
 				});
 			}
-		})
+		});
 	}
 
 	function clearForm() {

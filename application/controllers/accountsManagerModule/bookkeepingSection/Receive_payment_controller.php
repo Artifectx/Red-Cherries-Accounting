@@ -4599,7 +4599,12 @@ class Receive_payment_controller extends CI_Controller {
 						
 						$referenceJournalEntryId = $paymentReference->reference_journal_entry_id;
 						$referenceJournalEntry = $this->journal_entries_model->getJournalEntryById($referenceJournalEntryId);
-						$description = $referenceJournalEntry[0]->description;
+						
+                        $description = '';
+                        
+                        if ($referenceJournalEntry && sizeof($referenceJournalEntry) > 0) {
+                            $description = $referenceJournalEntry[0]->description;
+                        }
 						
 						$referenceNo = '';
                         $transactionAmount = 0;

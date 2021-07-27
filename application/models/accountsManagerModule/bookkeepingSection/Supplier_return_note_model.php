@@ -192,13 +192,19 @@ class Supplier_return_note_model extends CI_Model {
 		}
 	}
     
-    public function getAllOpenSupplierReturnNoteIdsAndAllReferenceNumbers($order_field, $order_type, $peopleId, $locationId=null) {
+    public function getAllOpenSupplierReturnNoteIdsAndAllReferenceNumbers($order_field, $order_type, $peopleId, $locationId=null,
+                                                                          $fromDate=null, $toDate=null) {
 		$this->db->select('supplier_return_note_id, reference_no, balance_payment');
 		$this->db->order_by($order_field, $order_type);
         $this->db->where('acm_bookkeeping_supplier_return_note.supplier_id', $peopleId);
         
         if ($locationId != '') {
             $this->db->where('acm_bookkeeping_supplier_return_note.location_id', $locationId);
+        }
+        
+        if ($fromDate != '' && $toDate != '') {
+            $this->db->where('acm_bookkeeping_supplier_return_note.date >=', $fromDate);
+            $this->db->where('acm_bookkeeping_supplier_return_note.date <=', $toDate);
         }
         
         $this->db->where('acm_bookkeeping_supplier_return_note.status',"Open");

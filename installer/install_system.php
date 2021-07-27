@@ -81,13 +81,16 @@ function install($newVersionNo, $mysqli) {
 	$newVersionChangesExecuted = false;
 
 	$errorsFound = false;
+    $minorVersionCheckingRoundCount = 0;
+    $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
 	$result = '';
 	$message = '';
+    
 	while (true) {
 
 		$systemBetaVersionExists = false;
 		$systemMinorVersionExists = false;
-
+        
 		$folderNameWithBetaVersion = "version_" . $versionNoMajor . "_" . $versionNoMinor . "_beta_" . $versionNoBetaVersionNo;
 		$folderNameWithoutBetaVersion = "version_" . $versionNoMajor . "_" . $versionNoMinor;
 
@@ -109,6 +112,7 @@ function install($newVersionNo, $mysqli) {
 								$path = $pathWithBetaVersion;
 								$moduleBetaVersionExists = true;
 								$systemBetaVersionExists = true;
+                                $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
 
 								if ($folderNameWithBetaVersion == $endFolderNameWithBetaVersion) {
 									$newVersionFolderReached = true;
@@ -214,6 +218,7 @@ function install($newVersionNo, $mysqli) {
 								$path = $pathWithBetaVersion;
 								$moduleBetaVersionExists = true;
 								$systemBetaVersionExists = true;
+                                $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
 
 								if ($folderNameWithBetaVersion == $endFolderNameWithBetaVersion) {
 									$newVersionFolderReached = true;
@@ -370,6 +375,7 @@ function install($newVersionNo, $mysqli) {
 								$path = $pathWithBetaVersion;
 								$moduleBetaVersionExists = true;
 								$systemBetaVersionExists = true;
+                                $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
 
 								if ($folderNameWithBetaVersion == $endFolderNameWithBetaVersion) {
 									$newVersionFolderReached = true;
@@ -526,6 +532,7 @@ function install($newVersionNo, $mysqli) {
 								$path = $pathWithBetaVersion;
 								$moduleBetaVersionExists = true;
 								$systemBetaVersionExists = true;
+                                $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
 
 								if ($folderNameWithBetaVersion == $endFolderNameWithBetaVersion) {
 									$newVersionFolderReached = true;
@@ -636,6 +643,7 @@ function install($newVersionNo, $mysqli) {
 												$path = $pathWithBetaVersion;
 												$moduleBetaVersionExists = true;
 												$systemBetaVersionExists = true;
+                                                $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
 
 												if ($folderNameWithBetaVersion == $endFolderNameWithBetaVersion) {
 													$newVersionFolderReached = true;
@@ -736,6 +744,7 @@ function install($newVersionNo, $mysqli) {
 												$path = $pathWithBetaVersion;
 												$moduleBetaVersionExists = true;
 												$systemBetaVersionExists = true;
+                                                $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
 
 												if ($folderNameWithBetaVersion == $endFolderNameWithBetaVersion) {
 													$newVersionFolderReached = true;
@@ -891,6 +900,12 @@ function install($newVersionNo, $mysqli) {
 						break;
 				} 
 			}
+            
+            $minorVersionCheckingRoundCount++;
+                                                
+            if ($minorVersionCheckingRoundCount > 1) {
+                $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = false;
+            }
 		}
 
 		if ($newVersionChangesExecuted) {
@@ -899,13 +914,22 @@ function install($newVersionNo, $mysqli) {
 
 		if ($systemBetaVersionExists) {
 			$versionNoBetaVersionNo++;
+            $minorVersionCheckingRoundCount = 0;
+            $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
 		} else if ($systemMinorVersionExists) {
 			$versionNoMinor++;
 			$versionNoBetaVersionNo = 1;
 		} else if (!$systemBetaVersionExists && !$systemMinorVersionExists) {
-			$versionNoMajor++;
-			$versionNoMinor = 0;
-			$versionNoBetaVersionNo = 1;
+            
+            if ($minorVersionAvailabilityCheckAfterBetaVersionsIsPending) {
+                //$minorVersionCheckingRoundCount = 0;
+                $versionNoMinor++;
+                $versionNoBetaVersionNo = 1;
+            } else {
+                $versionNoMajor++;
+                $versionNoMinor = 0;
+                $versionNoBetaVersionNo = 1;
+            }
 		}
 	}
 
@@ -960,11 +984,14 @@ function upgrade($currentVersionNo, $newVersionNo, $mysqli) {
 	$newVersionChangesExecuted = false;
 
 	$errorsFound = false;
+    $minorVersionCheckingRoundCount = 0;
+    $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
+    
 	while (true) {
 
 		$systemBetaVersionExists = false;
 		$systemMinorVersionExists = false;
-
+        
 		$folderNameWithBetaVersion = "version_" . $versionNoMajor . "_" . $versionNoMinor . "_beta_" . $versionNoBetaVersionNo;
 		$folderNameWithoutBetaVersion = "version_" . $versionNoMajor . "_" . $versionNoMinor;
 
@@ -986,6 +1013,7 @@ function upgrade($currentVersionNo, $newVersionNo, $mysqli) {
 								$path = $pathWithBetaVersion;
 								$moduleBetaVersionExists = true;
 								$systemBetaVersionExists = true;
+                                $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
 
 								if ($folderNameWithBetaVersion == $endFolderNameWithBetaVersion) {
 									$newVersionFolderReached = true;
@@ -1091,6 +1119,7 @@ function upgrade($currentVersionNo, $newVersionNo, $mysqli) {
 								$path = $pathWithBetaVersion;
 								$moduleBetaVersionExists = true;
 								$systemBetaVersionExists = true;
+                                $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
 
 								if ($folderNameWithBetaVersion == $endFolderNameWithBetaVersion) {
 									$newVersionFolderReached = true;
@@ -1247,6 +1276,7 @@ function upgrade($currentVersionNo, $newVersionNo, $mysqli) {
 								$path = $pathWithBetaVersion;
 								$moduleBetaVersionExists = true;
 								$systemBetaVersionExists = true;
+                                $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
 
 								if ($folderNameWithBetaVersion == $endFolderNameWithBetaVersion) {
 									$newVersionFolderReached = true;
@@ -1403,6 +1433,7 @@ function upgrade($currentVersionNo, $newVersionNo, $mysqli) {
 								$path = $pathWithBetaVersion;
 								$moduleBetaVersionExists = true;
 								$systemBetaVersionExists = true;
+                                $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
 
 								if ($folderNameWithBetaVersion == $endFolderNameWithBetaVersion) {
 									$newVersionFolderReached = true;
@@ -1513,6 +1544,7 @@ function upgrade($currentVersionNo, $newVersionNo, $mysqli) {
 												$path = $pathWithBetaVersion;
 												$moduleBetaVersionExists = true;
 												$systemBetaVersionExists = true;
+                                                $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
 
 												if ($folderNameWithBetaVersion == $endFolderNameWithBetaVersion) {
 													$newVersionFolderReached = true;
@@ -1613,6 +1645,7 @@ function upgrade($currentVersionNo, $newVersionNo, $mysqli) {
 												$path = $pathWithBetaVersion;
 												$moduleBetaVersionExists = true;
 												$systemBetaVersionExists = true;
+                                                $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
 
 												if ($folderNameWithBetaVersion == $endFolderNameWithBetaVersion) {
 													$newVersionFolderReached = true;
@@ -1768,6 +1801,12 @@ function upgrade($currentVersionNo, $newVersionNo, $mysqli) {
 						break;
 				} 
 			}
+            
+            $minorVersionCheckingRoundCount++;
+                                                
+            if ($minorVersionCheckingRoundCount > 1) {
+                $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = false;
+            }
 		}
 
 		if ($newVersionChangesExecuted) {
@@ -1776,13 +1815,22 @@ function upgrade($currentVersionNo, $newVersionNo, $mysqli) {
 
 		if ($systemBetaVersionExists) {
 			$versionNoBetaVersionNo++;
+            $minorVersionCheckingRoundCount = 0;
+            $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
 		} else if ($systemMinorVersionExists) {
 			$versionNoMinor++;
 			$versionNoBetaVersionNo = 1;
 		} else if (!$systemBetaVersionExists && !$systemMinorVersionExists) {
-			$versionNoMajor++;
-			$versionNoMinor = 0;
-			$versionNoBetaVersionNo = 1;
+            
+            if ($minorVersionAvailabilityCheckAfterBetaVersionsIsPending) {
+                //$minorVersionCheckingRoundCount = 0;
+                $versionNoMinor++;
+                $versionNoBetaVersionNo = 1;
+            } else {
+                $versionNoMajor++;
+                $versionNoMinor = 0;
+                $versionNoBetaVersionNo = 1;
+            }
 		}
 	}
 
