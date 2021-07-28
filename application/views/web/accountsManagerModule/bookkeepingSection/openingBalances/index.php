@@ -78,20 +78,27 @@
                                         </div>
                                     </div>
                                     <div class='col-sm-2 controls'>
-										<button class='btn btn-success save' onclick='addMoreRows();' type='button'>
-											<i class='icon-plus'></i>
-											<?php echo $this->lang->line('Add Additional 10 Rows') ?>
-										</button>
-									</div>
-                                    <div class='col-sm-2 controls'>
 										<button class='btn btn-success save' onclick='saveOpeningBalances();' type='button'>
 											<i class='icon-save'></i>
 											<?php echo $this->lang->line('Save Opening Balances') ?>
 										</button>
 									</div>
 								</div>
-								<p style="margin-bottom:-10px">&nbsp;</p>
 							</div>
+                            <div class='form-group'>
+                                <div class='col-sm-2 controls'>
+                                    <button class='btn btn-success save' onclick='addMoreRows();' type='button'>
+                                        <i class='icon-plus'></i>
+                                        <?php echo $this->lang->line('Add Additional 10 Rows') ?>
+                                    </button>
+                                </div>
+                                <div class='col-sm-2 controls'>
+                                    <button class='btn btn-success save' onclick='importOpeningBalances();' type='button'>
+                                        <i class='icon-plus'></i>
+                                        <?php echo $this->lang->line('Import Opening Balances') ?>
+                                    </button>
+                                </div>
+                            </div>
 						</div>
 					</div>
 				</form>
@@ -139,6 +146,33 @@
 					</div>
 				</div>
 			</div>
+            
+            <div class='modal fade' id='modal-import_opening_balances' tabindex='-1'>
+				<div class='modal-dialog'>
+					<div class='modal-content'>
+						<div class='modal-header'>
+							<button aria-hidden='true' class='close' data-dismiss='modal' type='button'>x</button>
+							<h4 class='modal-title' id='myModalLabel' <?php echo $menuFormatting; ?>><?php echo $this->lang->line('Import Opening Balances') ?></h4>
+						</div>
+						<form enctype="multipart/form-data" accept-charset="utf-8" name="formname" id="formname"  method="post" action="">
+							<div class='modal-body' style="height:60px;width:1000px">
+								<div class='form-group'>
+									<div class='col-sm-12 controls'>
+										<label class="control-label col-sm-3" for="inputText1"><?php echo $this->lang->line('Select Opening Balance Excel File To Import Data') ?></label>
+										<div class="col-sm-9 controls">
+											<input type="file" name="file_to_upload" id="file_to_upload">
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class='modal-footer'>
+								<button class='btn btn-primary' id="btnLoadData"  type='button' <?php echo $menuFormatting; ?>><?php echo $this->lang->line('Load Data') ?></button>
+								<button class='btn btn-warning cancel' id="btnClose" data-dismiss='modal' type='button' <?php echo $menuFormatting; ?>><?php echo $this->lang->line('Close') ?></button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
 		</div>
 
 <script src="<?php echo base_url(); ?>ajax/jquery.js"></script>
@@ -149,6 +183,7 @@
     var OpeningBalanceRowCount = '';
     var DrAmountTotal = 0;
     var CrAmountTotal = 0;
+    var OpeningBalanceDataImportInProgress = "No";
     
 	$(document).ready(function () {
 
@@ -256,7 +291,7 @@
             }
         }
         
-        var rowCount = id.substring(3,5);
+        var rowCount = id.substring(3,10);
             
         if (drAmount != '' && validateDrAmount(rowCount)) {
             
@@ -303,7 +338,7 @@
             }
         }
         
-        var rowCount = id.substring(3,5);
+        var rowCount = id.substring(3,10);
         
         if (crAmount != '' && validateCrAmount(rowCount)) {
             
@@ -494,10 +529,63 @@
     function handleLocationSelect() {
         
     }
+    
+    function importOpeningBalances() {
+        openImportOpeningBalancesDialog();
+    }
+    
+    $("#btnLoadData").click(function (e){ 
+
+		var msg='<div class="alert alert-success alert-dismissable">'+
+				'<a class="close" href="#" data-dismiss="alert">× </a>'+
+				'<h4><i class="icon-ok-sign"></i>'+
+				'<?php echo $this->lang->line('Success') ?></h4>'+
+				'<?php echo $this->lang->line('Data successfully loaded to import opening balances. Reveiw the balance details and then save opening balances.') ?>'+
+				'</div>';
+		
+        var fileName = $("#file_to_upload").val();
+        if (fileName.substring(3,11) == 'fakepath') {
+            fileName = fileName.substring(12);
+        }
+
+		// send the formData
+		var formData = new FormData( $("#formname")[0] );
+		formData.append('file_name', fileName);
+		formData.append('<?php echo $this->security->get_csrf_token_name(); ?>','<?php echo $this->security->get_csrf_hash(); ?>');
+
+		$.ajax({
+			url :"<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/opening_balances_controller/loadOpeningBalances",
+			type : 'POST',
+			data : formData,
+			processData: false,
+			contentType: false,
+			dataType: 'json',
+			success	: function (responseData){
+				if (responseData.response === "success") {
+					$(".validation").hide();
+					$(".msg_data").show();
+					$(".msg_data").html(msg);
+                    
+                    $("#dataTable").empty();
+                    $("#dataTable").html(responseData.html);
+                    
+                    OpeningBalanceDataImportInProgress = "Yes";
+                    OpeningBalanceRowCount = responseData.rowCount;
+                    DrAmountTotal = responseData.drTotal;
+                    CrAmountTotal = responseData.crTotal;
+
+                    $('.openingBalancesDataTable').dataTable({
+                        "iDisplayLength":responseData.rowCount
+                    });
+				}
+				closeImportOpeningBalancesDialog();
+			}
+		});
+	});
 	
 	var OpeningBalances = {
 		
-		saveOpeningBalances: function (locationId, openingBalanceDate) {
+		saveOpeningBalances : function (locationId, openingBalanceDate) {
             
             var msg = '<div class="alert alert-success alert-dismissable">' +
 				'<a class="close" href="#" data-dismiss="alert">x </a>' +
@@ -518,57 +606,61 @@
         
             //Gather Account Opening Balances Details
 			var openingBalancesData = [];
+            
+            if (OpeningBalanceDataImportInProgress == "No") {
 			
-			var openingBalanceElement = $("#opening_balance_rows").find("#chart_of_account_id_1");
+                var openingBalanceElement = $("#opening_balance_rows").find("#chart_of_account_id_1");
 
-			var openingBalancesDataSet = [];
-            var glIds = {};
-			var chartOfAccounts = {};
-            var payeePayerIds = {};
-			var drAmounts = {};
-			var crAmounts = {};
-            var descriptions = {};
+                var openingBalancesDataSet = [];
+                var glIds = {};
+                var chartOfAccounts = {};
+                var payeePayerIds = {};
+                var drAmounts = {};
+                var crAmounts = {};
+                var descriptions = {};
 
-			var rowCount = 1;
-            var openingBalanceCount = 1;
-			var moreElement = true;
-			while (moreElement) {
-				if (openingBalanceElement.length == 1) {
+                var rowCount = 1;
+                var openingBalanceCount = 1;
+                var moreElement = true;
+                while (moreElement) {
+                    if (openingBalanceElement.length == 1) {
 
-                    var chartOfAccountId = $("#chart_of_account_id_" + rowCount).val();
-                    
-                    if (chartOfAccountId != '' && chartOfAccountId != '0') {
-                        glIds[openingBalanceCount] = $("#gl_id_" + rowCount).val();
-                        chartOfAccounts[openingBalanceCount] = chartOfAccountId;
-                        payeePayerIds[openingBalanceCount] = $("#payee_payer_" + rowCount).val();
-                        drAmounts[openingBalanceCount] = $("#dr_" + rowCount).val();
-                        crAmounts[openingBalanceCount] = $("#cr_" + rowCount).val();
-                        descriptions[openingBalanceCount] = $("#description_" + rowCount).val();
-                        
-                        openingBalanceCount++;
+                        var chartOfAccountId = $("#chart_of_account_id_" + rowCount).val();
+
+                        if (chartOfAccountId != '' && chartOfAccountId != '0') {
+                            glIds[openingBalanceCount] = $("#gl_id_" + rowCount).val();
+                            chartOfAccounts[openingBalanceCount] = chartOfAccountId;
+                            payeePayerIds[openingBalanceCount] = $("#payee_payer_" + rowCount).val();
+                            drAmounts[openingBalanceCount] = $("#dr_" + rowCount).val();
+                            crAmounts[openingBalanceCount] = $("#cr_" + rowCount).val();
+                            descriptions[openingBalanceCount] = $("#description_" + rowCount).val();
+
+                            openingBalanceCount++;
+                        }
+
+                        rowCount++;
+                        openingBalanceElement = $("#opening_balance_rows").find("#chart_of_account_id_" + rowCount);
+                    } else {
+                        openingBalanceCount--;
+                        moreElement = false;
                     }
-                    
-					rowCount++;
-					openingBalanceElement = $("#opening_balance_rows").find("#chart_of_account_id_" + rowCount);
-				} else {
-                    openingBalanceCount--;
-					moreElement = false;
-				}
-			}
+                }
 
-            openingBalancesDataSet.push(glIds);
-			openingBalancesDataSet.push(chartOfAccounts);
-            openingBalancesDataSet.push(payeePayerIds);
-			openingBalancesDataSet.push(drAmounts);
-			openingBalancesDataSet.push(crAmounts);
-            openingBalancesDataSet.push(descriptions);
+                openingBalancesDataSet.push(glIds);
+                openingBalancesDataSet.push(chartOfAccounts);
+                openingBalancesDataSet.push(payeePayerIds);
+                openingBalancesDataSet.push(drAmounts);
+                openingBalancesDataSet.push(crAmounts);
+                openingBalancesDataSet.push(descriptions);
 
-			openingBalancesData.push(openingBalancesDataSet);
-        
+                openingBalancesData.push(openingBalancesDataSet);
+            }
+            
 			$.ajax({
 				type: "POST",
 				url: "<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/opening_balances_controller/saveOpeningBalances",
 				data: {
+                    'opening_balance_data_import' : OpeningBalanceDataImportInProgress,
 					'location_id' : locationId,
                     'opening_balance_date' : openingBalanceDate,
                     'opening_balance_data' : openingBalancesData,
@@ -624,6 +716,17 @@
 		}
 	};
 
+    function openImportOpeningBalancesDialog() {
+		$(".validation").hide();
+		$(".msg_data").hide();
+		$("#file_to_upload").val("");
+		$("#modal-import_opening_balances").modal('show');
+	}
+
+	function closeImportOpeningBalancesDialog() {
+		$("#modal-import_opening_balances").modal('hide');
+	}
+    
 	//get all data
 	function getTableData(locationId, openingBalanceDate){
 		$(".loader").show();
@@ -651,7 +754,7 @@
                     CrAmountTotal = response.crTotal;
 
                     $('.openingBalancesDataTable').dataTable({
-                        "iDisplayLength":<?php echo $default_row_count_for_table; ?>
+                        "iDisplayLength":response.rowCount
                     });
                 } else if (response.result == 'multiple_opening_balance_years') {
                     $(".loader").hide();
