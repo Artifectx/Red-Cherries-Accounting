@@ -946,4 +946,15 @@ class Journal_entries_model extends CI_Model {
 			return false;
 		}
     }
+    
+    public function deleteAlreadyImportedOpeningBalancesRecords($financialYearStartDate, $financialYearEndDate) {
+        
+        $this->db->where('transaction_date >=', $financialYearStartDate);
+        $this->db->where('transaction_date <=', $financialYearEndDate);
+        $this->db->where('remark', "OB");
+		$this->db->limit(10000000);
+		$this->db->delete('acm_bookkeeping_journal_entries');
+        
+		return true;
+    }
 }

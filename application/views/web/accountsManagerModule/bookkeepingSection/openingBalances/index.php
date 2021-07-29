@@ -39,8 +39,17 @@
 				<!--Showing messages-->
 				<div class='msg_data'></div>
                 <div class='msg_instant' align="center"></div>
+                <?php
+                if (isset ($message)) echo $message;
+                echo validation_errors('<div class="alert alert-danger alert-dismissable">
+                                  <a class="close" data-dismiss="alert" href="#">&times;</a><h4>
+                                    <i class="icon-remove-sign"></i>
+                                    Error
+                                  </h4>', '</div>');
+                ?>
 				<!--Cheques search form -->
-				<form class='form form-horizontal validate-form' id="search_receive_payment_form">
+                <?php echo form_open('accountsManagerModule/bookkeepingSection/opening_balances_controller/handleDataImport', array('class' => 'form form-horizontal validate-form','id' => 'dataImportForm', 'style' => 'margin-bottom: 0;', 'enctype' => 'multipart/form-data')) ?>
+				<!--<form class='form form-horizontal validate-form' id="search_receive_payment_form">-->
 					<div class='box'>
 						<div class='box-header'>
 							<div class='title'><?php echo $this->lang->line('Search Account Opening Balances') ?></div>
@@ -54,7 +63,7 @@
 
 							<div class='form-group'>
 								<div class='col-sm-12 controls'>
-									<div class='col-sm-2 controls'>
+									<div class='col-sm-3 controls'>
 										<select id="location_search_init" class="form-control"><option><?php echo $this->lang->line('-- Select --') ?></option></select>
 										<div id="location_search_dropdown"></div>
 										<div id="location_search_idError" class="red"></div>
@@ -92,10 +101,22 @@
                                         <?php echo $this->lang->line('Add Additional 10 Rows') ?>
                                     </button>
                                 </div>
+                                <div class='col-sm-2 col-sm-offset-1'>
+                                    <button class='btn btn-success' type='submit' id="download" name='data_import' value='download_opening_balances_template' <?php echo $menuFormatting; ?>>
+                                        <i class='icon-save'></i>
+                                        <?php echo $this->lang->line('Download') ?>
+                                    </button>
+                                </div>
                                 <div class='col-sm-2 controls'>
                                     <button class='btn btn-success save' onclick='importOpeningBalances();' type='button'>
                                         <i class='icon-plus'></i>
                                         <?php echo $this->lang->line('Import Opening Balances') ?>
+                                    </button>
+                                </div>
+                                <div class='col-sm-3 controls'>
+                                    <button class='btn btn-success' type='submit' id="download_data_validation_error_file" name='data_import' value='download_data_validation_error_file' <?php echo $menuFormatting; ?>>
+                                        <i class='icon-save'></i>
+                                        <?php echo $this->lang->line('Download Data Import Workbook Error Log File') ?>
                                     </button>
                                 </div>
                             </div>
@@ -156,6 +177,7 @@
 						</div>
 						<form enctype="multipart/form-data" accept-charset="utf-8" name="formname" id="formname"  method="post" action="">
 							<div class='modal-body' style="height:60px;width:1000px">
+                                <div class='msg_modal_instant' style="margin-left:230px;"></div>
 								<div class='form-group'>
 									<div class='col-sm-12 controls'>
 										<label class="control-label col-sm-3" for="inputText1"><?php echo $this->lang->line('Select Opening Balance Excel File To Import Data') ?></label>
@@ -165,6 +187,7 @@
 									</div>
 								</div>
 							</div>
+                            <p style="margin-top:10px">&nbsp;</p>
 							<div class='modal-footer'>
 								<button class='btn btn-primary' id="btnLoadData"  type='button' <?php echo $menuFormatting; ?>><?php echo $this->lang->line('Load Data') ?></button>
 								<button class='btn btn-warning cancel' id="btnClose" data-dismiss='modal' type='button' <?php echo $menuFormatting; ?>><?php echo $this->lang->line('Close') ?></button>
@@ -534,6 +557,17 @@
         openImportOpeningBalancesDialog();
     }
     
+    function downloadDataImportWorkbookErrorLogFile() {
+        $.ajax({
+			url :"<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/opening_balances_controller/downloadDataValidationErrorFile",
+			type : 'GET',
+			dataType: 'html',
+			success	: function (response){
+				
+			}
+		});
+    }
+    
     $("#btnLoadData").click(function (e){ 
 
 		var msg='<div class="alert alert-success alert-dismissable">'+
@@ -541,6 +575,13 @@
 				'<h4><i class="icon-ok-sign"></i>'+
 				'<?php echo $this->lang->line('Success') ?></h4>'+
 				'<?php echo $this->lang->line('Data successfully loaded to import opening balances. Reveiw the balance details and then save opening balances.') ?>'+
+				'</div>';
+        
+        var msgError='<div class="alert alert-danger alert-dismissable">'+
+				'<a class="close" href="#" data-dismiss="alert">× </a>'+
+				'<h4><i class="icon-remove-sign"></i>'+
+				'<?php echo $this->lang->line('error') ?></h4>'+
+				'<?php echo $this->lang->line('Data_import_workbook_errors') ?>'+
 				'</div>';
 		
         var fileName = $("#file_to_upload").val();
@@ -553,6 +594,9 @@
 		formData.append('file_name', fileName);
 		formData.append('<?php echo $this->security->get_csrf_token_name(); ?>','<?php echo $this->security->get_csrf_hash(); ?>');
 
+        $(".msg_modal_instant").show();
+        $(".msg_modal_instant").html('<img src="<?php echo base_url();?>assets/images/ajax-loader.gif"/>Loading data...');
+        
 		$.ajax({
 			url :"<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/opening_balances_controller/loadOpeningBalances",
 			type : 'POST',
@@ -560,7 +604,13 @@
 			processData: false,
 			contentType: false,
 			dataType: 'json',
+            beforeSend: function () {
+                $("#btnLoadData").attr('disabled', true);
+            },
 			success	: function (responseData){
+                
+                $(".msg_modal_instant").hide();
+                
 				if (responseData.response === "success") {
 					$(".validation").hide();
 					$(".msg_data").show();
@@ -577,7 +627,13 @@
                     $('.openingBalancesDataTable').dataTable({
                         "iDisplayLength":responseData.rowCount
                     });
-				}
+				} else {
+                    $(".validation").hide();
+					$(".msg_data").show();
+					$(".msg_data").html(msgError);
+                }
+                
+                $("#btnLoadData").attr('disabled', false);
 				closeImportOpeningBalancesDialog();
 			}
 		});
@@ -606,6 +662,7 @@
         
             //Gather Account Opening Balances Details
 			var openingBalancesData = [];
+            var openingBalanceCount = '';
             
             if (OpeningBalanceDataImportInProgress == "No") {
 			
@@ -620,7 +677,7 @@
                 var descriptions = {};
 
                 var rowCount = 1;
-                var openingBalanceCount = 1;
+                openingBalanceCount = 1;
                 var moreElement = true;
                 while (moreElement) {
                     if (openingBalanceElement.length == 1) {
@@ -656,6 +713,15 @@
                 openingBalancesData.push(openingBalancesDataSet);
             }
             
+            var saveAborted = "No";
+            
+            if (openingBalanceCount > 50) {
+                saveAborted = "Yes";
+                $(".msg_instant").hide();
+                openingBalancesData = [];
+                alert("<?php echo $this->lang->line('Too much data to save! Please use opening balance import feature to update changes.') ?>");
+            }
+            
 			$.ajax({
 				type: "POST",
 				url: "<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/opening_balances_controller/saveOpeningBalances",
@@ -674,11 +740,14 @@
                     $(".msg_instant").hide();
                     
                     if (response == "ok") {
+                        OpeningBalanceDataImportInProgress = "No";
                         $(".msg_data").show();
                         $(".msg_data").html(msg);
                     } else if (response == "no_data_to_save") {
-                        $(".msg_data").show();
-                        $(".msg_data").html(msg_no_data_to_save);
+                        if (saveAborted == "No") {
+                            $(".msg_data").show();
+                            $(".msg_data").html(msg_no_data_to_save);
+                        }
                     }
 				}
 			});

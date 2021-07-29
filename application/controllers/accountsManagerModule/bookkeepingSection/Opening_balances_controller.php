@@ -72,6 +72,8 @@ class Opening_balances_controller extends CI_Controller {
 		$this->load->model('systemManagerModule/system_configurations_model', '', TRUE);
 		$this->load->model('userRoleManagerModule/user_model', '', TRUE);
 		$this->load->model('systemManagerModule/common_model', '', TRUE);
+        $this->load->helper('download');
+		$this->load->helper('url');
 
 		$this->load->library('common_library/common_functions');
 
@@ -119,6 +121,25 @@ class Opening_balances_controller extends CI_Controller {
 		}
 
 		$this->load->view('web/systemManagerModule/footer/footer', $this->data);
+	}
+    
+    public function handleDataImport() {
+		//set selected menu
+		if($this->input->post('data_import') == "download_opening_balances_template") { 
+
+			$this->downloadOpeningBalancesDataImportWorkbook();
+		} else if ($this->input->post('data_import') == "download_data_validation_error_file") {
+
+			$this->downloadDataValidationErrorFile();
+		}
+	}
+    
+    public function downloadOpeningBalancesDataImportWorkbook() {
+
+		$data = file_get_contents(base_url() . "/dataUpload/dataTemplates/Templates/Accounting_Opening_Balances.xlsx"); // Read the file's contents
+		$name = 'Accounting_Opening_Balances.xlsx';
+
+		force_download($name, $data);
 	}
     
     public function saveOpeningBalances() {
@@ -421,6 +442,31 @@ class Opening_balances_controller extends CI_Controller {
             }
         } else {
             
+            $year = date('Y', strtotime($openingBalancesDate));
+
+            $financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
+            $financialYearStartDay = $this->system_configurations_model->getFinancialYearStartDayNo();
+            $financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
+            $financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
+
+            $currentFinancialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+
+            if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($currentFinancialYearEndDateToCompare) < strtotime($openingBalancesDate)) {
+                $currentFinancialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                $currentFinancialYearEndDate = ($year + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+            } else {
+                if ($financialYearStartMonth > 1 || $financialYearStartDay > 1) {
+                    $currentFinancialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                    $currentFinancialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                } else {
+                    $currentFinancialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                    $currentFinancialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                }
+            }
+            
+            //Delete if opening balances already available for the financial year
+            $this->journal_entries_model->deleteAlreadyImportedOpeningBalancesRecords($currentFinancialYearStartDate, $currentFinancialYearEndDate);
+            
             $sheetData = '';
 
             if (file_exists(dirname(__FILE__) . '/../../../../dataUpload/importData/Accounting_Opening_Balances.xlsx')) {
@@ -531,6 +577,8 @@ class Opening_balances_controller extends CI_Controller {
                         $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
                     }
                 }
+                
+                $result = 'ok';
             } else {
                 $result = 'no_data_to_save';
             }
@@ -574,6 +622,8 @@ class Opening_balances_controller extends CI_Controller {
         
             if ($validateResult) {
                 $result = $this->loadOpeningBalancesDataToScreenToSave();
+            } else {
+                $status = "error";
             }
         }
 
@@ -797,7 +847,7 @@ class Opening_balances_controller extends CI_Controller {
 				),
 		);
 
-		if (Accounting_Opening_Balance_Errors == 'Accounting_Opening_Balance_Errors') {
+		if ($errorPage == 'Accounting_Opening_Balance_Errors') {
 
 			$inputFileType = 'Excel2007';
 			$inputFileName = dirname(__FILE__) . '/../../../../dataUpload/importData/Data_Import_Validation_Errors.xlsx';
@@ -1044,6 +1094,61 @@ class Opening_balances_controller extends CI_Controller {
         
         return array('html' => $html, 'rowCount' => $rowCount, 'drTotal' => $drTotal, 'crTotal' => $crTotal);
     }
+    
+    public function downloadDataValidationErrorFile() {
+		//set selected menu
+		$data_cls['ul_class_bookkeeping_section'] = 'in nav nav-stacked';
+		$data_cls['li_class_opening_balances'] = 'active';
+		$data_cls['systemConfigData'] = $this->getSystemConfigData();
+
+		if (file_exists(dirname(__FILE__) . '/../../../../dataUpload/importData/Data_Import_Validation_Errors.pdf')) {
+			$data = file_get_contents(base_url() . "/dataUpload/importData/Data_Import_Validation_Errors.pdf"); // Read the file's contents
+			$name = 'Data_Import_Validation_Errors.pdf';
+
+			force_download($name, $data);
+		} else {
+			$msg = "There are no workbook errors";
+			$data['message'] = '<div class="alert alert-warning alert-dismissable">
+							<a class="close" href="#" data-dismiss="alert">× </a>
+							<h4><i class="icon-ok-sign"></i>'.
+							$this->lang->line('warning').'</h4>'.
+							$this->lang->line($msg).
+							'</div>';
+            
+            $language = $this->userManagement->getUserLanguage($this->user_id);
+            
+            $menuFormatting = '';
+            if ($language == "sinhala") {
+                $menuFormatting = 'style="font-weight: bold;"';
+            }
+
+            $data['menuFormatting'] = $menuFormatting;
+
+			$openingBalanceEquityChartOfAccount = $this->system_configurations_model->getOpeninngBalanceEquityChartOfAccountConfigurationData();
+        
+            $openingBalanceEquityChartOfAccountId = '';
+            if($openingBalanceEquityChartOfAccount && sizeof($openingBalanceEquityChartOfAccount) > 0) {
+                $openingBalanceEquityChartOfAccountId = $openingBalanceEquityChartOfAccount[0]->config_filed_value;
+            }
+
+            $data['default_row_count_for_table'] = '100'; //TO DO : Make this a system configuration
+
+            if ($openingBalanceEquityChartOfAccountId != '' && $openingBalanceEquityChartOfAccountId != '0') {
+                $data['is_opening_balance_equity_account_set_in_config_for_opening_balances'] = "Yes";
+            } else {
+                $data['is_opening_balance_equity_account_set_in_config_for_opening_balances'] = "No";
+            }
+            
+            $this->load->view('web/systemManagerModule/header/header', $this->data);
+            $this->load->view('web/systemManagerModule/dashboard/menu_accounts_manager', $data_cls);
+
+            if(isset($this->data['ACM_Bookkeeping_View_Opening_Balances_Permissions'])) {
+                $this->load->view('web/accountsManagerModule/bookkeepingSection/openingBalances/index', $data);
+            }
+            
+			$this->load->view('web/systemManagerModule/footer/footer', $this->data);
+		}
+	}
     
     //get all data
 	public function getTableData() {

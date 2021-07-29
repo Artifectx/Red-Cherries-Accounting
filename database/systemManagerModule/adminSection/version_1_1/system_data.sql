@@ -5246,3 +5246,12 @@ SET @languageStringId = LAST_INSERT_ID();
 
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Data successfully loaded to import opening balances. Reveiw the balance details and then save opening balances.');
+
+/*Data for the table `system_language_strings` */
+INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Too much data to save! Please use opening balance import feature to update changes.', 'message', '7', 'Opening Balances Screen');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Too much data to save! Please use opening balance import feature to update changes.');
