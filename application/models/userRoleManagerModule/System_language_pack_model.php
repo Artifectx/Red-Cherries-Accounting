@@ -246,4 +246,16 @@ class System_language_pack_model extends CI_model {
 			return false;
 		}
     }
+    
+    public function reinstallLanguagePack($path) {
+        $sql = file_get_contents(dirname(__FILE__) . $path);
+        
+        $sqls = explode(';', $sql);
+        array_pop($sqls);
+
+        foreach($sqls as $statement){
+            $statement = $statement . ";";
+            $this->db->query($statement);   
+        }
+    }
 }

@@ -5255,3 +5255,100 @@ SET @languageStringId = LAST_INSERT_ID();
 
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Too much data to save! Please use opening balance import feature to update changes.');
+
+UPDATE `system_language_strings` SET `language_string` = 'Allows to manage company locations, people, company basic information and company structure. The information adding under this module is common to the other modules of Red Cherries ERP.' WHERE `language_string_id` = '1250';
+UPDATE `system_language_translations` SET `translated_string` = 'Allows to manage company locations, people, company basic information and company structure. The information adding under this module is common to the other modules of Red Cherries ERP.' WHERE `language_string_id` = '1250';
+
+UPDATE `system_language_strings` SET `language_string` = 'This module consists of five sections called Administration, Finished Good Inventory, Raw Material Inventory, Sales and Reports. The Administration section allows to manage warehouses, unit and unit conversions, tax details, vehicles, delivery routes and system configurations. System configurations allow to configure the system for different behaviors. Finished Good Inventory and Raw Material Inventory allows to manage finished good and raw material stock respectively. System allows to manage warehouse and lorry stock with different transactions. Sales section allows to manage sales invoices and sales returns. Reports section allows to generate different types of reports for stock balances, transactions, sales and sales returns.' WHERE `language_string_id` = '1251';
+UPDATE `system_language_translations` SET `translated_string` = 'This module consists of five sections called Administration, Finished Good Inventory, Raw Material Inventory, Sales and Reports. The Administration section allows to manage warehouses, unit and unit conversions, tax details, vehicles, delivery routes and system configurations. System configurations allow to configure the system for different behaviors. Finished Good Inventory and Raw Material Inventory allows to manage finished good and raw material stock respectively. System allows to manage warehouse and lorry stock with different transactions. Sales section allows to manage sales invoices and sales returns. Reports section allows to generate different types of reports for stock balances, transactions, sales and sales returns.' WHERE `language_string_id` = '1251';
+
+UPDATE `system_language_strings` SET `language_string` = 'Allows to manage the process of producing finished goods in a production line. Careful monitoring of raw materials issued to production line and exact usage and calculate final product cost considering other costing parameters is handled in this module. Module provides variation reports to evaluate the efficiency of production line thereby adjusting parameters to fine tune the efficiency and minimize loses. Initial module implementation is completed and is available in version 6.0. Further development of remaining features will be available in future versions.' WHERE `language_string_id` = '1252';
+UPDATE `system_language_translations` SET `translated_string` = 'Allows to manage the process of producing finished goods in a production line. Careful monitoring of raw materials issued to production line and exact usage and calculate final product cost considering other costing parameters is handled in this module. Module provides variation reports to evaluate the efficiency of production line thereby adjusting parameters to fine tune the efficiency and minimize loses. Initial module implementation is completed and is available in version 6.0. Further development of remaining features will be available in future versions.' WHERE `language_string_id` = '1252';
+
+UPDATE `system_language_strings` SET `language_string` = 'Employee salary details can be maintained in this module. Different types of earnings and deductions can be added and payroll process can be done by generating a salary payment detail script for banks. Module implementation is pending and will be available in a future version.' WHERE `language_string_id` = '1257';
+UPDATE `system_language_translations` SET `translated_string` = 'Employee salary details can be maintained in this module. Different types of earnings and deductions can be added and payroll process can be done by generating a salary payment detail script for banks. Module implementation is pending and will be available in a future version.' WHERE `language_string_id` = '1257';
+
+UPDATE `system_language_strings` SET `language_string` = 'Admin and a normal user roles available with default user role permissions. New users can be created for type of admin or normal user. When required additional user roles can be created with custom permissions and can be assigned to users.' WHERE `language_string_id` = '1256';
+UPDATE `system_language_translations` SET `translated_string` = 'Admin and a normal user roles available with default user role permissions. New users can be created for type of admin or normal user. When required additional user roles can be created with custom permissions and can be assigned to users.' WHERE `language_string_id` = '1256';
+
+/*Data for the table `system_language_strings` */
+INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Best online accounting management solution from Artifectx Solutions.', 'display_string', '', '');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Best online accounting management solution from Artifectx Solutions.');
+
+/*Data for the table `system_language_strings` */
+INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Reinstall Language Pack To Solve Language Translation Issues', 'display_string', '8', 'System Language Pack Screen');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Reinstall Language Pack To Solve Language Translation Issues');
+
+/*Data for the table `system_language_strings` */
+INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
+('Language pack successfully reinstalled', 'message', '8', 'System Language Pack Screen');
+
+SET @languageStringId = LAST_INSERT_ID();
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(@languageStringId,'English','Language pack successfully reinstalled');
+
+/*Other Language Translations */
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'hindi','वित्तीय वर्ष समाप्त');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'hindi','वित्तीय वर्ष');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'hindi','वित्तीय वर्ष प्रारंभ तिथि');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'hindi','वित्तीय वर्ष की समाप्ति तिथि');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'hindi','वर्ष के अंत की प्रक्रिया की स्थिति');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'hindi','वर्ष के अंत द्वारा संसाधित');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'hindi','प्रक्रिया वर्ष समाप्ति');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'hindi','पिछला वित्तीय वर्ष बंद नहीं है! कृपया लेन-देन जोड़ने से पहले पिछले वित्तीय वर्ष को बंद कर दें।');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'hindi','जिस लेन-देन को आप मिटाने का प्रयास कर रहे हैं उसका वित्तीय वर्ष पहले ही बंद हो चुका है!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'hindi','क्या आप वाकई वर्ष के अंत को अभी संसाधित करना चाहते हैं');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'hindi','वर्ष के अंत को सफलतापूर्वक संसाधित किया गया और खाते की शेष राशि को अगले वित्तीय वर्ष के लिए आगे लाया गया।');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'hindi','खाते का मूल देयता चार्ट चुनें');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'hindi','खाते का मूल संपत्ति चार्ट चुनें');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'hindi','खाते के बनाए रखा आय चार्ट का चयन करें');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'hindi','वित्तीय वर्ष के अंत में खातों का प्रसंस्करण चार्ट कॉन्फ़िगर नहीं किया गया है');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'hindi','उपलब्ध प्रारंभिक शेष राशि');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'hindi','खाते के व्यापार देनदार चार्ट का चयन करें');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'hindi','खाते का मूल व्यय चार्ट चुनें');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'hindi','प्रारंभिक शेष आयात करें');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'hindi','डेटा आयात करने के लिए ओपनिंग बैलेंस एक्सेल फ़ाइल का चयन करें');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'hindi','लोड डेटा');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'hindi','प्रारंभिक शेष राशि आयात करने के लिए डेटा सफलतापूर्वक लोड किया गया। शेष विवरण की समीक्षा करें और फिर प्रारंभिक शेष राशि सहेजें।');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'hindi','बचाने के लिए बहुत अधिक डेटा! परिवर्तनों को अद्यतन करने के लिए कृपया प्रारंभिक शेष राशि आयात सुविधा का उपयोग करें।');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'hindi','Artifectx Solutions से सर्वश्रेष्ठ ऑनलाइन लेखा प्रबंधन समाधान।');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'hindi','भाषा अनुवाद के मुद्दों को हल करने के लिए भाषा पैक को पुनर्स्थापित करें');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'hindi','भाषा पैक सफलतापूर्वक पुनः स्थापित किया गया');

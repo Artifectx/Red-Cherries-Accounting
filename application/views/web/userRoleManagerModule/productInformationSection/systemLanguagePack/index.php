@@ -95,9 +95,14 @@
 											</div>
 											<p style="margin-bottom:-10px">&nbsp;</p>
 										</div>
+                                        <div class='form-group'>
+                                            <div class='col-sm-12 col-sm-offset-4 controls'>
+                                                <button class='btn btn-success' id="btnReinstallLanguagePack" type='button' onclick="reinstallLanguagePack();"><?php echo $this->lang->line('Reinstall Language Pack To Solve Language Translation Issues') ?></button>
+                                            </div>
+                                        </div>
 										
 										<div class='col-sm-12 col-sm-offset-5 controls' id="translation_generation_div">
-											<button class='btn btn-info' id="btnSearch" type='button' onclick="generateTranslations();"><?php echo $this->lang->line('Generate Translations') ?></button>
+											<button class='btn btn-info' id="btnGenerateTranslations" type='button' onclick="generateTranslations();"><?php echo $this->lang->line('Generate Translations') ?></button>
 										</div>
 									</div>
 								</div>
@@ -155,6 +160,10 @@
 	function generateTranslations() {
 		LanguagePack.generateTranslations();
 	}
+    
+    function reinstallLanguagePack() {
+        LanguagePack.reinstallLanguagePack();
+    }
 
 	var LanguagePack = {
 
@@ -267,6 +276,31 @@
 						$(".msg_data").html(msg);
 						$("#translation_generation_status_div").hide();
 						$("#translation_generation_div").hide();
+					}
+				}
+			});
+		},
+        
+        reinstallLanguagePack : function() {
+			
+			var msg='<div class="alert alert-success alert-dismissable">'+
+				'<a class="close" href="#" data-dismiss="alert">× </a>'+
+				'<h4><i class="icon-ok-sign"></i>'+
+				'<?php echo $this->lang->line('Success') ?></h4>'+
+				'<?php echo $this->lang->line('Language pack successfully reinstalled') ?>'+
+				'</div>';
+		
+			$.ajax({
+				type: "POST",
+				url: "<?php echo base_url(); ?>userRoleManagerModule/productInformationSection/system_language_pack_controller/reinstallLanguagePack",
+				data: {
+					<?php echo $this->security->get_csrf_token_name(); ?>:'<?php echo $this->security->get_csrf_hash(); ?>'
+				},
+				dataType: 'html',
+				success:function (response) {
+					if (response == "ok") {
+						$(".msg_data").show();
+						$(".msg_data").html(msg);
 					}
 				}
 			});

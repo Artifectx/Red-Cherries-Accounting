@@ -102,64 +102,66 @@ class Financial_year_ends_controller extends CI_Controller {
                 $financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
                 $financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
 
-                $financialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
-
-                if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($financialYearEndDateToCompare) < strtotime($journalEntryDate)) {
-                    $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-                    $financialYearEndDate = ($year + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
-                } else {
-                    if ($financialYearStartMonth > 1 || $financialYearStartDay > 1) {
-                        $financialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-                        $financialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
-                    } else {
-                        $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-                        $financialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
-                    }
-                }
-                
-                $financialYearEndData = $this->financial_year_ends_model->getFinancialYearEndByFinancialYearStartAndEndDates($financialYearStartDate, $financialYearEndDate);
-                
-                if (!$financialYearEndData) {
-                    $data = array(
-                        'financial_year_start_date' => $financialYearStartDate,
-                        'financial_year_end_date' => $financialYearEndDate,
-                        'actioned_user_id' => $this->user_id,
-                        'action_date' => $this->date,
-                        'last_action_status' => 'added'
-                    );
-
-                    $this->financial_year_ends_model->add($data);
-                }
-                
-                while (!(strtotime($financialYearStartDate) < strtotime($currentDate) && strtotime($financialYearEndDate) > strtotime($currentDate))) {
+                if ($financialYearStartMonth != '' && $financialYearStartDay != '' && $financialYearEndMonth != '' && $financialYearEndDay != '') {
                     
-                    if (strtotime($financialYearEndDate) < strtotime($currentDate)) {
-                        
-                        $financialYearStartYear = date('Y', strtotime($financialYearStartDate));
-                        $financialYearEndYear = date('Y', strtotime($financialYearEndDate));
-                        
-                        $financialYearStartYear++;
-                        $financialYearEndYear++;
-                        
-                        $financialYearStartDate = $financialYearStartYear . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-                        $financialYearEndDate = $financialYearEndYear . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
-                        
-                        $financialYearEndData = $this->financial_year_ends_model->getFinancialYearEndByFinancialYearStartAndEndDates($financialYearStartDate, $financialYearEndDate);
-                
-                        if (!$financialYearEndData) {
-                            $data = array(
-                                'financial_year_start_date' => $financialYearStartDate,
-                                'financial_year_end_date' => $financialYearEndDate,
-                                'actioned_user_id' => $this->user_id,
-                                'action_date' => $this->date,
-                                'last_action_status' => 'added'
-                            );
+                    $financialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 
-                            $this->financial_year_ends_model->add($data);
+                    if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($financialYearEndDateToCompare) < strtotime($journalEntryDate)) {
+                        $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                        $financialYearEndDate = ($year + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                    } else {
+                        if ($financialYearStartMonth > 1 || $financialYearStartDay > 1) {
+                            $financialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                            $financialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                        } else {
+                            $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                            $financialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                        }
+                    }
+
+                    $financialYearEndData = $this->financial_year_ends_model->getFinancialYearEndByFinancialYearStartAndEndDates($financialYearStartDate, $financialYearEndDate);
+
+                    if (!$financialYearEndData) {
+                        $data = array(
+                            'financial_year_start_date' => $financialYearStartDate,
+                            'financial_year_end_date' => $financialYearEndDate,
+                            'actioned_user_id' => $this->user_id,
+                            'action_date' => $this->date,
+                            'last_action_status' => 'added'
+                        );
+
+                        $this->financial_year_ends_model->add($data);
+                    }
+
+                    while (!(strtotime($financialYearStartDate) < strtotime($currentDate) && strtotime($financialYearEndDate) > strtotime($currentDate))) {
+
+                        if (strtotime($financialYearEndDate) < strtotime($currentDate)) {
+
+                            $financialYearStartYear = date('Y', strtotime($financialYearStartDate));
+                            $financialYearEndYear = date('Y', strtotime($financialYearEndDate));
+
+                            $financialYearStartYear++;
+                            $financialYearEndYear++;
+
+                            $financialYearStartDate = $financialYearStartYear . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                            $financialYearEndDate = $financialYearEndYear . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+
+                            $financialYearEndData = $this->financial_year_ends_model->getFinancialYearEndByFinancialYearStartAndEndDates($financialYearStartDate, $financialYearEndDate);
+
+                            if (!$financialYearEndData) {
+                                $data = array(
+                                    'financial_year_start_date' => $financialYearStartDate,
+                                    'financial_year_end_date' => $financialYearEndDate,
+                                    'actioned_user_id' => $this->user_id,
+                                    'action_date' => $this->date,
+                                    'last_action_status' => 'added'
+                                );
+
+                                $this->financial_year_ends_model->add($data);
+                            }
                         }
                     }
                 }
-                
             } else {
                 $currentDate = date('Y-m-d');
                 $year = date('Y', strtotime($currentDate));
@@ -169,6 +171,50 @@ class Financial_year_ends_controller extends CI_Controller {
                 $financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
                 $financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
 
+                if ($financialYearStartMonth != '' && $financialYearStartDay != '' && $financialYearEndMonth != '' && $financialYearEndDay != '') {
+                    
+                    $financialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+
+                    if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($financialYearEndDateToCompare) < strtotime($currentDate)) {
+                        $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                        $financialYearEndDate = ($year + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                    } else {
+                        if ($financialYearStartMonth > 1 || $financialYearStartDay > 1) {
+                            $financialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                            $financialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                        } else {
+                            $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                            $financialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                        }
+                    }
+
+                    $financialYearEndData = $this->financial_year_ends_model->getFinancialYearEndByFinancialYearStartAndEndDates($financialYearStartDate, $financialYearEndDate);
+
+                    if (!$financialYearEndData) {
+                        $data = array(
+                            'financial_year_start_date' => $financialYearStartDate,
+                            'financial_year_end_date' => $financialYearEndDate,
+                            'actioned_user_id' => $this->user_id,
+                            'action_date' => $this->date,
+                            'last_action_status' => 'added'
+                        );
+
+                        $this->financial_year_ends_model->add($data);
+                    }
+                }
+            }
+        } else {
+            
+            $currentDate = date('Y-m-d');
+            $year = date('Y', strtotime($currentDate));
+
+            $financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
+            $financialYearStartDay = $this->system_configurations_model->getFinancialYearStartDayNo();
+            $financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
+            $financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
+
+            if ($financialYearStartMonth != '' && $financialYearStartDay != '' && $financialYearEndMonth != '' && $financialYearEndDay != '') {
+                
                 $financialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 
                 if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($financialYearEndDateToCompare) < strtotime($currentDate)) {
@@ -183,9 +229,9 @@ class Financial_year_ends_controller extends CI_Controller {
                         $financialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
                     }
                 }
-                
+
                 $financialYearEndData = $this->financial_year_ends_model->getFinancialYearEndByFinancialYearStartAndEndDates($financialYearStartDate, $financialYearEndDate);
-                
+
                 if (!$financialYearEndData) {
                     $data = array(
                         'financial_year_start_date' => $financialYearStartDate,
@@ -197,44 +243,6 @@ class Financial_year_ends_controller extends CI_Controller {
 
                     $this->financial_year_ends_model->add($data);
                 }
-            }
-        } else {
-            
-            $currentDate = date('Y-m-d');
-            $year = date('Y', strtotime($currentDate));
-
-            $financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
-            $financialYearStartDay = $this->system_configurations_model->getFinancialYearStartDayNo();
-            $financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
-            $financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
-
-            $financialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
-
-            if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($financialYearEndDateToCompare) < strtotime($currentDate)) {
-                $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-                $financialYearEndDate = ($year + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
-            } else {
-                if ($financialYearStartMonth > 1 || $financialYearStartDay > 1) {
-                    $financialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-                    $financialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
-                } else {
-                    $financialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-                    $financialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
-                }
-            }
-
-            $financialYearEndData = $this->financial_year_ends_model->getFinancialYearEndByFinancialYearStartAndEndDates($financialYearStartDate, $financialYearEndDate);
-
-            if (!$financialYearEndData) {
-                $data = array(
-                    'financial_year_start_date' => $financialYearStartDate,
-                    'financial_year_end_date' => $financialYearEndDate,
-                    'actioned_user_id' => $this->user_id,
-                    'action_date' => $this->date,
-                    'last_action_status' => 'added'
-                );
-
-                $this->financial_year_ends_model->add($data);
             }
         }
 

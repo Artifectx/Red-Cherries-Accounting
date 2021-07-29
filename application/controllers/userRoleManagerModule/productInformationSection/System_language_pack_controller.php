@@ -367,4 +367,11 @@ class System_language_pack_controller extends CI_Controller {
 		
 		echo 'ok';
 	}
+    
+    public function reinstallLanguagePack() {
+        $languagePackReinstallScriptPath = "/../../../database/systemManagerModule/adminSection/reinstallLanguagePack/reinstall_language_pack.sql";
+        $this->system_language_pack_model->reinstallLanguagePack($languagePackReinstallScriptPath);
+        
+        echo 'ok';
+    }
 }
