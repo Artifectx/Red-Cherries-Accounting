@@ -75,14 +75,14 @@
 				'<a class="close" href="#" data-dismiss="alert">× </a>' +
 				'<h4><i class="icon-ok-sign"></i>' +
 				'<?php echo $this->lang->line('success')?></h4>' +
-				'<?php echo $this->lang->line('year_end_successfuly_processed')?>' +
+				"<?php echo $this->lang->line('year_end_successfuly_processed')?>" +
 				'</div>';
         
             var msgError = '<div class="alert alert-warning alert-dismissable">' +
 				'<a class="close" href="#" data-dismiss="alert">x </a>' +
 				'<h4><i class="icon-info-sign"></i>' +
 				'<?php echo $this->lang->line('warning')?></h4>' +
-				'<?php echo $this->lang->line('Financial year end processing chart of accounts are not configured')?>' +
+				"<?php echo $this->lang->line('Financial year end processing chart of accounts are not configured')?>" +
 				'</div>';
         
             var bConfirm = confirm("<?php echo $this->lang->line('Are you sure you want to process the year end now')?>?");

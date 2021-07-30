@@ -94,7 +94,7 @@ class Company_information_controller extends CI_Controller {
 						'email' => $row->email,
 						'web' => $row->web,
 						'primary_telephone_number' => $row->ptn_country_code . ' ' . $row->primary_telephone_number,
-						'secendory_telephone_number' => $row->stn_country_code . ' ' . $row->secendory_telephone_number,
+						'secondary_telephone_number' => $row->stn_country_code . ' ' . $row->secondary_telephone_number,
 						'fax' => $row->fax_country_code . ' ' . $row->fax_number,
 						'address' => $row->address,
 						'short_address' => $row->short_address
@@ -109,7 +109,7 @@ class Company_information_controller extends CI_Controller {
 					'email' => '',
 					'web' => '',
 					'primary_telephone_number' => '',
-					'secendory_telephone_number' => '',
+					'secondary_telephone_number' => '',
 					'fax' => '',
 					'address' => '',
 					'short_address' => ''
@@ -132,7 +132,7 @@ class Company_information_controller extends CI_Controller {
 				$primaryTPNumber = $tpArray[1];
 			}
 
-			$secondaryTPNumberCombined = $this->input->post('secendory_telephone_number');
+			$secondaryTPNumberCombined = $this->input->post('secondary_telephone_number');
 			$tpArray = explode(' ', $secondaryTPNumberCombined);
 			$secondaryTPNumberCountryCode = $tpArray[0];
 			$secondaryTPNumber = '';
@@ -155,7 +155,7 @@ class Company_information_controller extends CI_Controller {
 					'email' => $this->input->post('email'),
 					'web' => $this->input->post('web'),
 					'primary_telephone_number' => $primaryTPNumberCountryCode . ' ' . $primaryTPNumber,
-					'secendory_telephone_number' => $secondaryTPNumberCountryCode . ' ' . $secondaryTPNumber,
+					'secondary_telephone_number' => $secondaryTPNumberCountryCode . ' ' . $secondaryTPNumber,
 					'fax' => $faxCountryCode . ' ' . $faxNumber,
 					'address' => $this->input->post('address'),
 					'short_address' => $this->input->post('short_address')
@@ -171,7 +171,7 @@ class Company_information_controller extends CI_Controller {
 					'ptn_country_code' => $primaryTPNumberCountryCode,
 					'primary_telephone_number' => $primaryTPNumber,
 					'stn_country_code' => $secondaryTPNumberCountryCode,
-					'secendory_telephone_number' => $secondaryTPNumber,
+					'secondary_telephone_number' => $secondaryTPNumber,
 					'fax_country_code' => $faxCountryCode,
 					'fax_number' => $faxNumber,
 					'address' => $this->input->post('address'),
@@ -200,7 +200,7 @@ class Company_information_controller extends CI_Controller {
 					'email' => $this->input->post('email'),
 					'web' => $this->input->post('web'),
 					'primary_telephone_number' => $primaryTPNumberCountryCode . ' ' . $primaryTPNumber,
-					'secendory_telephone_number' => $secondaryTPNumberCountryCode . ' ' . $secondaryTPNumber,
+					'secondary_telephone_number' => $secondaryTPNumberCountryCode . ' ' . $secondaryTPNumber,
 					'fax' => $faxCountryCode . ' ' . $faxNumber,
 					'address' => $this->input->post('address'),
 					'short_address' => $this->input->post('short_address')

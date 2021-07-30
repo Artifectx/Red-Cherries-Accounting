@@ -281,12 +281,16 @@ class System_language_pack_controller extends CI_Controller {
 		
 		$languageName = $this->db->escape_str($this->input->post('language'));
 		
-		$languageGeneration = $this->system_language_pack_model->getTranslationGenerationStatus($languageName);
-		
-		$languageGenerationStatus = '';
-		if ($languageGeneration) {
-			$languageGenerationStatus = $languageGeneration[0]->generation_status;
-		}
+        $languageGenerationStatus = '';
+        
+        if ($languageName != '' && $languageName != '0') {
+            $languageGeneration = $this->system_language_pack_model->getTranslationGenerationStatus($languageName);
+
+            $languageGenerationStatus = '';
+            if ($languageGeneration) {
+                $languageGenerationStatus = $languageGeneration[0]->generation_status;
+            }
+        }
 		
 		echo $languageGenerationStatus;
 	}

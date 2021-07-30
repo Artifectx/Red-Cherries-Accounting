@@ -110,14 +110,14 @@
 									</div>
 								</div>
 								<div class='form-group'>
-									<label class='control-label col-sm-3'><?php echo $this->lang->line('Secendory Phone Number') ?></label>
+									<label class='control-label col-sm-3'><?php echo $this->lang->line('Secondary Phone Number') ?></label>
 
 									<div class='col-sm-4 controls'>
 										<input class='form-control'
-											   id='secendory_telephone_number' name='secendory_telephone_number'
-											   placeholder='<?php echo $this->lang->line('Secendory Phone Number') ?>'
+											   id='secondary_telephone_number' name='secondary_telephone_number'
+											   placeholder='<?php echo $this->lang->line('Secondary Phone Number') ?>'
 											   type='text'
-											   value="<?php echo $company_info['secendory_telephone_number']; ?>">
+											   value="<?php echo $company_info['secondary_telephone_number']; ?>">
 									</div>
 								</div>
 								<div class='form-group'>
@@ -187,7 +187,7 @@
 <script>
 	$(document).ready(function() {
 		$("#primary_telephone_number").intlTelInput();
-		$("#secendory_telephone_number").intlTelInput();
+		$("#secondary_telephone_number").intlTelInput();
 		$("#fax").intlTelInput();
 	});
     

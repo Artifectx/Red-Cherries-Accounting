@@ -127,6 +127,7 @@
 
 <script>
 	$(document).ready(function () {
+        $("#translation_generation_div").hide();
 		LanguagePack.init();
 	});
 
@@ -158,10 +159,12 @@
 	}
 	
 	function generateTranslations() {
+        $(".loader").show();
 		LanguagePack.generateTranslations();
 	}
     
     function reinstallLanguagePack() {
+        $(".loader").show();
         LanguagePack.reinstallLanguagePack();
     }
 
@@ -271,6 +274,7 @@
 				},
 				dataType: 'html',
 				success:function (response) {
+                    $(".loader").hide();
 					if (response == "ok") {
 						$(".msg_data").show();
 						$(".msg_data").html(msg);
@@ -298,6 +302,7 @@
 				},
 				dataType: 'html',
 				success:function (response) {
+                    $(".loader").hide();
 					if (response == "ok") {
 						$(".msg_data").show();
 						$(".msg_data").html(msg);

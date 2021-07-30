@@ -33,6 +33,288 @@ INSERT INTO `system_language_translations` VALUES
 (24305,3527,"vietnamese","Chọn / các sổ nhập chính cho các giao dịch tài khoản","",NULL,NULL,NULL);
 
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'chinesesimplified','财政年度结束');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'chinesesimplified','财政年度');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'chinesesimplified','财政年度开始日期');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'chinesesimplified','财政年度结束日期');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'chinesesimplified','年终流程状态');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'chinesesimplified','年终处理人');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'chinesesimplified','处理年终');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'chinesesimplified','上一个财政年度没有关闭！请在添加交易之前关闭上一个财政年度。');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'chinesesimplified','您尝试删除的交易的财政年度已经结束！');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'chinesesimplified','您确定现在要处理年末吗');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'chinesesimplified','年终成功处理，账户余额结转至下一个财政年度。');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'chinesesimplified','选择母负债科目表');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'chinesesimplified','选择母资产科目表');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'chinesesimplified','选择留存收益科目表');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'chinesesimplified','财政年度结束处理科目表未配置');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'chinesesimplified','可用期初余额');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'chinesesimplified','选择贸易债务人会计科目表');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'chinesesimplified','选择父费用科目表');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'chinesesimplified','导入期初余额');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'chinesesimplified','选择期初余额 Excel 文件以导入数据');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'chinesesimplified','加载数据');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'chinesesimplified','数据已成功加载以导入期初余额。查看余额详细信息，然后保存期初余额。');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'chinesesimplified','太多数据无法保存！请使用期初余额导入功能更新更改。');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'chinesesimplified','Artifectx Solutions 的最佳在线会计管理解决方案。');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'chinesesimplified','重新安装语言包以解决语言翻​​译问题');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'chinesesimplified','语言包重新安装成功');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(1304,'chinesesimplified','银行');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(246,'chinesesimplified','系统配置');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(212,'chinesesimplified','行政');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(369,'chinesesimplified','分析期');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(214,'chinesesimplified','地点');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(173,'chinesesimplified','统计数据');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(174,'chinesesimplified','快速链接');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(1866,'chinesesimplified','数据导入');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(224,'chinesesimplified','谷歌分析设置');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(657,'chinesesimplified','供应商');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(784,'chinesesimplified','代理人');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(785,'chinesesimplified','顾客');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(1413,'chinesesimplified','出纳员');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(663,'chinesesimplified','司机');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(1885,'chinesesimplified','下载');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(1886,'chinesesimplified','下载数据导入工作簿用户指南');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(1898,'chinesesimplified','上传');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(1900,'chinesesimplified','下载数据导入工作簿错误日志文件');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(1897,'chinesesimplified','进口');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(1899,'chinesesimplified','下载数据导入错误日志文件');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(529,'chinesesimplified','谷歌分析代码');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(530,'chinesesimplified','在登录中启用');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(531,'chinesesimplified','在仪表板中启用');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(508,'chinesesimplified','管理员帮助');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(509,'chinesesimplified','下载管理员帮助用户指南');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(3004,'chinesesimplified','短地址');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(328,'chinesesimplified','帐户主要入口簿');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(639,'chinesesimplified','日期');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(636,'chinesesimplified','参考编号');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(788,'chinesesimplified','数量');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(640,'chinesesimplified','地位');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(3513,'chinesesimplified','翻译生成待处理');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(213,'chinesesimplified','地点');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(903,'chinesesimplified','报告');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(293,'chinesesimplified','一般');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'chinesetraditional','財政年度結束');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'chinesetraditional','財政年度');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'chinesetraditional','財政年度開始日期');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'chinesetraditional','財政年度結束日期');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'chinesetraditional','年終流程狀態');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'chinesetraditional','年終處理人');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'chinesetraditional','處理年終');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'chinesetraditional','上一個財政年度沒有關閉！請在添加交易之前關閉上一個財政年度。');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'chinesetraditional','您嘗試刪除的交易的財政年度已經結束！');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'chinesetraditional','您確定現在要處理年末嗎');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'chinesetraditional','年終成功處理，賬戶餘額結轉至下一個財政年度。');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'chinesetraditional','選擇母負債科目表');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'chinesetraditional','選擇母資產科目表');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'chinesetraditional','選擇留存收益科目表');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'chinesetraditional','財政年度結束處理科目表未配置');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'chinesetraditional','可用期初餘額');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'chinesetraditional','選擇貿易債務人會計科目表');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'chinesetraditional','選擇父費用科目表');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'chinesetraditional','導入期初餘額');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'chinesetraditional','選擇期初餘額 Excel 文件以導入數據');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'chinesetraditional','加載數據');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'chinesetraditional','數據已成功加載以導入期初餘額。查看餘額詳細信息，然後保存期初餘額。');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'chinesetraditional','太多數據無法保存！請使用期初餘額導入功能更新更改。');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'chinesetraditional','Artifectx Solutions 的最佳在線會計管理解決方案。');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'chinesetraditional','重新安裝語言包以解決語言翻譯問題');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'chinesetraditional','語言包重新安裝成功');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'french',"Fin de l'exercice");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'french',"Année financière");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'french',"Date de début de l'exercice");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'french',"Date de fin d'exercice");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'french',"Statut du processus de fin d'année");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'french',"Fin d'année traitée par");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'french',"Processus de fin d'année");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'french',"L'exercice précédent n'est pas clos ! Veuillez clôturer l'exercice précédent avant d'ajouter des transactions.");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'french',"L'exercice de la transaction que vous essayez de supprimer est déjà clôturé !");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'french',"Êtes-vous sûr de vouloir traiter la fin de l'année maintenant");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'french',"Fin d'année traitée avec succès et soldes des comptes reportés à l'exercice suivant.");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'french',"Sélectionner le plan comptable du passif de la société mère");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'french',"Sélectionner le plan comptable des actifs de la société mère");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'french',"Sélectionnez le plan comptable des bénéfices non répartis");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'french',"Le plan comptable de traitement de fin d'exercice n'est pas configuré");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'french',"Soldes d'ouverture disponibles");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'french',"Sélectionner le plan comptable du débiteur commercial");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'french',"Sélectionnez le plan comptable des dépenses des parents");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'french',"Importer les soldes d'ouverture");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'french',"Sélectionnez le fichier Excel de solde d'ouverture pour importer des données");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'french',"Charger les données");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'french',"Les données ont été chargées avec succès pour importer les soldes d'ouverture. Vérifiez les détails du solde, puis enregistrez les soldes d'ouverture.");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'french',"Trop de données à enregistrer ! Veuillez utiliser la fonction d'importation du solde d'ouverture pour mettre à jour les modifications.");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'french',"Meilleure solution de gestion comptable en ligne d'Artifectx Solutions.");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'french',"Réinstallez le module linguistique pour résoudre les problèmes de traduction linguistique");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'french',"Pack de langue réinstallé avec succès");
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'german','Geschäftsjahr endet');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'german','Geschäftsjahr');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'german','Beginn des Geschäftsjahres');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'german','Enddatum des Geschäftsjahres');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'german','Prozessstatus zum Jahresende');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'german','Jahresende verarbeitet von');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'german','Jahresende verarbeiten');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'german','Das vergangene Geschäftsjahr ist nicht abgeschlossen! Bitte schließen Sie das vorherige Geschäftsjahr, bevor Sie Transaktionen hinzufügen.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'german','Das Geschäftsjahr der Transaktion, die Sie löschen möchten, ist bereits abgeschlossen!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'german','Möchten Sie das Jahresende jetzt wirklich bearbeiten');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'german','Jahresende erfolgreich verarbeitet und Kontosalden auf das nächste Geschäftsjahr vorgezogen.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'german','Wählen Sie den Kontenplan für die übergeordneten Verbindlichkeiten aus');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'german','Wählen Sie den Kontenplan des übergeordneten Vermögens aus');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'german','Wählen Sie den Kontenplan für einbehaltene Einnahmen aus');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'german','Der Kontenplan zum Ende des Geschäftsjahres ist nicht konfiguriert');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'german','Verfügbare Eröffnungssalden');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'german','Wählen Sie einen Debitorenplan aus Lieferungen und Leistungen');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'german','Wählen Sie den übergeordneten Kostenplan des Kontos');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'german','Eröffnungssalden importieren');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'german','Wählen Sie die Excel-Datei für den Eröffnungssaldo aus, um Daten zu importieren');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'german','Lade Daten');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'german','Daten erfolgreich geladen, um Eröffnungssalden zu importieren. Überprüfen Sie die Saldendetails und speichern Sie dann die Eröffnungssalden.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'german','Zu viele Daten zum Speichern! Bitte verwenden Sie die Eröffnungssaldo-Importfunktion, um Änderungen zu aktualisieren.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'german','Beste Online-Buchhaltungsmanagementlösung von Artifectx Solutions.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'german','Installieren Sie das Sprachpaket neu, um Probleme mit der Sprachübersetzung zu lösen');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'german','Sprachpaket erfolgreich neu installiert');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (4085,'hindi','वित्तीय वर्ष समाप्त');
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (4086,'hindi','वित्तीय वर्ष');
@@ -84,3 +366,904 @@ INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,
 (4109,'hindi','भाषा अनुवाद के मुद्दों को हल करने के लिए भाषा पैक को पुनर्स्थापित करें');
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (4110,'hindi','भाषा पैक सफलतापूर्वक पुनः स्थापित किया गया');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'hungarian','A pénzügyi év véget ér');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'hungarian','Pénzügyi év');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'hungarian','Pénzügyi év kezdő dátuma');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'hungarian','Pénzügyi év záró dátuma');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'hungarian','Év végi folyamat állapota');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'hungarian','Év vége feldolgozta');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'hungarian','Folyamat év vége');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'hungarian','Az előző pénzügyi év nincs lezárva! Kérjük, zárja be az előző pénzügyi évet a tranzakciók hozzáadása előtt.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'hungarian','A törlendő tranzakció pénzügyi éve már lezárult!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'hungarian','Biztosan most szeretné feldolgozni az év végét?');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'hungarian','Az év végét sikeresen feldolgozták, és a számlaegyenlegeket átvitték a következő pénzügyi évre.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'hungarian','Válassza ki a szülői kötelezettségek számlát');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'hungarian','Válassza ki a szülői eszközök fióktábláját');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'hungarian','Válassza ki a felhalmozott eredmény számlaszámláját');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'hungarian','A pénzügyi év végi feldolgozási számlák nincsenek konfigurálva');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'hungarian','Rendelkezésre álló nyitómérlegek');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'hungarian','Válassza ki a kereskedelmi adós számlatervét');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'hungarian','Válassza ki a szülői költségtérképet');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'hungarian','Nyitó egyenlegek importálása');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'hungarian','Válassza a Nyitómérleg Excel fájl lehetőséget az adatok importálásához');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'hungarian','Adat betöltés');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'hungarian','Az adatok sikeresen betöltődtek a nyitó egyenlegek importálásához. Tekintse át az egyenleg részleteit, majd mentse a nyitó egyenlegeket.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'hungarian','Túl sok adat menthető! A módosítások frissítéséhez használja a nyitóegyenleg importálás funkciót.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'hungarian','Az Artifectx Solutions legjobb online számviteli menedzsment megoldása.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'hungarian','Telepítse újra a nyelvi csomagot a nyelvfordítási problémák megoldásához');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'hungarian','A nyelvi csomag sikeresen újratelepítve');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'italian',"Fine anno finanziario");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'italian',"Anno finanziario");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'italian',"Data di inizio dell'esercizio finanziario");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'italian',"Data di fine anno finanziario");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'italian',"Stato del processo di fine anno");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'italian',"Fine anno Elaborato da");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'italian',"Processo di fine anno");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'italian',"L'anno finanziario precedente non è chiuso! Si prega di chiudere l'anno finanziario precedente prima di aggiungere transazioni.");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'italian',"L'anno finanziario della transazione che stai cercando di eliminare è già chiuso!");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'italian',"Sei sicuro di voler elaborare la fine dell'anno ora?");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'italian',"Fine anno elaborato con successo e saldi del conto anticipati all'anno finanziario successivo.");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'italian',"Seleziona il piano contabile delle passività madri parent");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'italian',"Seleziona il piano dei conti delle attività principali");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'italian',"Seleziona il piano del conto degli utili non distribuiti");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'italian',"Il piano dei conti dell'elaborazione di fine anno finanziario non è configurato");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'italian',"Saldi di apertura disponibili");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'italian',"Seleziona il piano dei conti del debitore commerciale");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'italian',"Seleziona la tabella dei conti delle spese dei genitori");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'italian',"Importa saldi iniziali");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'italian',"Seleziona Apertura file Excel saldo per importare i dati");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'italian',"Caricamento dati");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'italian',"Dati caricati correttamente per importare i saldi di apertura. Rivedere i dettagli del saldo e quindi salvare i saldi di apertura.");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'italian',"Troppi dati da salvare! Utilizza la funzione di importazione del saldo di apertura per aggiornare le modifiche.");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'italian',"La migliore soluzione di gestione della contabilità online di Artifectx Solutions.");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'italian',"Reinstallare il Language Pack per risolvere i problemi di traduzione linguistica");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'italian',"Language pack reinstallato con successo");
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'indonesian','Tahun Keuangan Berakhir');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'indonesian','Tahun Keuangan');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'indonesian','Tanggal Mulai Tahun Keuangan');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'indonesian','Tanggal Akhir Tahun Keuangan');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'indonesian','Status Proses Akhir Tahun');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'indonesian','Akhir Tahun Diproses Oleh');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'indonesian','Proses Akhir Tahun');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'indonesian','Tahun keuangan sebelumnya tidak ditutup! Harap tutup tahun anggaran sebelumnya sebelum menambah transaksi.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'indonesian','Tahun keuangan transaksi yang Anda coba hapus sudah ditutup!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'indonesian','Apakah Anda yakin ingin memproses akhir tahun sekarang?');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'indonesian','Akhir tahun berhasil diproses dan saldo akun dibawa ke tahun anggaran berikutnya.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'indonesian','Pilih bagan akun kewajiban induk');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'indonesian','Pilih bagan akun aset induk');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'indonesian','Pilih bagan akun laba ditahan');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'indonesian','Bagan akun pemrosesan akhir tahun keuangan tidak dikonfigurasi');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'indonesian','Saldo Pembukaan yang Tersedia');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'indonesian','Pilih bagan akun debitur perdagangan');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'indonesian','Pilih bagan akun pengeluaran induk');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'indonesian','Impor Saldo Pembukaan');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'indonesian','Pilih Opening Balance File Excel Untuk Mengimpor Data');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'indonesian','Muat Data');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'indonesian','Data berhasil dimuat untuk mengimpor saldo awal. Tinjau detail saldo dan simpan saldo awal.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'indonesian','Terlalu banyak data untuk disimpan! Silakan gunakan fitur impor saldo awal untuk memperbarui perubahan.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'indonesian','Solusi manajemen akuntansi online terbaik dari Artifectx Solutions.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'indonesian','Instal Ulang Paket Bahasa Untuk Memecahkan Masalah Terjemahan Bahasa');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'indonesian','Paket bahasa berhasil diinstal ulang');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'japanese','会計年度末');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'japanese','会計年度');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'japanese','会計年度の開始日');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'japanese','会計年度末日');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'japanese','年末のプロセスステータス');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'japanese','年末の処理者');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'japanese','年末の処理');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'japanese','前年度は休業していません！トランザクションを追加する前に、前の会計年度を閉じてください。');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'japanese','削除しようとしている取引の会計年度はすでに終了しています。');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'japanese','今年末を処理してもよろしいですか');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'japanese','年末は正常に処理され、口座残高は次の会計年度に繰り越されました。');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'japanese','親負債勘定科目表を選択します');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'japanese','親資産勘定科目表を選択します');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'japanese','利益剰余金勘定科目表を選択します');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'japanese','会計年度末処理勘定コード表が構成されていません');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'japanese','利用可能な期首残高');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'japanese','貿易債務者勘定科目表を選択します');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'japanese','親の経費勘定表を選択します');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'japanese','期首残高のインポート');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'japanese','データをインポートするには、Opening BalanceExcelファイルを選択します');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'japanese','データを読み込む');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'japanese','期首残高をインポートするためにデータが正常にロードされました。残高の詳細を確認してから、期首残高を保存します。');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'japanese','保存するデータが多すぎます！変更を更新するには、期首残高のインポート機能を使用してください。');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'japanese','ArtifectxSolutionsの最高のオンライン会計管理ソリューション。');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'japanese','言語翻訳の問題を解決するために言語パックを再インストールする');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'japanese','言語パックが正常に再インストールされました');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'korean','회계연도 종료');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'korean','회계 연도');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'korean','회계 연도 시작 날짜');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'korean','회계연도 종료일');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'korean','연말 처리 현황');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'korean','연말 처리자');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'korean','프로세스 연말');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'korean','이전 회계 연도는 마감되지 않습니다! 거래를 추가하기 전에 이전 회계 연도를 마감하십시오.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'korean','삭제하려는 거래의 회계 연도가 이미 마감되었습니다!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'korean','지금 연말정산을 하시겠습니까?');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'korean','연말이 성공적으로 처리되고 계정 잔액이 다음 회계 연도로 이월되었습니다.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'korean','모체 부채 계정과목표 선택');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'korean','상위 자산 계정과목표 선택');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'korean','이익잉여금 계정과목표 선택');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'korean','회계연도 말 처리 계정과목표가 구성되지 않았습니다.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'korean','사용 가능한 기초 잔액');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'korean','거래 채무자 계정과목표 선택');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'korean','상위 비용 계정과목표 선택');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'korean','기초 잔액 가져오기');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'korean','데이터를 가져올 기초 잔액 Excel 파일 선택');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'korean','데이터 로드');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'korean','기초 잔액을 가져오기 위해 데이터가 성공적으로 로드되었습니다. 잔액 세부 정보를 검토한 다음 기초 잔액을 저장합니다.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'korean','저장할 데이터가 너무 많습니다! 변경 사항을 업데이트하려면 기초 잔액 가져오기 기능을 사용하십시오.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'korean','Artifectx Solutions의 최고의 온라인 회계 관리 솔루션.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'korean','언어 번역 문제를 해결하기 위해 언어 팩 다시 설치');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'korean','언어 팩이 성공적으로 다시 설치되었습니다.');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'nepali','आर्थिक बर्ष समाप्त हुन्छ');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'nepali','आर्थिक वर्ष');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'nepali','वित्तीय वर्ष सुरू मिति');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'nepali','वित्तीय वर्षको अन्त्य मिति');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'nepali','वर्षको अन्त्य प्रक्रिया स्थिति');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'nepali','वर्ष अन्त द्वारा संसाधित');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'nepali','प्रक्रिया वर्षको अन्त्य');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'nepali','अघिल्लो वित्तीय वर्ष बन्द छैन! कृपया लेनदेन जोड्नु अघि अघिल्लो वित्तीय वर्ष बन्द गर्नुहोस्।');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'nepali','लेनदेन को वित्तीय वर्ष तपाइँ मेटाउन को लागी कोशिश गरीरहनुभएको छ पहिले नै बन्द छ!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'nepali','के तपाइँ पक्का हुनुहुन्छ कि तपाइँ अब वर्षको अन्त्य प्रक्रिया गर्न चाहानुहुन्छ?');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'nepali','वर्षको अन्त्य सफलतापूर्वक प्रशोधन गरीएको छ र खाता ब्यालेन्स अर्को वित्तीय वर्ष को लागी अगाडि ल्याईयो।');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'nepali','खाताको अभिभावक दायित्व चार्ट चयन गर्नुहोस्');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'nepali','खाताको अभिभावक सम्पत्ति चार्ट चयन गर्नुहोस्');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'nepali','खाता को बरकरार आय चार्ट चयन गर्नुहोस्');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'nepali','लेखा को वित्तीय वर्ष अन्त प्रशोधन चार्ट कन्फिगर गरीएको छैन');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'nepali','उपलब्ध खुल्ला ब्यालेन्स');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'nepali','खाताको ट्रेड torणकर्ता चार्ट चयन गर्नुहोस्');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'nepali','खाताको अभिभावक व्यय चार्ट चयन गर्नुहोस्');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'nepali','खुल्ला ब्यालेन्स आयात गर्नुहोस्');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'nepali','डाटा आयात गर्न ब्यालेन्स एक्सेल फाइल खोल्ने चयन गर्नुहोस्');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'nepali','डाटा लोड गर्नुहोस्');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'nepali','डाटा सफलतापूर्वक लोडिंग ब्यालेन्सहरू आयात गर्न लोड भयो। ब्यालेन्स विवरण पत्ता लगाउनुहोस् र त्यसपछि खोल्ने ब्यालेन्सहरू बचत गर्नुहोस्।');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'nepali','धेरै डाटा बचत गर्न को लागी! कृपया परिवर्तन अपडेट गर्न ब्यालेन्स आयात सुविधा खोल्ने प्रयोग गर्नुहोस्।');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'nepali','Artifectx समाधान बाट सर्वश्रेष्ठ अनलाइन लेखा व्यवस्थापन समाधान।');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'nepali','भाषा अनुवाद मुद्दाहरु लाई हल गर्न को लागी भाषा प्याक पुनर्स्थापित गर्नुहोस्');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'nepali','भाषा प्याक सफलतापूर्वक पुनर्स्थापित');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'portuguese','Fim do ano financeiro');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'portuguese','Ano financeiro');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'portuguese','Data de início do ano financeiro');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'portuguese','Data Final do Ano Financeiro');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'portuguese','Status do processo de final de ano');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'portuguese','Fim do ano processado por');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'portuguese','Fim do ano do processo');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'portuguese','O exercício anterior não está fechado! Feche o ano financeiro anterior antes de adicionar transações.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'portuguese','O exercício financeiro da transação que você está tentando excluir já está fechado!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'portuguese','Tem certeza de que deseja processar o final do ano agora');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'portuguese','Final de ano processado com sucesso e saldos de contas antecipados para o próximo ano financeiro.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'portuguese','Selecione o plano de contas do passivo pai');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'portuguese','Selecione o plano de contas dos ativos principais');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'portuguese','Selecione o gráfico de contas de lucros retidos');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'portuguese','O plano de contas de processamento de final de ano financeiro não está configurado');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'portuguese','Saldos de abertura disponíveis');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'portuguese','Selecione o plano de contas do devedor comercial');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'portuguese','Selecione o plano de contas de despesas dos pais');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'portuguese','Importar Saldos de Abertura');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'portuguese','Selecione Arquivo Excel de Balanço de Abertura para Importar Dados');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'portuguese','Carregar dados');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'portuguese','Dados carregados com sucesso para importar saldos iniciais. Reveja os detalhes do saldo e, em seguida, salve os saldos iniciais.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'portuguese','Muitos dados para salvar! Use o recurso de importação de saldo inicial para atualizar as alterações.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'portuguese','Melhor solução de gerenciamento de contabilidade online da Artifectx Solutions.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'portuguese','Reinstale o pacote de idiomas para resolver problemas de tradução de idiomas');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'portuguese','Pacote de idiomas reinstalado com sucesso');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'polish','Koniec roku obrotowego');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'polish','Rok budżetowy');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'polish','Data rozpoczęcia roku obrotowego');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'polish','Data zakończenia roku obrotowego');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'polish','Status procesu na koniec roku');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'polish','Koniec roku przetworzony przez');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'polish','Proces Koniec roku');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'polish','Poprzedni rok obrotowy nie jest zamknięty! Przed dodaniem transakcji zamknij poprzedni rok budżetowy.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'polish','Rok finansowy transakcji, którą próbujesz usunąć, jest już zamknięty!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'polish','Czy na pewno chcesz teraz przetworzyć koniec roku?');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'polish','Pomyślnie przetworzono koniec roku, a salda kont przeniesiono na następny rok finansowy.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'polish','Wybierz plan kont pasywów macierzystych');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'polish','Wybierz plan kont aktywów nadrzędnych');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'polish','Wybierz plan kont zatrzymanych dochodów');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'polish','Plan kont przetwarzania na koniec roku obrotowego nie jest skonfigurowany');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'polish','Dostępne salda początkowe');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'polish','Wybierz plan kont dłużników handlowych');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'polish','Wybierz plan kont wydatków rodzicielskich');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'polish','Importuj salda początkowe');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'polish','Wybierz plik Excel bilansu otwarcia, aby zaimportować dane');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'polish','Załaduj dane');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'polish','Pomyślnie załadowano dane do importu bilansów otwarcia. Sprawdź szczegóły salda, a następnie zapisz salda otwarcia.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'polish','Za dużo danych do zapisania! Użyj funkcji importu salda otwarcia, aby zaktualizować zmiany.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'polish','Najlepsze rozwiązanie do zarządzania księgowością online od Artifectx Solutions.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'polish','Zainstaluj ponownie pakiet językowy, aby rozwiązać problemy z tłumaczeniem języka Language');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'polish','Pakiet językowy został pomyślnie ponownie zainstalowany');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'russian','Окончание финансового года');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'russian','Финансовый год');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'russian','Дата начала финансового года');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'russian','Дата окончания финансового года');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'russian','Статус процесса на конец года');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'russian','Конец года Обработано');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'russian','Конец года процесса');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'russian','Предыдущий финансовый год не закрывается! Пожалуйста, закройте предыдущий финансовый год, прежде чем добавлять транзакции.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'russian','Финансовый год транзакции, которую вы пытаетесь удалить, уже закрыт!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'russian','Вы уверены, что хотите обработать конец года сейчас?');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'russian','Конец года успешно обработан, и остатки на счетах перенесены на следующий финансовый год.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'russian','Выберите план счетов материнских обязательств');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'russian','Выберите план родительских активов для счета');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'russian','Выберите план нераспределенной прибыли для счета');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'chinesesimplified','План обработки счетов на конец финансового года не настроен');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'russian','Доступный начальный баланс');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'russian','Выберите план счета торгового дебитора');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'russian','Выберите родительский план расходов для счета');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'russian','Импорт начальных сальдо');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'russian','Выберите файл Excel начального баланса для импорта данных');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'chinesesimplified','Загрузить данные');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'russian','Данные успешно загружены для импорта начальных балансов. Просмотрите сведения о балансе, а затем сохраните начальные балансы.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'russian','Слишком много данных для сохранения! Пожалуйста, используйте функцию импорта начального баланса, чтобы обновить изменения.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'russian','Лучшее решение для управления бухгалтерским учетом онлайн от Artifectx Solutions.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'russian','Переустановите языковой пакет для решения проблем с языковым переводом');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'russian','Языковой пакет успешно переустановлен');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'romanian','Anul financiar se încheie');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'romanian','An financiar');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'romanian','Data de începere a exercițiului financiar');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'romanian','Data de încheiere a exercițiului financiar');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'romanian','Starea procesului de sfârșit de an');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'romanian','Sfârșitul anului procesat de');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'romanian','Procesul Sfârșitul anului');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'romanian','Anul financiar anterior nu este închis! Vă rugăm să închideți anul financiar anterior înainte de a adăuga tranzacții.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'romanian','Anul financiar al tranzacției pe care încercați să îl ștergeți este deja închis!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'romanian','Sigur doriți să procesați sfârșitul anului acum');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'romanian','Sfârșitul anului este procesat cu succes și soldurile contului sunt reportate pentru exercițiul financiar următor.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'romanian','Selectați planul de cont al pasivelor părinte');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'romanian','Selectați planul de cont al activelor părinte');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'romanian','Selectați planul de cont al veniturilor reportate');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'romanian','Planul de conturi de procesare la sfârșitul exercițiului financiar nu este configurat');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'romanian','Solduri de deschidere disponibile');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'romanian','Selectați planul de cont al debitorului comercial');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'romanian','Selectați planul de cont al cheltuielilor părinte');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'romanian','Importați solduri de deschidere');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'romanian','Selectați Opening Balance Excel File Pentru a importa date');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'romanian','Incarca date');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'romanian','Datele au fost încărcate cu succes pentru a importa soldurile de deschidere. Revizuiți detaliile soldului și apoi salvați soldurile de deschidere.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'romanian','Prea multe date de salvat! Vă rugăm să utilizați funcția de import a soldului de deschidere pentru a actualiza modificările.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'romanian','Cea mai bună soluție de gestionare a contabilității online de la Artifectx Solutions.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'romanian','Reinstalați pachetul lingvistic pentru a rezolva problemele legate de traducerea limbii');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'romanian','Pachetul lingvistic reinstalat cu succes');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'sinhala','මූල්‍ය වර්ෂ අවසානයන්');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'sinhala','මූල්‍ය වර්ෂය');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'sinhala','මූල්‍ය වර්ෂය ආරම්භක දිනය');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'sinhala','මූල්‍ය වර්ෂය අවසන් දිනය');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'sinhala','වසර අවසාන ක්‍රියාවලි තත්ත්වය');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'sinhala','වසර අවසානය සකසන ලද්දේ');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'sinhala','වසර අවසානය ක්‍රියාත්මක කරන්න');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'sinhala','පෙර මූල්‍ය වර්ෂය වසා නැත! ගනුදෙනු එකතු කිරීමට පෙර කරුණාකර පසුගිය මූල්‍ය වර්ෂය වසා දමන්න.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'sinhala','ඔබ මැකීමට උත්සාහ කරන ගනුදෙනුවේ මූල්‍ය වර්ෂය දැනටමත් වසා ඇත!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'sinhala','ඔබට විශ්වාසද ඔබට දැන් වසර අවසානය සැකසීමට අවශ්‍ය බව');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'sinhala','වසර අවසානය සාර්ථකව සැකසූ අතර ගිණුම් ශේෂයන් ඉදිරි මූල්‍ය වර්ෂය සඳහා ගෙන එන ලදී');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'sinhala','මව් වගකීම් ගිණුම් සටහන තෝරන්න');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'sinhala','මව් වත්කම් ගිණුම් සටහන තෝරන්න');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'sinhala','රඳවා තබා ගත් ඉපැයීම් ගිණුමේ සටහන තෝරන්න');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'sinhala','මූල්‍ය වර්ෂය අවසානයේ ගිණුම් සැකසුම් සටහන සැකසී නොමැත');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'sinhala','පවතින ආරම්භක ශේෂයන්');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'sinhala','වෙළඳ ණයකරුගේ ගිණුම් සටහන තෝරන්න');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'sinhala','මව් වියදම් ගිණුම සටහන තෝරන්න');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'sinhala','ආරම්භක ශේෂ දත්ත ආයාත කරන්න');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'sinhala','දත්ත ආයාත කිරීම සඳහා ශේෂය එක්සෙල් ගොනුව විවෘත කිරීම තෝරන්න');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'sinhala','දත්ත පූරණය කරන්න');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'sinhala','ආරම්භක ශේෂයන් ආයාත කිරීම සඳහා දත්ත සාර්ථකව පූරණය විය. ශේෂ විස්තර විමසා බලා විවෘත ශේෂයන් සුරකින්න.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'sinhala','සුරැකීමට පමණට වඩා වඩා දත්ත ඇත! වෙනස්කම් යාවත්කාලීන කිරීම සඳහා කරුණාකර විවෘත ශේෂ ආනයන විශේෂාංගය භාවිතා කරන්න.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'sinhala','Artifectx Solutions වෙතින් හොඳම මාර්ගගත ගිණුම්කරණ කළමනාකරණ විසඳුම.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'sinhala','භාෂා පරිවර්‍තන ගැටලු විසඳීම සඳහා භාෂා ඇසුරුම නැවත ස්ථාපනය කරන්න');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'sinhala','භාෂා පරිවර්තනයන් සාර්ථකව නැවත ස්ථාපනය කරන ලදි');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'spanish','Fin del ejercicio financiero');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'spanish','Año financiero');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'spanish','Fecha de inicio del año financiero');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'spanish','Fecha de finalización del ejercicio financiero');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'spanish','Estado del proceso de fin de año');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'spanish','Fin de año procesado por');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'spanish','Fin del año del proceso');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'spanish','¡El ejercicio anterior no está cerrado! Cierre el año financiero anterior antes de agregar transacciones.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'spanish','¡El año financiero de la transacción que está intentando eliminar ya está cerrado!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'spanish','¿Está seguro de que desea procesar el fin de año ahora?');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'spanish','El final del año se procesó con éxito y los saldos de las cuentas se adelantaron al próximo año financiero.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'spanish','Seleccionar plan de cuentas de pasivos de los padres');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'spanish','Seleccione el plan de cuentas de los activos principales');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'spanish','Seleccionar plan de cuenta de ganancias retenidas');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'spanish','El plan de cuentas de procesamiento de fin de año fiscal no está configurado');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'spanish','Saldos de apertura disponibles');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'spanish','Seleccione el plan de cuentas de deudor comercial');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'spanish','Seleccione el cuadro de cuenta de gastos de los padres');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'spanish','Importar saldos iniciales');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'spanish','Seleccione Abrir archivo de balance de Excel para importar datos');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'spanish','Cargar datos');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'spanish','Datos cargados correctamente para importar saldos iniciales. Vea los detalles del saldo y luego guarde los saldos iniciales.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'spanish','¡Demasiados datos para guardar! Utilice la función de importación de saldo inicial para actualizar los cambios.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'spanish','La mejor solución de gestión contable online de Artifectx Solutions.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'spanish','Reinstale el paquete de idioma para resolver problemas de traducción de idiomas');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'spanish','Paquete de idioma reinstalado correctamente');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'tamil','நிதி ஆண்டு முடிவடைகிறது');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'tamil','நிதி ஆண்டு');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'tamil','நிதி ஆண்டு தொடக்க தேதி');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'tamil','நிதி ஆண்டு இறுதி தேதி');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'tamil','ஆண்டு இறுதி செயல்முறை நிலை');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'tamil','ஆண்டின் இறுதியில் செயலாக்கப்பட்டது');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'tamil','செயல்முறை ஆண்டு முடிவு');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'tamil','முந்தைய நிதியாண்டு மூடப்படவில்லை! பரிவர்த்தனைகளைச் சேர்ப்பதற்கு முன் முந்தைய நிதி ஆண்டை மூடுக.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'tamil','நீங்கள் நீக்க முயற்சிக்கும் பரிவர்த்தனையின் நிதி ஆண்டு ஏற்கனவே மூடப்பட்டுள்ளது!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'tamil','நீங்கள் நிச்சயமாக ஆண்டு முடிவை செயலாக்க விரும்புகிறீர்களா?');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'tamil','ஆண்டு இறுதி வெற்றிகரமாக செயலாக்கப்பட்டது மற்றும் கணக்கு நிலுவைகள் அடுத்த நிதியாண்டுக்கு கொண்டு வரப்படும்.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'tamil','கணக்கின் பெற்றோர் பொறுப்புகள் விளக்கப்படத்தைத் தேர்ந்தெடுக்கவும்');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'tamil','கணக்கின் பெற்றோர் சொத்து விளக்கப்படத்தைத் தேர்ந்தெடுக்கவும்');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'tamil','கணக்கின் தக்க வருவாய் விளக்கப்படத்தைத் தேர்ந்தெடுக்கவும்');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'tamil','கணக்குகளின் நிதி ஆண்டு இறுதி செயலாக்க விளக்கப்படம் கட்டமைக்கப்படவில்லை');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'tamil','கிடைக்கும் திறந்த நிலுவைகள்');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'tamil','வர்த்தக கடனாளர் கணக்கைத் தேர்ந்தெடுக்கவும்');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'tamil','கணக்கின் பெற்றோர் செலவு விளக்கப்படத்தைத் தேர்ந்தெடுக்கவும்');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'tamil','திறப்பு நிலுவைகளை இறக்குமதி செய்க');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'tamil','தரவை இறக்குமதி செய்ய இருப்பு எக்செல் கோப்பைத் திற என்பதைத் தேர்ந்தெடுக்கவும்');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'tamil','தரவை ஏற்றவும்');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'tamil','தொடக்க நிலுவைகளை இறக்குமதி செய்ய தரவு வெற்றிகரமாக ஏற்றப்பட்டது. இருப்பு விவரங்களை வெளிப்படுத்தவும், பின்னர் தொடக்க நிலுவைகளை சேமிக்கவும்.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'tamil','சேமிக்க அதிக தரவு! மாற்றங்களைப் புதுப்பிக்க தொடக்க இருப்பு இறக்குமதி அம்சத்தைப் பயன்படுத்தவும்.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'tamil','ஆர்டிஃபெக்ட்ஸ் தீர்வுகளிலிருந்து சிறந்த ஆன்லைன் கணக்கியல் மேலாண்மை தீர்வு.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'tamil','மொழி மொழிபெயர்ப்பு சிக்கல்களைத் தீர்க்க மொழிப் பொதியை மீண்டும் நிறுவவும்');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'tamil','மொழி பேக் வெற்றிகரமாக மீண்டும் நிறுவப்பட்டது');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'thai','สิ้นปีการเงิน');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'thai','ปีการเงิน');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'thai','วันที่เริ่มต้นปีงบการเงิน');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'thai','วันที่สิ้นสุดปีการเงิน');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'thai','สถานะกระบวนการสิ้นปี');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'thai','สิ้นปี ประมวลผลโดย');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'thai','ดำเนินการสิ้นปี');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'thai','งวดที่แล้วไม่ปิด! กรุณาปิดปีการเงินก่อนหน้าก่อนที่จะเพิ่มธุรกรรม');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'thai','ปีการเงินของธุรกรรมที่คุณพยายามลบปิดแล้ว!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'thai','คุณแน่ใจหรือว่าต้องการดำเนินการสิ้นปีนี้');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'thai','ประมวลผลสิ้นปีได้สำเร็จและยกยอดคงเหลือในบัญชีไปยังปีการเงินถัดไป');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'thai','เลือกผังหนี้สินหลักของบัญชี');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'thai','เลือกผังสินทรัพย์หลักของบัญชี');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'thai','เลือกผังบัญชีกำไรสะสม');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'thai','ไม่ได้กำหนดค่าผังการประมวลผลสิ้นปีการเงินของบัญชี');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'thai','ยอดคงเหลือต้นงวดที่มีอยู่');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'thai','เลือกผังบัญชีลูกหนี้การค้า');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'thai','เลือกผังค่าใช้จ่ายหลักของบัญชี');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'thai','นำเข้ายอดดุลยกมา');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'thai','เลือกไฟล์ Excel การเปิดยอดดุลเพื่อนำเข้าข้อมูล');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'thai','โหลดข้อมูล');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'thai','โหลดข้อมูลเพื่อนำเข้ายอดดุลยกมาเรียบร้อยแล้ว ตรวจสอบรายละเอียดยอดดุลแล้วบันทึกยอดดุลยกมา');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'thai','ข้อมูลมากเกินไปที่จะบันทึก! โปรดใช้คุณลักษณะการนำเข้ายอดคงเหลือเปิดเพื่ออัปเดตการเปลี่ยนแปลง');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'thai','โซลูชันการจัดการบัญชีออนไลน์ที่ดีที่สุดจาก Artifectx Solutions');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'thai','ติดตั้งชุดภาษาใหม่เพื่อแก้ไขปัญหาการแปลภาษา');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'thai','ติดตั้งชุดภาษาใหม่สำเร็จแล้ว');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'turkish','Mali Yıl Bitiyor');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'turkish','Mali yıl');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'turkish','Mali Yıl Başlangıç ​​Tarihi');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'turkish','Mali Yıl Bitiş Tarihi');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'turkish','Yıl Sonu İşlem Durumu');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'turkish','Yıl Sonu İşlenen');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'turkish','Süreç Yıl Sonu');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'turkish','Önceki mali yıl kapanmadı! Lütfen işlem eklemeden önce önceki mali yılı kapatın.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'turkish','Silmeye çalıştığınız işlemin mali yılı zaten kapalı!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'turkish','Yıl sonunu şimdi işlemek istediğinizden emin misiniz?');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'turkish','Yıl sonu başarıyla işlendi ve hesap bakiyeleri bir sonraki mali yıla aktarıldı.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'turkish','Ana borç hesap planını seçin');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'turkish','Ana varlıklar hesap planını seçin');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'turkish','Birikmiş kazançlar hesap planını seçin');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'turkish','Mali yıl sonu işleme hesap planı yapılandırılmamış');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'turkish','Mevcut Açılış Bakiyeleri');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'turkish','Ticari borçlu hesap planını seçin');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'turkish','Ana gider hesap planını seçin');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'turkish','İthalat Açılış Bakiyeleri');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'turkish','Verileri İçe Aktarmak İçin Bakiye Excel Dosyasını Açmayı Seçin');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'turkish','Veri yükle');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'turkish','Açılış bakiyelerini içe aktarmak için veriler başarıyla yüklendi. Bakiye ayrıntılarını gözden geçirin ve ardından açılış bakiyelerini kaydedin.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'turkish','Kaydedilecek çok fazla veri var! Değişiklikleri güncellemek için lütfen açılış bakiyesi içe aktarma özelliğini kullanın.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'turkish',"Artifectx Solutions'dan en iyi çevrimiçi muhasebe yönetimi çözümü.");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'turkish','Dil Çevirisi Sorunlarını Çözmek için Dil Paketini Yeniden Yükleyin');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'turkish','Dil paketi başarıyla yeniden yüklendi');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'ukrainian','Закінчується фінансовий рік');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'ukrainian','Фінансовий рік');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'ukrainian','Дата початку фінансового року');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'ukrainian','Дата закінчення фінансового року');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'ukrainian','Стан процесу в кінці року');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'ukrainian','Кінець року оброблено');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'ukrainian','Кінець робочого року');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'ukrainian','Попередній фінансовий рік не закритий! Будь ласка, закрийте попередній фінансовий рік перед додаванням транзакцій.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'ukrainian','Фінансовий рік транзакції, яку ви намагаєтесь видалити, уже закрито!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'ukrainian','Ви впевнені, що хочете обмежити кінець року зараз');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'ukrainian','Кінець року успішно оброблено, а залишки на рахунках перенесено на наступний фінансовий рік.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'ukrainian',"Виберіть план рахунків обліку зобов'язань батьків");
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'ukrainian','Виберіть план рахунків материнських активів');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'ukrainian','Виберіть план рахунків нерозподіленого прибутку');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'ukrainian','План рахунків обробки на кінець фінансового року не налаштований');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'ukrainian','Доступні залишки відкриття');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'ukrainian','Виберіть план рахунку торгового боржника');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'ukrainian','Виберіть схему рахунків батьківських витрат');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'ukrainian','Імпорт початкових залишків');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'ukrainian','Виберіть файл відкриття балансу Excel для імпорту даних');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'ukrainian','Завантажити дані');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'ukrainian','Дані успішно завантажено для імпорту початкового балансу. Оновіть дані балансу, а потім збережіть початкові залишки.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'ukrainian','Забагато даних для збереження! Будь ласка, використовуйте функцію імпорту початкового балансу, щоб оновити зміни.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'ukrainian','Найкраще рішення для ведення бухгалтерського обліку в Інтернеті від Artifectx Solutions.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'ukrainian','Перевстановіть мовний пакет, щоб вирішити проблеми перекладу мови');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'ukrainian','Мовний пакет успішно перевстановлено');
+
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4085,'vietnamese','Kết thúc năm tài chính');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4086,'vietnamese','Năm tài chính');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4087,'vietnamese','Ngày bắt đầu năm tài chính');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4088,'vietnamese','Ngày kết thúc năm tài chính');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4089,'vietnamese','Trạng thái quy trình cuối năm');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4090,'vietnamese','Cuối năm được xử lý bởi');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4091,'vietnamese','Xử lý cuối năm');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4092,'vietnamese','Năm tài chính trước chưa đóng! Vui lòng đóng năm tài chính trước đó trước khi thêm giao dịch.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4093,'vietnamese','Năm tài chính của giao dịch bạn đang cố gắng xóa đã đóng!');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4094,'vietnamese','Bạn có chắc chắn muốn xử lý ngày cuối năm ngay bây giờ không');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4095,'vietnamese','Cuối năm được xử lý thành công và số dư tài khoản được chuyển sang năm tài chính tiếp theo.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4096,'vietnamese','Chọn biểu đồ nợ phải trả của tài khoản mẹ');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4097,'vietnamese','Chọn biểu đồ tài sản mẹ của tài khoản');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4098,'vietnamese','Chọn biểu đồ thu nhập giữ lại của tài khoản');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4099,'vietnamese','Biểu đồ xử lý cuối năm tài chính của các tài khoản không được định cấu hình');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4100,'vietnamese','Số dư đầu kỳ có sẵn');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4101,'vietnamese','Chọn biểu đồ tài khoản con nợ thương mại');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4102,'vietnamese','Chọn biểu đồ chi phí của tài khoản mẹ');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4103,'vietnamese','Nhập số dư đầu kỳ');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4104,'vietnamese','Chọn số dư mở tệp Excel để nhập dữ liệu');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4105,'vietnamese','Tải dữ liệu');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4106,'vietnamese','Dữ liệu được tải thành công để nhập số dư đầu kỳ. Xem lại chi tiết số dư và sau đó lưu số dư đầu kỳ.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4107,'vietnamese','Quá nhiều dữ liệu để tiết kiệm! Vui lòng sử dụng tính năng nhập số dư đầu kỳ để cập nhật các thay đổi.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4108,'vietnamese','Giải pháp quản lý kế toán trực tuyến tốt nhất từ ​​Artifectx Solutions.');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4109,'vietnamese','Cài đặt lại Gói ngôn ngữ để giải quyết các vấn đề về dịch ngôn ngữ');
+INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
+(4110,'vietnamese','Gói ngôn ngữ đã được cài đặt lại thành công');
