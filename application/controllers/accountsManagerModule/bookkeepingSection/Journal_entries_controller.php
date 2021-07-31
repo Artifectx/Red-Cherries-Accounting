@@ -1367,11 +1367,11 @@ class Journal_entries_controller extends CI_Controller {
 			case '1':
 
 				if ($transactionReferenceNo != '') {
-					$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo, 'Purchase Note', $financialYearStartDate, $financialYearEndDate);
+					$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo, 'Purchase Note', '', '', '', $financialYearStartDate, $financialYearEndDate);
 				} else {
 					$purchaseNote = $this->purchase_note_model->getPurchaseNoteById($transactionReferenceId);
 					if ($purchaseNote && sizeof($purchaseNote) > 0) {
-						$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($purchaseNote[0]->reference_no, 'Purchase Note', $financialYearStartDate, $financialYearEndDate);
+						$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($purchaseNote[0]->reference_no, 'Purchase Note', '', '', '', $financialYearStartDate, $financialYearEndDate);
 					}
 				}
 				
@@ -1400,11 +1400,11 @@ class Journal_entries_controller extends CI_Controller {
 			case '2':
 
 				if ($transactionReferenceNo != '') {
-					$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo, 'Sales Note', $financialYearStartDate, $financialYearEndDate);
+					$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo, 'Sales Note', '', '', '', $financialYearStartDate, $financialYearEndDate);
 				} else {
 					$salesNote = $this->sales_note_model->getSalesNoteById($transactionReferenceId);
 					if ($salesNote && sizeof($salesNote) > 0) {
-						$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($salesNote[0]->reference_no, 'Sales Note', $financialYearStartDate, $financialYearEndDate);
+						$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($salesNote[0]->reference_no, 'Sales Note', '', '', '', $financialYearStartDate, $financialYearEndDate);
 					}
 				}
 				
@@ -1433,11 +1433,11 @@ class Journal_entries_controller extends CI_Controller {
 			case '3':
 
 				if ($transactionReferenceNo != '') {
-					$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo, 'Supplier Return Note', $financialYearStartDate, $financialYearEndDate);
+					$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo, 'Supplier Return Note', '', '', '', $financialYearStartDate, $financialYearEndDate);
 				} else {
 					$supplierReturnNote = $this->supplier_return_note_model->getSupplierReturnNoteById($transactionReferenceId);
 					if ($supplierReturnNote && sizeof($supplierReturnNote) > 0) {
-						$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($supplierReturnNote[0]->reference_no, 'Supplier Return Note', $financialYearStartDate, $financialYearEndDate);
+						$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($supplierReturnNote[0]->reference_no, 'Supplier Return Note', '', '', '', $financialYearStartDate, $financialYearEndDate);
 					}
 				}
 				
@@ -1466,11 +1466,11 @@ class Journal_entries_controller extends CI_Controller {
 			case '4':
 
 				if ($transactionReferenceNo != '') {
-					$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo, 'Customer Return Note', $financialYearStartDate, $financialYearEndDate);
+					$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($transactionReferenceNo, 'Customer Return Note', '', '', '', $financialYearStartDate, $financialYearEndDate);
 				} else {
 					$customerReturnNote = $this->customer_return_note_model->getCustomerReturnNoteById($transactionReferenceId);
 					if ($customerReturnNote && sizeof($customerReturnNote) > 0) {
-						$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($customerReturnNote[0]->reference_no, 'Customer Return Note', $financialYearStartDate, $financialYearEndDate);
+						$journalEntries = $this->journal_entries_model->getJournalEntriesByReferenceNoAndByTransactionType($customerReturnNote[0]->reference_no, 'Customer Return Note', '', '', '', $financialYearStartDate, $financialYearEndDate);
 					}
 				}
 				
