@@ -489,14 +489,13 @@ class Opening_balances_controller extends CI_Controller {
                     $payeePayerId = $row['B'];
                     $drAmount = $row['C'];
                     $crAmount = $row['D'];
+                    $description = $row['E'];
                     
                     $shouldHaveAPaymentJournalEntry = "No";
 
                     if ($payeePayerId != '' && $payeePayerId != '0') {
                         $shouldHaveAPaymentJournalEntry = "Yes";
                     }
-                    
-                    $description = '';
                     
                     $data = array(
                         'transaction_date' => $openingBalancesDate,
@@ -693,6 +692,7 @@ class Opening_balances_controller extends CI_Controller {
 			$payeePayerCodes[$count] = $openingBalancesWorksheet->getCell('B' . $count)->getValue();
             $debitAmounts[$count] = $openingBalancesWorksheet->getCell('D' . $count)->getValue();
             $creditAmounts[$count] = $openingBalancesWorksheet->getCell('E' . $count)->getValue();
+            $descriptions[$count] = $openingBalancesWorksheet->getCell('F' . $count)->getValue();
 			$count++;
 		}
 		
@@ -766,7 +766,7 @@ class Opening_balances_controller extends CI_Controller {
 				if (!$errorsFound) {
 					
 					$openingBalancesList[] = array($chartOfAccountIds[$count], $payeePayerIds[$count], 
-                                                   $debitAmounts[$count], $creditAmounts[$count]);
+                                                   $debitAmounts[$count], $creditAmounts[$count], $descriptions[$count]);
 				}
 
 				$count++;
@@ -969,6 +969,7 @@ class Opening_balances_controller extends CI_Controller {
                 $payeePayerId = $row['B'];
                 $debitAmount = $row['C'];
                 $creditAmount = $row['D'];
+                $description = $row['E'];
                 
                 $chartOfAccountOptionList = $this->chart_of_accounts_model->getAllToChartOfAccountsAsDropdownOptionList($chartOfAccountId);
                 $payeePayerList = $this->peoples_model->getAllPeoplesAsOptionList("People Name", '', '', $payeePayerId, false);
@@ -1015,7 +1016,7 @@ class Opening_balances_controller extends CI_Controller {
                                     <div id='cr_{$x}Error' class='red'></div></td>";
                 }
 
-                $html .= "<td>  <input class='form-control' id='description_{$x}' type='text' placeholder='Description' value=''>
+                $html .= "<td>  <input class='form-control' id='description_{$x}' type='text' placeholder='Description' value='{$description}'>
                                 <div id='description_{$x}Error' class='red'></div></td>";
 
                 $html .= "<td>  <button class='btn btn-danger save' id='delete_{$x}' onclick='deleteAccountOpeningBalance(this.id);' type='button'>
