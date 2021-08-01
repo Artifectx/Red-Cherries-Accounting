@@ -3,7 +3,6 @@
 UPDATE `system_common_configurations` SET `config_filed_value` =  '1.1' WHERE id = 1;
 UPDATE `system_common_configurations` SET `config_filed_value` =  '10.0 Beta 2' WHERE id = 2;
 
-/*From ERP Version 9.0 Beta 1 */
 INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
 ('tld_rentals_distribute_tld_reference_no_auto_increment', 'No'),
 ('tld_rentals_distribute_tld_reference_no_starting_code', ''),
@@ -18,57 +17,46 @@ INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_va
 ('si_allow_to_hold_wholesales_sales_invoice', 'No'),
 ('si_do_not_allow_to_login_or_logout_when_there_are_onhold_wholesales_sales_invoice', 'No');
 
-/*From ERP Version 9.0 Beta 2 */
 INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
 ('si_disable_item_wise_discount_feature_in_pos', 'No'),
 ('si_print_additional_copy_of_sales_invoice_short_bill', 'No');
 
-/*From ERP Version 9.0 Beta 3 */
 INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
 ('si_cashier_should_balance_with_system_cashier_balance_to_login_to_pos', 'No');
 
-/*From ERP Version 9.0 Beta 4 */
 INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
 ('fg_show_product_name_translation', 'No'),
 ('fg_allow_to_enable_disable_products', 'No');
 
-/*From ERP Version 9.0 Beta 6 */
 INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
 ('allow_to_add_a_collect_tld_return_for_a_partially_returned_tld_distribution', 'No');
 
-/*From ERP Version 9.0 Beta 8 */
 INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
 ('tld_rentals_dose_reports_reference_no_auto_increment', 'No'),
 ('tld_rentals_dose_reports_reference_no_starting_code', ''),
 ('tld_rentals_dose_reports_reference_no_separator', ''),
 ('tld_rentals_dose_reports_reference_no_starting_number', '');
 
-/*From ERP Version 9.0 Beta 9 */
 INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
 ('tld_rentals_tld_invoices_reference_no_auto_increment', 'No'),
 ('tld_rentals_tld_invoices_reference_no_starting_code', ''),
 ('tld_rentals_tld_invoices_reference_no_separator', ''),
 ('tld_rentals_tld_invoices_reference_no_starting_number', '');
 
-/*From ERP Version 9.0 Beta 12 */
 INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
 ('maximum_allowed_product_opening_stock_value', '1000.00'),
 ('maximum_allowed_product_stock_update_physical_stock_value', '1000.00');
 
-/*From ERP Version 9.0 Beta 14 */
 /*Data for the table `system_module_section_features` */
 INSERT  INTO `system_module_section_features`(`module_section_feature_id`, `module_section_id`, `module_section_feature_name`, `showing_status`) VALUES
 (169, 29, 'TLD Reader Machines', 'Yes');
 
-/*From ERP Version 9.0 Beta 16 */
 INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
 ('si_round_off_pos_sales_invoice_due_payment', 'No');
 
-/*From ERP Version 9.0 Beta 17 */
 INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
 ('process_dose_reports_after_import_tld_readings', 'No');
 
-/*From ERP Version 9.0 Beta 20 */
 INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
 ('si_restrict_pos_credit_invoicing_for_default_customer', 'No'),
 
@@ -93,7 +81,6 @@ INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_va
 ('fieldextremityeye_twomonth_period_dose_investigation_limit', '2.93'),
 ('fieldextremityeye_threemonth_period_dose_investigation_limit', '4.45');
 
-/*From ERP Version 9.0 Beta 21 */
 INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
 ('mail_server_name', ''),
 ('mail_server_username', ''),
@@ -110,12 +97,10 @@ INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_va
 
 ('pmsl_dose_report_containing_folder_name_in_server', '');
 
-/*From ERP Version 10.0 Beta 1 */
 INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
 ('si_print_sales_unit_on_sales_invoice_detail_bill', 'No'),
 ('si_print_markup_price_on_sales_invoice_detail_bill', 'No');
 
-/*From ERP Version 10.0 Beta 2 */
 INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_value`) VALUES
 ('parent_liabilities_chart_of_account', ''),
 ('parent_assets_chart_of_account', ''),
@@ -123,7 +108,6 @@ INSERT INTO `system_common_configurations`(`config_filed_name`, `config_filed_va
 ('trade_debtor_chart_of_account', ''),
 ('parent_expense_chart_of_account', '');
 
-/*From ERP Version 9.0 Beta 1 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Status change updated successfully!', 'message', '6', 'Manage TLDs Screen');
@@ -420,8 +404,6 @@ SET @languageStringId = LAST_INSERT_ID();
 
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Bulk Print TLD Distribution Envelopes');
-
-
 
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
@@ -864,7 +846,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Red Cherries ERP POS Sales Invoice');
 
-/*From ERP Version 9.0 Beta 2 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Background TLD', 'message', '1', 'People Screen');
@@ -1128,7 +1109,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Distribution Reference No');
 
-/*From ERP Version 9.0 Beta 3 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Cashier Should Balance With System Cashier Balance to Login to POS', 'display_string', '2', 'System Configurations Screen');
@@ -1210,7 +1190,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Cash Excess Grand Total');
 
-/*From ERP Version 9.0 Beta 4 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Finish good sales return cash refund', 'display_string', '2', 'System Configurations Screen');
@@ -1283,7 +1262,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Deactivate the Customer');
 
-/*From ERP Version 9.0 Beta 5 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Preparation Date', 'display_string', '6', 'Distribute TLDs Screen');
@@ -1388,7 +1366,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Reference Background TLD');
 
-/*From ERP Version 9.0 Beta 6 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Bigger physical quantity! Are you sure to proceed?', 'message', '2', 'Warehouse Stock Update Screen');
@@ -1488,7 +1465,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Invalid Exposure Period From Date.');
 
-/*From ERP Version 9.0 Beta 7 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Institute Number', 'display_string', '6', 'Distribute TLDs Screen');
@@ -1732,7 +1708,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Tertiary Phone Number');
 
-/*From ERP Version 9.0 Beta 8 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Dose Report Preview', 'display_string', '6', 'Dose Reports Screen');
@@ -1945,7 +1920,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Investigation Limit (mSv)');
 
-/*From ERP Version 9.0 Beta 9 */
 /*Data for the table `system_module_section_features` */
 INSERT  INTO `system_module_section_features`(`module_section_feature_id`, `module_section_id`, `module_section_feature_name`, `showing_status`) VALUES
 (168, 29, 'TLD Readings', 'Yes');
@@ -2301,7 +2275,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Reminder Letter');
 
-/*From ERP Version 9.0 Beta 10 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Institute Code', 'display_string', '6', 'PMSL Reports Screen');
@@ -2725,7 +2698,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Average Per Day Dose Variation');
 
-/*From ERP Version 9.0 Beta 11 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Field Whole Body TLD', 'display_string', '6', 'PMSL Reports Screen');
@@ -2780,7 +2752,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Name & Signature of the RPO/Authorized Person :');
 
-/*From ERP Version 9.0 Beta 12 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Return No', 'display_string', '6', 'PMSL Reports Screen');
@@ -2961,7 +2932,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Physical Quantity you entered is exceeding maximum allowed product stock update physical stock quantity!');
 
-/*From ERP Version 9.0 Beta 13 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('reminder_already_generated', 'message', '6', 'Not Returned TLDs Screen');
@@ -3007,7 +2977,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','TLD Assignment History Data');
 
-/*From ERP Version 9.0 Beta 14 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('TLD Reader Machines', 'display_string', '6', 'Menus');
@@ -3080,7 +3049,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Exposure Period To Date updated sucessfully.');
 
-/*From ERP Version 9.0 Beta 15 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('TLD Name', 'display_string', '6', 'PMSL Reports Screen');
@@ -3153,7 +3121,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','TLD Readings already processed for dose reports!');
 
-/*From ERP Version 9.0 Beta 16 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Used Period', 'display_string', '6', 'PMSL Reports Screen');
@@ -3433,7 +3400,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Last Six Months Monthly Rentals');
 
-/*From ERP Version 9.0 Beta 17 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Exposure Period From date cannot be greater than Exposure Period To date', 'message', '6', 'Collect TLD Returns Screen');
@@ -3569,7 +3535,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Dose Report as printed');
 
-/*From ERP Version 9.0 Beta 18 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Distribution Progress', 'display_string', '6', 'Menus');
@@ -3777,7 +3742,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Show All Readings');
 
-/*From ERP Version 9.0 Beta 19 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Institute Wise Worker Service Registrations', 'display_string', '6', 'PMSL Reports Screen');
@@ -4213,7 +4177,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Stock Value');
 
-/*From ERP Version 9.0 Beta 20 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Assignment Type', 'display_string', '6', 'PMSL Reports Screen');
@@ -4313,7 +4276,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Investigation Limit should be a double value');
 
-/*From ERP Version 9.0 Beta 21 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Web Portal Registration Email', 'display_string', '1', 'External Institutes Screen');
@@ -4553,7 +4515,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Dose Report Containing Folder Name in Server');
 
-/*From ERP Version 10.0 Beta 1 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Received Credit Payment', 'display_string', '1', 'Welfare Company Credit Accounts Screen');
@@ -5031,7 +4992,6 @@ SET @languageStringId = LAST_INSERT_ID();
 INSERT INTO `system_language_translations`(`language_string_id`,`language_name`,`translated_string`) VALUES
 (@languageStringId,'English','Are you sure you want to permanently deactivate the selected person');
 
-/*From ERP Version 10.0 Beta 2 */
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES
 ('Financial Year Ends', 'display_string', '7', 'Menus');

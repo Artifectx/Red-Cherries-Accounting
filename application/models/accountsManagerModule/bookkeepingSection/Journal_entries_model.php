@@ -947,8 +947,8 @@ class Journal_entries_model extends CI_Model {
 		}
     }
     
-    public function deleteAlreadyImportedOpeningBalancesRecords($financialYearStartDate, $financialYearEndDate) {
-        
+    public function deleteAlreadyImportedOpeningBalancesRecords($locationId, $financialYearStartDate, $financialYearEndDate) {
+        $this->db->where('location_id', $locationId);
         $this->db->where('transaction_date >=', $financialYearStartDate);
         $this->db->where('transaction_date <=', $financialYearEndDate);
         $this->db->where('remark', "OB");

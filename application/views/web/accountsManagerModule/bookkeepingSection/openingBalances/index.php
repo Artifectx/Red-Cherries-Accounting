@@ -262,11 +262,14 @@
     
     function saveOpeningBalances() {
         
+        var openingBalanceEquityAccountConfigured = "Yes";
+        
         if ("<?php echo $is_opening_balance_equity_account_set_in_config_for_opening_balances; ?>" == "No") {
+            openingBalanceEquityAccountConfigured = "No";
             alert("<?php echo $this->lang->line('Opening balance equity account is not specified in opening balance configurations!') ?>");
         }
         
-        if (validateOpeningBalanceMasterData()) {
+        if (openingBalanceEquityAccountConfigured == "Yes" && validateOpeningBalanceMasterData()) {
             if (DrAmountTotal.toFixed(2) == CrAmountTotal.toFixed(2)) {
                 var location = $("#location_search_id").val();
                 var openingBalanceDate = $("#opening_balance_date").val();

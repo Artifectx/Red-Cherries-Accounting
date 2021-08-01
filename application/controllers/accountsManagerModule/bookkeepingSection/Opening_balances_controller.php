@@ -465,7 +465,7 @@ class Opening_balances_controller extends CI_Controller {
             }
             
             //Delete if opening balances already available for the financial year
-            $this->journal_entries_model->deleteAlreadyImportedOpeningBalancesRecords($currentFinancialYearStartDate, $currentFinancialYearEndDate);
+            $this->journal_entries_model->deleteAlreadyImportedOpeningBalancesRecords($locationId, $currentFinancialYearStartDate, $currentFinancialYearEndDate);
             
             $sheetData = '';
 
