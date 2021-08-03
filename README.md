@@ -7,7 +7,7 @@
 
 Red Cherries Accounting is a web based accounting software solution 
 for Small and Medium Enterprices (SME) to manage financial information. 
-Copyright (C) 2020  Artifectx Solutions (Pvt) Ltd
+Copyright (C) 2021  Artifectx Solutions (Pvt) Ltd
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
