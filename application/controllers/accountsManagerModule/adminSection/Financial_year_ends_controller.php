@@ -920,110 +920,134 @@ class Financial_year_ends_controller extends CI_Controller {
                             }
 
                             if ($retainedEarningsAccountBalanceListFinal && sizeof($retainedEarningsAccountBalanceListFinal) > 0) {
+                                
+                                $accountBalance = '0.00';
+                                
                                 foreach ($retainedEarningsAccountBalanceListFinal as $accountBalanceRow) {
-                                    $chartOfAccountId = $accountBalanceRow['chart_of_account_id'];
 
-                                    $chartOfAccount = $this->chart_of_accounts_model->get($accountBalanceRow['chart_of_account_id']);
-                                    $chartOfAccountName = $chartOfAccount[0]->text;
-
-                                    $accountBalance = $accountBalanceRow['credit_amount'] - $accountBalanceRow['debit_amount'];
-
-                                    $drAmount = '0.00';
-                                    $crAmount = '0.00';
-
-                                    if ($accountBalance > 0) {
-                                        $crAmount = $accountBalance;
-                                    } else if ($accountBalance < 0) {
-                                        $drAmount = -($accountBalance);
+                                    if ($accountBalanceRow['credit_amount'] != '0.00') {
+                                        $accountBalance = $accountBalance + $accountBalanceRow['credit_amount'];
+                                    } else if ($accountBalanceRow['debit_amount'] != '0.00') {
+                                        $accountBalance = $accountBalance - $accountBalanceRow['debit_amount'];
                                     }
+                                }
+                                
+                                $chartOfAccount = $this->chart_of_accounts_model->get($retainedEarningsChartOfAccountId);
+                                $chartOfAccountName = $chartOfAccount[0]->text;
+                                
+                                $drAmount = '0.00';
+                                $crAmount = '0.00';
 
-                                    if ($netProfit > 0) {
+                                if ($accountBalance > 0) {
+                                    $crAmount = $accountBalance;
+                                } else if ($accountBalance < 0) {
+                                    $drAmount = -($accountBalance);
+                                }
+
+                                if ($netProfit > 0) {
+                                    if ($crAmount != '0.00') {
                                         $crAmount = $crAmount + $netProfit;
-                                    } else if ($netProfit < 0) {
+                                    } else if ($drAmount != '0.00') {
                                         $drAmount = $drAmount - $netProfit;
                                     }
+                                } else if ($netProfit < 0) {
+                                    if ($crAmount != '0.00') {
+                                        $crAmount = $crAmount + $netProfit;
+                                    } else if ($drAmount != '0.00') {
+                                        $drAmount = $drAmount - $netProfit;
+                                    }
+                                }
+                                
+                                if ($crAmount < 0) {
+                                    $drAmount = -($crAmount);
+                                    $crAmount = '0.00';
+                                }
+                                
+                                if ($drAmount < 0) {
+                                    $crAmount = -($drAmount);
+                                    $drAmount = '0.00';
+                                }
+                                
+                                $description = 'Opening balance for chart of account : ' . $chartOfAccountName;
 
-                                    $description = 'Opening balance for chart of account : ' . $chartOfAccountName;
+                                $data = array(
+                                    'transaction_date' => $openingBalancesDate,
+                                    'location_id' => $locationId,
+                                    'description' => $description,
+                                    'remark' => 'OB',
+                                    'post_type' => "Direct",
+                                    'actioned_user_id' => $this->user_id,
+                                    'action_date' => $this->date,
+                                    'last_action_status' => 'added'
+                                );
 
+                                $journalEntryId = $this->journal_entries_model->addJournalEntry($data);
+
+                                if ($drAmount != '0.00') {
                                     $data = array(
+                                        'journal_entry_id' => $journalEntryId,
                                         'transaction_date' => $openingBalancesDate,
-                                        'location_id' => $locationId,
-                                        'description' => $description,
-                                        'remark' => 'OB',
-                                        'post_type' => "Direct",
+                                        'chart_of_account_id' => $retainedEarningsChartOfAccountId,
+                                        'debit_value' => $drAmount,
                                         'actioned_user_id' => $this->user_id,
                                         'action_date' => $this->date,
                                         'last_action_status' => 'added'
                                     );
 
-                                    $journalEntryId = $this->journal_entries_model->addJournalEntry($data);
+                                    $this->journal_entries_model->addGeneralLedgerTransaction($data);
 
-                                    if ($drAmount != '0.00') {
-                                        $data = array(
-                                            'journal_entry_id' => $journalEntryId,
-                                            'transaction_date' => $openingBalancesDate,
-                                            'chart_of_account_id' => $chartOfAccountId,
-                                            'debit_value' => $drAmount,
-                                            'actioned_user_id' => $this->user_id,
-                                            'action_date' => $this->date,
-                                            'last_action_status' => 'added'
-                                        );
+                                    //Same time add the data to previous years record table.
+                                    $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
 
-                                        $this->journal_entries_model->addGeneralLedgerTransaction($data);
+                                    $data = array(
+                                        'journal_entry_id' => $journalEntryId,
+                                        'transaction_date' => $openingBalancesDate,
+                                        'chart_of_account_id' => $openingBalanceEquityChartOfAccountId,
+                                        'credit_value' => $drAmount,
+                                        'actioned_user_id' => $this->user_id,
+                                        'action_date' => $this->date,
+                                        'last_action_status' => 'added'
+                                    );
 
-                                        //Same time add the data to previous years record table.
-                                        $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
+                                    $this->journal_entries_model->addGeneralLedgerTransaction($data);
 
-                                        $data = array(
-                                            'journal_entry_id' => $journalEntryId,
-                                            'transaction_date' => $openingBalancesDate,
-                                            'chart_of_account_id' => $openingBalanceEquityChartOfAccountId,
-                                            'credit_value' => $drAmount,
-                                            'actioned_user_id' => $this->user_id,
-                                            'action_date' => $this->date,
-                                            'last_action_status' => 'added'
-                                        );
+                                    //Same time add the data to previous years record table.
+                                    $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
+                                }
 
-                                        $this->journal_entries_model->addGeneralLedgerTransaction($data);
+                                if ($crAmount != '0.00') {
+                                    $data = array(
+                                        'journal_entry_id' => $journalEntryId,
+                                        'transaction_date' => $openingBalancesDate,
+                                        'chart_of_account_id' => $openingBalanceEquityChartOfAccountId,
+                                        'debit_value' => $crAmount,
+                                        'actioned_user_id' => $this->user_id,
+                                        'action_date' => $this->date,
+                                        'last_action_status' => 'added'
+                                    );
 
-                                        //Same time add the data to previous years record table.
-                                        $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
-                                    }
+                                    $this->journal_entries_model->addGeneralLedgerTransaction($data);
 
-                                    if ($crAmount != '0.00') {
-                                        $data = array(
-                                            'journal_entry_id' => $journalEntryId,
-                                            'transaction_date' => $openingBalancesDate,
-                                            'chart_of_account_id' => $openingBalanceEquityChartOfAccountId,
-                                            'debit_value' => $crAmount,
-                                            'actioned_user_id' => $this->user_id,
-                                            'action_date' => $this->date,
-                                            'last_action_status' => 'added'
-                                        );
+                                    //Same time add the data to previous years record table.
+                                    $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
 
-                                        $this->journal_entries_model->addGeneralLedgerTransaction($data);
+                                    $data = array(
+                                        'journal_entry_id' => $journalEntryId,
+                                        'transaction_date' => $openingBalancesDate,
+                                        'chart_of_account_id' => $retainedEarningsChartOfAccountId,
+                                        'credit_value' => $crAmount,
+                                        'actioned_user_id' => $this->user_id,
+                                        'action_date' => $this->date,
+                                        'last_action_status' => 'added'
+                                    );
 
-                                        //Same time add the data to previous years record table.
-                                        $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
+                                    $this->journal_entries_model->addGeneralLedgerTransaction($data);
 
-                                        $data = array(
-                                            'journal_entry_id' => $journalEntryId,
-                                            'transaction_date' => $openingBalancesDate,
-                                            'chart_of_account_id' => $chartOfAccountId,
-                                            'credit_value' => $crAmount,
-                                            'actioned_user_id' => $this->user_id,
-                                            'action_date' => $this->date,
-                                            'last_action_status' => 'added'
-                                        );
-
-                                        $this->journal_entries_model->addGeneralLedgerTransaction($data);
-
-                                        //Same time add the data to previous years record table.
-                                        $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
-                                    }
+                                    //Same time add the data to previous years record table.
+                                    $this->journal_entries_model->addGeneralLedgerTransactionToPreviousYear($data);
                                 }
                             } else {
-                                $chartOfAccountId = "35";
+                                $chartOfAccountId = $retainedEarningsChartOfAccountId;
 
                                 $chartOfAccount = $this->chart_of_accounts_model->get($chartOfAccountId);
                                 $chartOfAccountName = $chartOfAccount[0]->text;

@@ -174,6 +174,19 @@ class Opening_balances_controller extends CI_Controller {
                             $crAmount = $openingBalancesData[$x][4][$y];
                             $description = $openingBalancesData[$x][5][$y];
 
+                            $payeePayerType = '';
+                            
+                            $payeePayer = $this->user_model->getUserById($payeePayerId);
+
+                            if ($payeePayer && sizeof($payeePayer) > 0) {
+                                $peopleId = $payeePayer[0]->people_id;
+
+                                if ($peopleId != '' && $peopleId != '0') {
+                                    $employee = $this->peoples_model->getById($peopleId);
+                                    $payeePayerType = $employee[0]->people_type;
+                                }
+                            }
+                            
                             $shouldHaveAPaymentJournalEntry = "No";
 
                             if ($payeePayerId != '' && $payeePayerId != '0') {
@@ -183,6 +196,7 @@ class Opening_balances_controller extends CI_Controller {
                             if ($glId == '0') {
                                 $data = array(
                                     'transaction_date' => $openingBalancesDate,
+                                    'payee_payer_type' => $payeePayerType,
                                     'payee_payer_id' => $payeePayerId,
                                     'should_have_a_payment_journal_entry' => $shouldHaveAPaymentJournalEntry,
                                     'location_id' => $locationId,
@@ -491,6 +505,19 @@ class Opening_balances_controller extends CI_Controller {
                     $crAmount = $row['D'];
                     $description = $row['E'];
                     
+                    $payeePayerType = '';
+                            
+                    $payeePayer = $this->user_model->getUserById($payeePayerId);
+
+                    if ($payeePayer && sizeof($payeePayer) > 0) {
+                        $peopleId = $payeePayer[0]->people_id;
+
+                        if ($peopleId != '' && $peopleId != '0') {
+                            $employee = $this->peoples_model->getById($peopleId);
+                            $payeePayerType = $employee[0]->people_type;
+                        }
+                    }
+                    
                     $shouldHaveAPaymentJournalEntry = "No";
 
                     if ($payeePayerId != '' && $payeePayerId != '0') {
@@ -499,6 +526,7 @@ class Opening_balances_controller extends CI_Controller {
                     
                     $data = array(
                         'transaction_date' => $openingBalancesDate,
+                        'payee_payer_type' => $payeePayerType,
                         'payee_payer_id' => $payeePayerId,
                         'should_have_a_payment_journal_entry' => $shouldHaveAPaymentJournalEntry,
                         'location_id' => $locationId,

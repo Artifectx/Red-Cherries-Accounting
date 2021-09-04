@@ -752,7 +752,7 @@ class Journal_entries_model extends CI_Model {
                         $getSeparateEntriesForPayeeOrPayer=null) {
 		
         $condition = "SELECT GLTransaction.gl_transaction_id, GLTransaction.chart_of_account_id, GLTransaction.journal_entry_id, GLTransaction.prime_entry_book_id, ChartOfAccount.parent_id, GLTransaction.debit_value AS debit_amount, "
-                    ."GLTransaction.credit_value AS credit_amount, GLTransaction.transaction_complete AS transaction_complete, JournalEntry.payee_payer_id AS payee_payer_id "
+                    ."GLTransaction.credit_value AS credit_amount, GLTransaction.transaction_complete AS transaction_complete, JournalEntry.payee_payer_id AS payee_payer_id, JournalEntry.reference_transaction_type_id "
                     ."FROM `acm_bookkeeping_gl_transactions` AS GLTransaction "
                     ."LEFT JOIN acm_admin_chart_of_accounts AS ChartOfAccount ON GLTransaction.chart_of_account_id = ChartOfAccount.chart_of_account_id "
                     ."LEFT JOIN acm_bookkeeping_journal_entries AS JournalEntry ON GLTransaction.journal_entry_id = JournalEntry.journal_entry_id "
@@ -787,6 +787,8 @@ class Journal_entries_model extends CI_Model {
                     foreach($result as $row) {
                         if (in_array($row['chart_of_account_id'], $specialChartOfAccountsToCheckCompletedTransactionsStatus)) {
                             if ($row['transaction_complete'] == "No") {
+                                $intermediateResult[] = $row;
+                            } else if ($row['reference_transaction_type_id'] == "5" || $row['reference_transaction_type_id'] == "0") {
                                 $intermediateResult[] = $row;
                             }
                         } else {

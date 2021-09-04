@@ -1780,7 +1780,9 @@
 						$("#reference_transaction_type_dropdown_edit").find("#reference_transaction_type_id").prop({ id: "reference_transaction_type_id_edit"});
 					}
 					
-					$("#amount_to_add_payment_type_edit").val(response.amountToAddForPaymentType.toFixed(2));
+                    if (response.amountToAddForPaymentType != '0.00') {
+                        $("#amount_to_add_payment_type_edit").val(response.amountToAddForPaymentType.toFixed(2));
+                    }
 					
 					ReferenceTransactionRowCount = response.referenceTransactionRowCount;
 					MakePaymentMethodRowCount = response.makePaymentMethodRowCount;

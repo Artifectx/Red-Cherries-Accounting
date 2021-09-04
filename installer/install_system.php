@@ -987,12 +987,19 @@ function upgrade($currentVersionNo, $newVersionNo, $mysqli) {
     $minorVersionCheckingRoundCount = 0;
     $minorVersionAvailabilityCheckAfterBetaVersionsIsPending = true;
     
+    $versionIncrement = 1;
+    
 	while (true) {
 
 		$systemBetaVersionExists = false;
 		$systemMinorVersionExists = false;
         
 		$folderNameWithBetaVersion = "version_" . $versionNoMajor . "_" . $versionNoMinor . "_beta_" . $versionNoBetaVersionNo;
+        
+        if ($versionIncrement == 1) {
+            $versionNoMinor = (int)$currentVersionNoMinor + 1;
+        }
+        
 		$folderNameWithoutBetaVersion = "version_" . $versionNoMajor . "_" . $versionNoMinor;
 
 		if (!$newVersionChangesExecuted) {
@@ -1832,6 +1839,8 @@ function upgrade($currentVersionNo, $newVersionNo, $mysqli) {
                 $versionNoBetaVersionNo = 1;
             }
 		}
+        
+        $versionIncrement++;
 	}
 
 	if (!$errorsFound) {

@@ -20,7 +20,7 @@
  */
 
 if ( ! defined('BASEPATH')) exit('No direct script access allowed');
-define("Version", "1.1");
+define("Version", "1.2");
 
 require_once dirname(__FILE__) . '/tcpdf/tcpdf.php';
 
@@ -86,7 +86,7 @@ class Pdf_reports extends TCPDF {
 		$this->Cell(0, 0, 'Red Cherries Accounting Version ' . Version . ' ', 0, 0, 'C');
 		$this->Ln(5);
 		$this->SetFont('Helvetica','',7);
-		$this->Cell(0, 0, 'Copyright  2020 Red Cherries Accounting By Artifectx - www.artifectx.com - T : +94-77-973-80-68 - E : contact.artifectx@gmail.com', 0, 0, 'C');
+		$this->Cell(0, 0, 'Copyright  2020 Red Cherries Accounting By Artifectx - www.artifectx.com - T : +94-77-973-80-68 - E : info@redcherriessoft.com', 0, 0, 'C');
 		$this->Cell(0, 0, 'Page '.$this->getAliasNumPage().'/'.$this->getAliasNbPages(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
 		$this->Ln(5);
 	}

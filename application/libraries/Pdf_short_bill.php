@@ -93,7 +93,7 @@ class Pdf_short_bill extends TCPDF {
 		$this->Ln(3);
 		$this->Cell(0, 10, 'Web : www.artifectx.com', 0, false, 'C', 0, '', 0, false, 'T', 'M');
 		$this->Ln(3);
-		$this->Cell(0, 10, 'Email : contact.artifectx@gmail.com', 0, false, 'C', 0, '', 0, false, 'T', 'M');
+		$this->Cell(0, 10, 'Email : info@redcherriessoft.com', 0, false, 'C', 0, '', 0, false, 'T', 'M');
 	}
 }
 

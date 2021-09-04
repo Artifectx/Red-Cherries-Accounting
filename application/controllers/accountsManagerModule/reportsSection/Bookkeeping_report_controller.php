@@ -2658,7 +2658,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['credit_amount']);
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								}
 							}
 
@@ -2667,7 +2667,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 									if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 										$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['debit_amount']);
 									} else {
-										$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['debit_amount'];
+										$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['debit_amount']);
 									}
 								}
 							} else {
@@ -2675,7 +2675,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 									if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 									} else {
-										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['debit_amount'];
+										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 									}
 								}
 							}
@@ -2684,7 +2684,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['credit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['credit_amount'];
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['credit_amount'];
 								}
 							}
 
@@ -2692,7 +2692,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['debit_amount'];
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 								}
 							}
 						}
@@ -2702,18 +2702,22 @@ class Bookkeeping_report_controller extends CI_Controller {
 				if (!empty($resultChartOfAccountIds)) {
 					$grossProfitCalculatingChartOfAccountDetailExists = true;
 					foreach ($resultChartOfAccountIds as $resultChartOfAccountId) {
-						$html .= '<tr style="line-height:15px;">';
-						$html .= '    <td style="text-align:left; width: 70%"><span style="font-size:8px">' . $resultChartOfAccountNames[$resultChartOfAccountId] . '</span></td>';
-						
-						if ($resultChartOfAccountValues[$resultChartOfAccountId] < 0) {
-							$html .= '    <td style="text-align:center; width: 15%"><span style="font-size:8px">(' . number_format(-($resultChartOfAccountValues[$resultChartOfAccountId]), 2) . ')</span></td>';
-						} else {
-							$html .= '    <td style="text-align:center; width: 15%"><span style="font-size:8px">' . number_format($resultChartOfAccountValues[$resultChartOfAccountId], 2) . '</span></td>';
-						}
-						
-						$html .= "</tr>";
+                        
+                        if (array_key_exists($resultChartOfAccountId, $resultChartOfAccountValues)) {
+                            
+                            $html .= '<tr style="line-height:15px;">';
+                            $html .= '    <td style="text-align:left; width: 70%"><span style="font-size:8px">' . $resultChartOfAccountNames[$resultChartOfAccountId] . '</span></td>';
 
-						$grossProfitChartOfAccountsTotal = $grossProfitChartOfAccountsTotal + $resultChartOfAccountValues[$resultChartOfAccountId];
+                            if ($resultChartOfAccountValues[$resultChartOfAccountId] < 0) {
+                                $html .= '    <td style="text-align:center; width: 15%"><span style="font-size:8px">(' . number_format(-($resultChartOfAccountValues[$resultChartOfAccountId]), 2) . ')</span></td>';
+                            } else {
+                                $html .= '    <td style="text-align:center; width: 15%"><span style="font-size:8px">' . number_format($resultChartOfAccountValues[$resultChartOfAccountId], 2) . '</span></td>';
+                            }
+
+                            $html .= "</tr>";
+
+                            $grossProfitChartOfAccountsTotal = $grossProfitChartOfAccountsTotal - $resultChartOfAccountValues[$resultChartOfAccountId];
+                        }
 					}
 				}
 			}
@@ -2776,8 +2780,6 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								} else {
-                                    //Change introduced on 26/11/2020 to fix a bug
-									//$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['credit_amount']);
                                     $resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								}
 							}
@@ -2785,7 +2787,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 							if (!array_key_exists($finalChartOfAccountId, $resultChartOfAccountValues)) {
 								if ($profitAndLossRecord['debit_amount'] > 0) {
 									if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
-										$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['debit_amount'];
+										$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['debit_amount']);
 									} else {
 										$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['debit_amount']);
 									}
@@ -2793,7 +2795,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 							} else {
 								if ($profitAndLossRecord['debit_amount'] > 0) {
 									if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
-										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['debit_amount'];
+										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 									} else {
 										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 									}
@@ -2804,13 +2806,13 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['credit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['credit_amount'];
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['credit_amount'];
 								}
 							}
 
 							if ($profitAndLossRecord['debit_amount'] > 0) {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['debit_amount'];
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 								} else {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 								}
@@ -2832,7 +2834,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 						}
 						$html .= "</tr>";
 
-						$operatingActivitiesChartOfAccountsTotal = $operatingActivitiesChartOfAccountsTotal + $resultChartOfAccountValues[$resultChartOfAccountId];
+						$operatingActivitiesChartOfAccountsTotal = $operatingActivitiesChartOfAccountsTotal - $resultChartOfAccountValues[$resultChartOfAccountId];
 					}
 				}
 			}
@@ -2841,10 +2843,10 @@ class Bookkeeping_report_controller extends CI_Controller {
 				$html .= '<tr style="line-height:15px;">';
 				$html .= '    <td style="text-align:left; width: 70%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-weight:bold; font-size:8px">' . $this->lang->line("Results from Operating Activities") .  '</span></td>';
 				
-				if (($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal + $operatingActivitiesChartOfAccountsTotal) < 0) {
-					$html .= '    <td style="text-align:center; width: 15%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-size:8px">(' . number_format(-($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal + $operatingActivitiesChartOfAccountsTotal), 2) . ')</span></td>';
+				if (($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal - $operatingActivitiesChartOfAccountsTotal) < 0) {
+					$html .= '    <td style="text-align:center; width: 15%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-size:8px">(' . number_format(-($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal - $operatingActivitiesChartOfAccountsTotal), 2) . ')</span></td>';
 				} else {
-					$html .= '    <td style="text-align:center; width: 15%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-size:8px">' . number_format($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal + $operatingActivitiesChartOfAccountsTotal, 2) . '</span></td>';
+					$html .= '    <td style="text-align:center; width: 15%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-size:8px">' . number_format($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal - $operatingActivitiesChartOfAccountsTotal, 2) . '</span></td>';
 				}
 				
 				$html .= "</tr><br>";
@@ -2895,7 +2897,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['credit_amount']);
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								}
 							}
 
@@ -2904,7 +2906,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 									if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 										$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['debit_amount']);
 									} else {
-										$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['debit_amount'];
+										$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['debit_amount']);
 									}
 								}
 							} else {
@@ -2912,7 +2914,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 									if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 									} else {
-										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['debit_amount'];
+										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 									}
 								}
 							}
@@ -2921,7 +2923,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['credit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['credit_amount'];
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['credit_amount'];
 								}
 							}
 
@@ -2929,7 +2931,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['debit_amount'];
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 								}
 							}
 						}
@@ -2949,7 +2951,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 						}
 						$html .= "</tr>";
 
-						$profitChartOfAccountTotal = $profitChartOfAccountTotal + $resultChartOfAccountValues[$resultChartOfAccountId];
+						$profitChartOfAccountTotal = $profitChartOfAccountTotal - $resultChartOfAccountValues[$resultChartOfAccountId];
 					}
 				}
 			}
@@ -2958,10 +2960,10 @@ class Bookkeeping_report_controller extends CI_Controller {
 				$html .= '<tr style="line-height:15px;">';
 				$html .= '    <td style="text-align:left; width: 70%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-weight:bold; font-size:8px">' . $this->lang->line("Profit Before Tax") . '</span></td>';
 				
-				if (($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal + $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal) < 0) {
-					$html .= '    <td style="text-align:center; width: 15%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-size:8px">(' . number_format(-($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal + $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal), 2) . ')</span></td>';
+				if (($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal - $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal) < 0) {
+					$html .= '    <td style="text-align:center; width: 15%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-size:8px">(' . number_format(-($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal - $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal), 2) . ')</span></td>';
 				} else {
-					$html .= '    <td style="text-align:center; width: 15%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-size:8px">' . number_format($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal + $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal, 2) . '</span></td>';
+					$html .= '    <td style="text-align:center; width: 15%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-size:8px">' . number_format($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal - $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal, 2) . '</span></td>';
 				}
 				
 				$html .= "</tr><br>";
@@ -3012,7 +3014,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['credit_amount']);
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								}
 							}
 
@@ -3021,7 +3023,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 									if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 										$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['debit_amount']);
 									} else {
-										$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['debit_amount'];
+										$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['debit_amount']);
 									}
 								}
 							} else {
@@ -3029,7 +3031,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 									if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 									} else {
-										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['debit_amount'];
+										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 									}
 								}
 							}
@@ -3038,7 +3040,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['credit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['credit_amount'];
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['credit_amount'];
 								}
 							}
 
@@ -3046,7 +3048,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['debit_amount'];
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 								}
 							}
 						}
@@ -3067,7 +3069,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 						
 						$html .= "</tr>";
 
-						$netProfitChartOfAccountTotal = $netProfitChartOfAccountTotal + $resultChartOfAccountValues[$resultChartOfAccountId];
+						$netProfitChartOfAccountTotal = $netProfitChartOfAccountTotal - $resultChartOfAccountValues[$resultChartOfAccountId];
 					}
 				}
 			}
@@ -3076,10 +3078,10 @@ class Bookkeeping_report_controller extends CI_Controller {
 				$html .= '<tr style="line-height:15px;">';
 				$html .= '    <td style="text-align:left; width: 70%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-weight:bold; font-size:8px">' . $this->lang->line("Net Profit") . '</span></td>';
 				
-				if (($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal + $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal - $netProfitChartOfAccountTotal) < 0) {
-					$html .= '    <td style="text-align:center; width: 15%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-size:8px">(' . number_format(-($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal + $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal - $netProfitChartOfAccountTotal), 2) . ')</span></td>';
+				if (($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal - $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal - $netProfitChartOfAccountTotal) < 0) {
+					$html .= '    <td style="text-align:center; width: 15%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-size:8px">(' . number_format(-($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal - $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal - $netProfitChartOfAccountTotal), 2) . ')</span></td>';
 				} else {
-					$html .= '    <td style="text-align:center; width: 15%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-size:8px">' . number_format($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal + $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal - $netProfitChartOfAccountTotal, 2) . '</span></td>';
+					$html .= '    <td style="text-align:center; width: 15%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-size:8px">' . number_format($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal - $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal - $netProfitChartOfAccountTotal, 2) . '</span></td>';
 				}
 				
 				$html .= "</tr><br>";
@@ -3087,10 +3089,10 @@ class Bookkeeping_report_controller extends CI_Controller {
 				$html .= '<tr style="line-height:15px;">';
 				$html .= '    <td style="text-align:left; width: 70%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-weight:bold; font-size:8px">' . $this->lang->line("Net Profit") . '</span></td>';
 				
-				if (($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal + $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal) < 0) {
-					$html .= '    <td style="text-align:center; width: 15%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-size:8px">(' . number_format(-($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal + $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal), 2) . ')</span></td>';
+				if (($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal - $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal) < 0) {
+					$html .= '    <td style="text-align:center; width: 15%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-size:8px">(' . number_format(-($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal - $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal), 2) . ')</span></td>';
 				} else {
-					$html .= '    <td style="text-align:center; width: 15%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-size:8px">' . number_format($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal + $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal, 2) . '</span></td>';
+					$html .= '    <td style="text-align:center; width: 15%; border-top: 0.5px solid #999; border-bottom: 0.5px solid #999;"><span style="font-size:8px">' . number_format($revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal - $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal, 2) . '</span></td>';
 				}
 				
 				$html .= "</tr><br>";
@@ -5145,7 +5147,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['credit_amount']);
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								}
 							}
 
@@ -5154,7 +5156,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 									if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 										$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['debit_amount']);
 									} else {
-										$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['debit_amount'];
+										$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['debit_amount']);
 									}
 								}
 							} else {
@@ -5162,7 +5164,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 									if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 									} else {
-										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['debit_amount'];
+										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 									}
 								}
 							}
@@ -5171,7 +5173,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['credit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['credit_amount'];
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['credit_amount'];
 								}
 							}
 
@@ -5179,7 +5181,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['debit_amount'];
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 								}
 							}
 						}
@@ -5189,7 +5191,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 				if (!empty($resultChartOfAccountIds)) {
 					$grossProfitCalculatingChartOfAccountDetailExists = true;
 					foreach ($resultChartOfAccountIds as $resultChartOfAccountId) {
-						$grossProfitChartOfAccountsTotal = $grossProfitChartOfAccountsTotal + $resultChartOfAccountValues[$resultChartOfAccountId];
+						$grossProfitChartOfAccountsTotal = $grossProfitChartOfAccountsTotal - $resultChartOfAccountValues[$resultChartOfAccountId];
 					}
 				}
 			}
@@ -5239,8 +5241,6 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								} else {
-                                    //Change introduced on 26/11/2020 to fix a bug
-									//$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['credit_amount']);
                                     $resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								}
 							}
@@ -5248,7 +5248,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 							if (!array_key_exists($finalChartOfAccountId, $resultChartOfAccountValues)) {
 								if ($profitAndLossRecord['debit_amount'] > 0) {
 									if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
-										$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['debit_amount'];
+										$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['debit_amount']);
 									} else {
 										$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['debit_amount']);
 									}
@@ -5256,7 +5256,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 							} else {
 								if ($profitAndLossRecord['debit_amount'] > 0) {
 									if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
-										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['debit_amount'];
+										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 									} else {
 										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 									}
@@ -5267,13 +5267,13 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['credit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['credit_amount'];
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['credit_amount'];
 								}
 							}
 
 							if ($profitAndLossRecord['debit_amount'] > 0) {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['debit_amount'];
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 								} else {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 								}
@@ -5284,7 +5284,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 				
 				if (!empty($resultChartOfAccountIds)) {
 					foreach ($resultChartOfAccountIds as $resultChartOfAccountId) {
-						$operatingActivitiesChartOfAccountsTotal = $operatingActivitiesChartOfAccountsTotal + $resultChartOfAccountValues[$resultChartOfAccountId];
+						$operatingActivitiesChartOfAccountsTotal = $operatingActivitiesChartOfAccountsTotal - $resultChartOfAccountValues[$resultChartOfAccountId];
 					}
 				}
 			}
@@ -5334,7 +5334,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['credit_amount']);
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								}
 							}
 
@@ -5343,7 +5343,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 									if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 										$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['debit_amount']);
 									} else {
-										$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['debit_amount'];
+										$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['debit_amount']);
 									}
 								}
 							} else {
@@ -5351,7 +5351,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 									if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 									} else {
-										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['debit_amount'];
+										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 									}
 								}
 							}
@@ -5360,7 +5360,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['credit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['credit_amount'];
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['credit_amount'];
 								}
 							}
 
@@ -5368,7 +5368,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['debit_amount'];
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 								}
 							}
 						}
@@ -5377,7 +5377,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 
 				if (!empty($resultChartOfAccountIds)) {
 					foreach ($resultChartOfAccountIds as $resultChartOfAccountId) {
-						$profitChartOfAccountTotal = $profitChartOfAccountTotal + $resultChartOfAccountValues[$resultChartOfAccountId];
+						$profitChartOfAccountTotal = $profitChartOfAccountTotal - $resultChartOfAccountValues[$resultChartOfAccountId];
 					}
 				}
 			}
@@ -5427,7 +5427,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['credit_amount']);
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['credit_amount'];
 								}
 							}
 
@@ -5436,7 +5436,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 									if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 										$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['debit_amount']);
 									} else {
-										$resultChartOfAccountValues[$finalChartOfAccountId] = $profitAndLossRecord['debit_amount'];
+										$resultChartOfAccountValues[$finalChartOfAccountId] = -($profitAndLossRecord['debit_amount']);
 									}
 								}
 							} else {
@@ -5444,7 +5444,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 									if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 									} else {
-										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['debit_amount'];
+										$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 									}
 								}
 							}
@@ -5453,7 +5453,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['credit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['credit_amount'];
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['credit_amount'];
 								}
 							}
 
@@ -5461,7 +5461,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 								if ($chartOfAccountType == 'Liabilities' || $chartOfAccountType == 'Equity' || $chartOfAccountType == 'Income') {
 									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 								} else {
-									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] + $profitAndLossRecord['debit_amount'];
+									$resultChartOfAccountValues[$finalChartOfAccountId] = $resultChartOfAccountValues[$finalChartOfAccountId] - $profitAndLossRecord['debit_amount'];
 								}
 							}
 						}
@@ -5471,15 +5471,15 @@ class Bookkeeping_report_controller extends CI_Controller {
 				if (!empty($resultChartOfAccountIds)) {
 					$netProfitCalculatingChartOfAccountDetailExists = true;
 					foreach ($resultChartOfAccountIds as $resultChartOfAccountId) {
-						$netProfitChartOfAccountTotal = $netProfitChartOfAccountTotal + $resultChartOfAccountValues[$resultChartOfAccountId];
+						$netProfitChartOfAccountTotal = $netProfitChartOfAccountTotal - $resultChartOfAccountValues[$resultChartOfAccountId];
 					}
 				}
 			}
 
 			if ($netProfitCalculatingChartOfAccountDetailExists) {
-				$netProfit =  $revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal + $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal - $netProfitChartOfAccountTotal;
+				$netProfit =  $revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal - $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal - $netProfitChartOfAccountTotal;
 			} else {
-				$netProfit = $revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal + $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal;
+				$netProfit = $revenueChartOfAccountsTotal - $grossProfitChartOfAccountsTotal - $operatingActivitiesChartOfAccountsTotal - $profitChartOfAccountTotal;
 			}
 		}
 
