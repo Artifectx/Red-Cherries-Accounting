@@ -1,7 +1,7 @@
 
 /*Update version number*/
 UPDATE `system_common_configurations` SET `config_filed_value` =  '1.2' WHERE id = 1;
-UPDATE `system_common_configurations` SET `config_filed_value` =  '10.0 Beta 3' WHERE id = 2;
+UPDATE `system_common_configurations` SET `config_filed_value` =  '10.0 Beta 6' WHERE id = 2;
 
 /*Data for the table `system_language_strings` */
 INSERT INTO `system_language_strings`(`language_string`,`language_string_type`,`system_module_id`,`screen_name`) VALUES

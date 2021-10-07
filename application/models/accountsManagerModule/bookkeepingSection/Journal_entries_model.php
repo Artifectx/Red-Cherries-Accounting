@@ -42,6 +42,12 @@ class Journal_entries_model extends CI_Model {
 		$this->db->insert('acm_bookkeeping_journal_entry_claim_references', $data);
 		return $this->db->insert_id();
 	}
+    
+    public function addDashboardSummaryFigure($data) {
+		$this->db->limit(1);
+		$this->db->insert('acm_bookkeeping_dashboard_summary_figures', $data);
+		return true;
+	}
 
 	public function editJournalEntry($id, $data) {
 		$this->db->where('journal_entry_id', $id);
@@ -128,6 +134,22 @@ class Journal_entries_model extends CI_Model {
 		$this->db->set('actioned_user_id', $user_id);
 		$this->db->limit(1);
 		$this->db->update('acm_bookkeeping_journal_entries');
+		return true;
+	}
+    
+    public function deleteDashboardSummaryFigures($summaryCategoryId, $summaryCategoryMainType=null, $summaryCategorySubType=null) {
+		$this->db->where('summary_category_id', $summaryCategoryId);
+        
+        if ($summaryCategoryMainType != '') {
+            $this->db->where('summary_category_main_type', $summaryCategoryMainType);
+        }
+        
+        if ($summaryCategorySubType != '') {
+            $this->db->where('summary_category_sub_type', $summaryCategorySubType);
+        }
+        
+		$this->db->limit(1000000);
+		$this->db->delete('acm_bookkeeping_dashboard_summary_figures');
 		return true;
 	}
     
@@ -958,5 +980,25 @@ class Journal_entries_model extends CI_Model {
 		$this->db->delete('acm_bookkeeping_journal_entries');
         
 		return true;
+    }
+    
+    public function getDashboardSummaryFigures($summaryCategoryId, $fromDate=null, $toDate=null, $summaryCategoryMainType=null) {
+        $this->db->where('summary_category_id', $summaryCategoryId);
+        
+        if ($fromDate != '' && $toDate != '') {
+            $this->db->where('from_date', $fromDate);
+            $this->db->where('to_date', $toDate);
+        }
+        
+        if ($summaryCategoryMainType != '') {
+            $this->db->where('summary_category_main_type', $summaryCategoryMainType);
+        }
+    
+		$query = $this->db->get('acm_bookkeeping_dashboard_summary_figures');
+		if ($query->num_rows() > 0) {
+			return $query->result();
+		} else {
+			return false;
+		}
     }
 }

@@ -22,6 +22,7 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 require_once dirname(__FILE__) . '/../../../libraries/SVGGraph/SVGGraph.php';
+require_once dirname(__FILE__) . '/../../../libraries/PHPExcelLibrary/PHPExcel.php';
 
 class General_ledger_controller extends CI_Controller {
     
@@ -68,6 +69,8 @@ class General_ledger_controller extends CI_Controller {
 		$this->load->model('userRoleManagerModule/user_model', '', TRUE);
 		$this->load->model('systemManagerModule/system_configurations_model', '', TRUE);
 		$this->load->model('systemManagerModule/common_model', '', TRUE);
+        
+        $this->load->helper('download');
 
 		//Get system module header
 		$id = '1';
@@ -278,22 +281,162 @@ class General_ledger_controller extends CI_Controller {
 		$lastFinancialYearStartDate = $this->db->escape_str($this->input->post('last_financial_year_start_date'));
 		$lastFinancialYearEndDate = $this->db->escape_str($this->input->post('last_financial_year_end_date'));
 		$locationId = $this->db->escape_str($this->input->post('location_id'));
+        $operationType = $this->db->escape_str($this->input->post('operation_type'));
 		
 		$values = array();
 		$structureDataAvailable = false;
+        $currentDate = date("Y-m-d");
+        $yesterday = date('Y-m-d',strtotime("-1 days"));
 		
 		if ($month == '' && $weeklyGraph == '' && $compareWithLastFinancialYear == '') {
 			$structureDataAvailable = true;
-			$incomeAccountsTotal = $this->getAccountsTotal($fromDate, $toDate, "Income", "Both", $locationId);
-			$incomeCreditTotal = $incomeAccountsTotal["Credit"];
-			$incomeDebitTotal = $incomeAccountsTotal["Debit"];
+            
+            if ($operationType == "DashboardLoad") {
+                $alreadyCalculatedIncomeAndExpenseComparisonDetails = $this->journal_entries_model->getDashboardSummaryFigures('1', $fromDate, $yesterday);
 
-			$income = (float)$incomeCreditTotal - (float)$incomeDebitTotal;
+                if (!$alreadyCalculatedIncomeAndExpenseComparisonDetails) {
+                    $incomeAccountsTotalTillYesterday = $this->getAccountsTotal($fromDate, $yesterday, "Income", "Both", $locationId);
+                    $incomeCreditTotalTillYesterday = $incomeAccountsTotalTillYesterday["Credit"];
+                    $incomeDebitTotalTillYesterday = $incomeAccountsTotalTillYesterday["Debit"];
 
-			$expenseAccountsTotal = $this->getAccountsTotal($fromDate, $toDate, "Expense", "Both", $locationId);
-			$expenseCreditTotal = $expenseAccountsTotal["Credit"];
-			$expenseDebitTotal = $expenseAccountsTotal["Debit"];
+                    $incomeAccountsTotalForToday = $this->getAccountsTotal($currentDate, $currentDate, "Income", "Both", $locationId);
+                    $incomeCreditTotalForToday = $incomeAccountsTotalForToday["Credit"];
+                    $incomeDebitTotalForToday = $incomeAccountsTotalForToday["Debit"];
 
+                    $incomeCreditTotal = $incomeCreditTotalTillYesterday + $incomeCreditTotalForToday;
+                    $incomeDebitTotal = $incomeDebitTotalTillYesterday + $incomeDebitTotalForToday;
+                } else if ($alreadyCalculatedIncomeAndExpenseComparisonDetails && sizeof($alreadyCalculatedIncomeAndExpenseComparisonDetails) > 0) {
+
+                    $incomeAccountsTotalForToday = $this->getAccountsTotal($currentDate, $currentDate, "Income", "Both", $locationId);
+                    $incomeCreditTotalForToday = $incomeAccountsTotalForToday["Credit"];
+                    $incomeDebitTotalForToday = $incomeAccountsTotalForToday["Debit"];
+
+                    foreach ($alreadyCalculatedIncomeAndExpenseComparisonDetails as $row) {
+                        if ($row->summary_category_main_type == "Income" && $row->summary_category_sub_type == "Credit") {
+                            $incomeCreditTotalTillYesterday = $row->summary_value;
+                            $incomeCreditTotal = $incomeCreditTotalTillYesterday + $incomeCreditTotalForToday;
+                        }
+
+                        if ($row->summary_category_main_type == "Income" && $row->summary_category_sub_type == "Debit") {
+                            $incomeDebitTotalTillYesterday = $row->summary_value;
+                            $incomeDebitTotal = $incomeDebitTotalTillYesterday + $incomeDebitTotalForToday;
+                        }
+                    }
+                }
+
+                if (!$alreadyCalculatedIncomeAndExpenseComparisonDetails) {
+                    
+                    $this->journal_entries_model->deleteDashboardSummaryFigures('1', 'Income', 'Credit');
+                    
+                    $data = array(
+                        'summary_category_id' => '1',
+                        'from_date' => $fromDate,
+                        'to_date' => $yesterday,
+                        'summary_category_main_type' => 'Income',
+                        'summary_category_sub_type' => 'Credit',
+                        'summary_value' => $incomeCreditTotalTillYesterday,
+                        'actioned_user_id' => $this->user_id,
+                        'action_date' => $this->date,
+                        'last_action_status' => 'added'
+                    );
+
+                    $this->journal_entries_model->addDashboardSummaryFigure($data);
+
+                    $this->journal_entries_model->deleteDashboardSummaryFigures('1', 'Income', 'Debit');
+                    
+                    $data = array(
+                        'summary_category_id' => '1',
+                        'from_date' => $fromDate,
+                        'to_date' => $yesterday,
+                        'summary_category_main_type' => 'Income',
+                        'summary_category_sub_type' => 'Debit',
+                        'summary_value' => $incomeDebitTotalTillYesterday,
+                        'actioned_user_id' => $this->user_id,
+                        'action_date' => $this->date,
+                        'last_action_status' => 'added'
+                    );
+
+                    $this->journal_entries_model->addDashboardSummaryFigure($data);
+                }
+            } else if ($operationType == "FilterOptions") {
+                $incomeAccountsTotal = $this->getAccountsTotal($fromDate, $toDate, "Income", "Both", $locationId);
+                $incomeCreditTotal = $incomeAccountsTotal["Credit"];
+                $incomeDebitTotal = $incomeAccountsTotal["Debit"];
+            }
+            
+            $income = (float)$incomeCreditTotal - (float)$incomeDebitTotal;
+            
+            if ($operationType == "DashboardLoad") {
+                if (!$alreadyCalculatedIncomeAndExpenseComparisonDetails) {
+                    $expenseAccountsTotalTillYesterday = $this->getAccountsTotal($fromDate, $yesterday, "Expense", "Both", $locationId);
+                    $expenseCreditTotalTillYesterday = $expenseAccountsTotalTillYesterday["Credit"];
+                    $expenseDebitTotalTillYesterday = $expenseAccountsTotalTillYesterday["Debit"];
+
+                    $expenseAccountsTotalForToday = $this->getAccountsTotal($currentDate, $currentDate, "Expense", "Both", $locationId);
+                    $expenseCreditTotalForToday = $expenseAccountsTotalForToday["Credit"];
+                    $expenseDebitTotalForToday = $expenseAccountsTotalForToday["Debit"];
+
+                    $expenseCreditTotal = $expenseCreditTotalTillYesterday + $expenseCreditTotalForToday;
+                    $expenseDebitTotal = $expenseDebitTotalTillYesterday + $expenseDebitTotalForToday;
+                } else if ($alreadyCalculatedIncomeAndExpenseComparisonDetails && sizeof($alreadyCalculatedIncomeAndExpenseComparisonDetails) > 0) {
+
+                    $expenseAccountsTotalForToday = $this->getAccountsTotal($currentDate, $currentDate, "Expense", "Both", $locationId);
+                    $expenseCreditTotalForToday = $expenseAccountsTotalForToday["Credit"];
+                    $expenseDebitTotalForToday = $expenseAccountsTotalForToday["Debit"];
+
+                    foreach ($alreadyCalculatedIncomeAndExpenseComparisonDetails as $row) {
+                        if ($row->summary_category_main_type == "Expense" && $row->summary_category_sub_type == "Credit") {
+                            $expenseCreditTotalTillYesterday = $row->summary_value;
+                            $expenseCreditTotal = $expenseCreditTotalTillYesterday + $expenseCreditTotalForToday;
+                        }
+
+                        if ($row->summary_category_main_type == "Expense" && $row->summary_category_sub_type == "Debit") {
+                            $expenseDebitTotalTillYesterday = $row->summary_value;
+                            $expenseDebitTotal = $expenseDebitTotalTillYesterday + $expenseDebitTotalForToday;
+                        }
+                    }
+                }
+
+                if (!$alreadyCalculatedIncomeAndExpenseComparisonDetails) {
+                    
+                    $this->journal_entries_model->deleteDashboardSummaryFigures('1', 'Expense', 'Credit');
+                    
+                    $data = array(
+                        'summary_category_id' => '1',
+                        'from_date' => $fromDate,
+                        'to_date' => $yesterday,
+                        'summary_category_main_type' => 'Expense',
+                        'summary_category_sub_type' => 'Credit',
+                        'summary_value' => $expenseCreditTotalTillYesterday,
+                        'actioned_user_id' => $this->user_id,
+                        'action_date' => $this->date,
+                        'last_action_status' => 'added'
+                    );
+
+                    $this->journal_entries_model->addDashboardSummaryFigure($data);
+
+                    $this->journal_entries_model->deleteDashboardSummaryFigures('1', 'Expense', 'Debit');
+                    
+                    $data = array(
+                        'summary_category_id' => '1',
+                        'from_date' => $fromDate,
+                        'to_date' => $yesterday,
+                        'summary_category_main_type' => 'Expense',
+                        'summary_category_sub_type' => 'Debit',
+                        'summary_value' => $expenseDebitTotalTillYesterday,
+                        'actioned_user_id' => $this->user_id,
+                        'action_date' => $this->date,
+                        'last_action_status' => 'added'
+                    );
+
+                    $this->journal_entries_model->addDashboardSummaryFigure($data);
+                }
+            } else if ($operationType == "FilterOptions") {
+                $expenseAccountsTotal = $this->getAccountsTotal($fromDate, $toDate, "Expense", "Both", $locationId);
+                $expenseCreditTotal = $expenseAccountsTotal["Credit"];
+                $expenseDebitTotal = $expenseAccountsTotal["Debit"];
+            }
+            
 			$expense = (float)$expenseDebitTotal - (float)$expenseCreditTotal;
 
 			$incomeInnerArray = array();
@@ -518,61 +661,152 @@ class General_ledger_controller extends CI_Controller {
 	public function getAssetsComparisonDetails() {
 		$chartType = $this->db->escape_str($this->input->post('chart_type'));
 		$locationId = $this->db->escape_str($this->input->post('location_id'));
+        $operationType = $this->db->escape_str($this->input->post('operation_type'));
+        
+        $currentDate = date("Y-m-d");
 		$assetsAccountLevelForGraph = 3;
+        
+        if ($operationType == "DashboardLoad") {
+            
+            $alreadyCalculatedAssetsComparisonDetails = $this->journal_entries_model->getDashboardSummaryFigures('2', '', '', $currentDate);
+            
+            if (!$alreadyCalculatedAssetsComparisonDetails) {
+                
+                $generalLedgerTransactions = $this->journal_entries_model->getAllGeneralLedgerEntries('', '', 'transaction_date', 'asc', '', '', '', '', $locationId);
 		
-		$generalLedgerTransactions = $this->journal_entries_model->getAllGeneralLedgerEntries('', '', 'transaction_date', 'asc', '', '', '', '', $locationId);
+                $accountTotal = array();
+                $values = array();
+                $legendEntries = array();
+                if ($generalLedgerTransactions && sizeof($generalLedgerTransactions) > 0) {
+                    foreach($generalLedgerTransactions as $generalLedgerTransaction) {
+                        $chartOfAccount = $this->chart_of_accounts_model->get($generalLedgerTransaction->chart_of_account_id);
+                        $parentId = $chartOfAccount[0]->parent_id;
+                        $accountTypeIdRow = $chartOfAccount[0]->account_type;
+
+                        if ($accountTypeIdRow == "2") {
+                            $requiredParentChartOfAccountFound = false;
+                            $secondLevelChartOfAccountId = '';
+                            $thirdLevelChartOfAccountId = '';
+                            $count = 1;
+                            while($parentId != '2') {
+
+                                if ($parentId == '1') {
+                                    break;
+                                }
+
+                                if ($count == 1) {
+                                    $thirdLevelChartOfAccountId = $generalLedgerTransaction->chart_of_account_id;
+                                    $secondLevelChartOfAccountId = $parentId;
+                                } else {
+                                    $thirdLevelChartOfAccountId = $secondLevelChartOfAccountId;
+                                    $secondLevelChartOfAccountId = $parentId;
+                                }
+
+                                $chartOfAccount = $this->chart_of_accounts_model->get($parentId);
+                                $parentId = $chartOfAccount[0]->parent_id;
+                                $count++;
+                            }
+
+                            if ($parentId == '2') {
+                                if ($generalLedgerTransaction->debit_value > 0) {
+                                    if (!array_key_exists($thirdLevelChartOfAccountId, $accountTotal)) {
+                                        $accountTotal[$thirdLevelChartOfAccountId] = (float)$generalLedgerTransaction->debit_value;
+                                    } else {
+                                        $accountTotal[$thirdLevelChartOfAccountId] = (float)$accountTotal[$thirdLevelChartOfAccountId] + (float)$generalLedgerTransaction->debit_value;
+                                    }
+                                } else if ($generalLedgerTransaction->credit_value > 0) {
+                                    if (!array_key_exists($thirdLevelChartOfAccountId, $accountTotal)) {
+                                        $accountTotal[$thirdLevelChartOfAccountId] = -(float)($generalLedgerTransaction->credit_value);
+                                    } else {
+                                        $accountTotal[$thirdLevelChartOfAccountId] = (float)$accountTotal[$thirdLevelChartOfAccountId] - (float)$generalLedgerTransaction->credit_value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if ($accountTotal && sizeof($accountTotal) > 0) {
+                    
+                    $this->journal_entries_model->deleteDashboardSummaryFigures('2');
+                    
+                    foreach($accountTotal as $key => $accountValue) {
+                        
+                        $data = array(
+                            'summary_category_id' => '2',
+                            'summary_category_main_type' => $currentDate,
+                            'summary_category_sub_type' => $key,
+                            'summary_value' => $accountValue,
+                            'actioned_user_id' => $this->user_id,
+                            'action_date' => $this->date,
+                            'last_action_status' => 'added'
+                        );
+
+                        $this->journal_entries_model->addDashboardSummaryFigure($data);
+                    }
+                }
+            } else if ($alreadyCalculatedAssetsComparisonDetails && sizeof($alreadyCalculatedAssetsComparisonDetails) > 0) {
+                
+                foreach($alreadyCalculatedAssetsComparisonDetails as $row) {
+                    $accountTotal[$row->summary_category_sub_type] = (float)$row->summary_value;
+                }
+            }
+        } else if ($operationType == "FilterOptions") {
+            
+            $generalLedgerTransactions = $this->journal_entries_model->getAllGeneralLedgerEntries('', '', 'transaction_date', 'asc', '', '', '', '', $locationId);
 		
-		$accountTotal = array();
-		$values = array();
-		$legendEntries = array();
-		if ($generalLedgerTransactions && sizeof($generalLedgerTransactions) > 0) {
-			foreach($generalLedgerTransactions as $generalLedgerTransaction) {
-				$chartOfAccount = $this->chart_of_accounts_model->get($generalLedgerTransaction->chart_of_account_id);
-				$parentId = $chartOfAccount[0]->parent_id;
-				$accountTypeIdRow = $chartOfAccount[0]->account_type;
+            $accountTotal = array();
+            $values = array();
+            $legendEntries = array();
+            if ($generalLedgerTransactions && sizeof($generalLedgerTransactions) > 0) {
+                foreach($generalLedgerTransactions as $generalLedgerTransaction) {
+                    $chartOfAccount = $this->chart_of_accounts_model->get($generalLedgerTransaction->chart_of_account_id);
+                    $parentId = $chartOfAccount[0]->parent_id;
+                    $accountTypeIdRow = $chartOfAccount[0]->account_type;
 
-				if ($accountTypeIdRow == "2") {
-					$requiredParentChartOfAccountFound = false;
-					$secondLevelChartOfAccountId = '';
-					$thirdLevelChartOfAccountId = '';
-					$count = 1;
-					while($parentId != '2') {
+                    if ($accountTypeIdRow == "2") {
+                        $requiredParentChartOfAccountFound = false;
+                        $secondLevelChartOfAccountId = '';
+                        $thirdLevelChartOfAccountId = '';
+                        $count = 1;
+                        while($parentId != '2') {
 
-						if ($parentId == '1') {
-							break;
-						}
+                            if ($parentId == '1') {
+                                break;
+                            }
 
-						if ($count == 1) {
-							$thirdLevelChartOfAccountId = $generalLedgerTransaction->chart_of_account_id;
-							$secondLevelChartOfAccountId = $parentId;
-						} else {
-							$thirdLevelChartOfAccountId = $secondLevelChartOfAccountId;
-							$secondLevelChartOfAccountId = $parentId;
-						}
+                            if ($count == 1) {
+                                $thirdLevelChartOfAccountId = $generalLedgerTransaction->chart_of_account_id;
+                                $secondLevelChartOfAccountId = $parentId;
+                            } else {
+                                $thirdLevelChartOfAccountId = $secondLevelChartOfAccountId;
+                                $secondLevelChartOfAccountId = $parentId;
+                            }
 
-						$chartOfAccount = $this->chart_of_accounts_model->get($parentId);
-						$parentId = $chartOfAccount[0]->parent_id;
-						$count++;
-					}
+                            $chartOfAccount = $this->chart_of_accounts_model->get($parentId);
+                            $parentId = $chartOfAccount[0]->parent_id;
+                            $count++;
+                        }
 
-					if ($parentId == '2') {
-						if ($generalLedgerTransaction->debit_value > 0) {
-							if (!array_key_exists($thirdLevelChartOfAccountId, $accountTotal)) {
-								$accountTotal[$thirdLevelChartOfAccountId] = (float)$generalLedgerTransaction->debit_value;
-							} else {
-								$accountTotal[$thirdLevelChartOfAccountId] = (float)$accountTotal[$thirdLevelChartOfAccountId] + (float)$generalLedgerTransaction->debit_value;
-							}
-						} else if ($generalLedgerTransaction->credit_value > 0) {
-							if (!array_key_exists($thirdLevelChartOfAccountId, $accountTotal)) {
-								$accountTotal[$thirdLevelChartOfAccountId] = -(float)($generalLedgerTransaction->credit_value);
-							} else {
-								$accountTotal[$thirdLevelChartOfAccountId] = (float)$accountTotal[$thirdLevelChartOfAccountId] - (float)$generalLedgerTransaction->credit_value;
-							}
-						}
-					}
-				}
-			}
-		}
+                        if ($parentId == '2') {
+                            if ($generalLedgerTransaction->debit_value > 0) {
+                                if (!array_key_exists($thirdLevelChartOfAccountId, $accountTotal)) {
+                                    $accountTotal[$thirdLevelChartOfAccountId] = (float)$generalLedgerTransaction->debit_value;
+                                } else {
+                                    $accountTotal[$thirdLevelChartOfAccountId] = (float)$accountTotal[$thirdLevelChartOfAccountId] + (float)$generalLedgerTransaction->debit_value;
+                                }
+                            } else if ($generalLedgerTransaction->credit_value > 0) {
+                                if (!array_key_exists($thirdLevelChartOfAccountId, $accountTotal)) {
+                                    $accountTotal[$thirdLevelChartOfAccountId] = -(float)($generalLedgerTransaction->credit_value);
+                                } else {
+                                    $accountTotal[$thirdLevelChartOfAccountId] = (float)$accountTotal[$thirdLevelChartOfAccountId] - (float)$generalLedgerTransaction->credit_value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 		
 		if ($accountTotal && sizeof($accountTotal) > 0) {
 			$count = 1;
@@ -704,61 +938,152 @@ class General_ledger_controller extends CI_Controller {
 	public function getLiabilitiesComparisonDetails() {
 		$chartType = $this->db->escape_str($this->input->post('chart_type'));
 		$locationId = $this->db->escape_str($this->input->post('location_id'));
+        $operationType = $this->db->escape_str($this->input->post('operation_type'));
+        
+        $currentDate = date("Y-m-d");
 		$liabilitiesAccountLevelForGraph = 3;
+        
+        if ($operationType == "DashboardLoad") {
+            
+            $alreadyCalculatedLiabilitiesComparisonDetails = $this->journal_entries_model->getDashboardSummaryFigures('3', '', '', $currentDate);
+            
+            if (!$alreadyCalculatedLiabilitiesComparisonDetails) {
+                
+                $generalLedgerTransactions = $this->journal_entries_model->getAllGeneralLedgerEntries('', '', 'transaction_date', 'asc', '', '', '', '', $locationId);
 		
-		$generalLedgerTransactions = $this->journal_entries_model->getAllGeneralLedgerEntries('', '', 'transaction_date', 'asc', '', '', '', '', $locationId);
+                $accountTotal = array();
+                $values = array();
+                $legendEntries = array();
+                if ($generalLedgerTransactions && sizeof($generalLedgerTransactions) > 0) {
+                    foreach($generalLedgerTransactions as $generalLedgerTransaction) {
+                        $chartOfAccount = $this->chart_of_accounts_model->get($generalLedgerTransaction->chart_of_account_id);
+                        $parentId = $chartOfAccount[0]->parent_id;
+                        $accountTypeIdRow = $chartOfAccount[0]->account_type;
+
+                        if ($accountTypeIdRow == "6") {
+                            $requiredParentChartOfAccountFound = false;
+                            $secondLevelChartOfAccountId = '';
+                            $thirdLevelChartOfAccountId = '';
+                            $count = 1;
+                            while($parentId != '6') {
+
+                                if ($parentId == '1') {
+                                    break;
+                                }
+
+                                if ($count == 1) {
+                                    $thirdLevelChartOfAccountId = $generalLedgerTransaction->chart_of_account_id;
+                                    $secondLevelChartOfAccountId = $parentId;
+                                } else {
+                                    $thirdLevelChartOfAccountId = $secondLevelChartOfAccountId;
+                                    $secondLevelChartOfAccountId = $parentId;
+                                }
+
+                                $chartOfAccount = $this->chart_of_accounts_model->get($parentId);
+                                $parentId = $chartOfAccount[0]->parent_id;
+                                $count++;
+                            }
+
+                            if ($parentId == '6') {
+                                if ($generalLedgerTransaction->credit_value > 0) {
+                                    if (!array_key_exists($thirdLevelChartOfAccountId, $accountTotal)) {
+                                        $accountTotal[$thirdLevelChartOfAccountId] = (float)$generalLedgerTransaction->credit_value;
+                                    } else {
+                                        $accountTotal[$thirdLevelChartOfAccountId] = (float)$accountTotal[$thirdLevelChartOfAccountId] + (float)$generalLedgerTransaction->credit_value;
+                                    }
+                                } else if ($generalLedgerTransaction->debit_value > 0) {
+                                    if (!array_key_exists($thirdLevelChartOfAccountId, $accountTotal)) {
+                                        $accountTotal[$thirdLevelChartOfAccountId] = -(float)($generalLedgerTransaction->debit_value);
+                                    } else {
+                                        $accountTotal[$thirdLevelChartOfAccountId] = (float)$accountTotal[$thirdLevelChartOfAccountId] - (float)$generalLedgerTransaction->debit_value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if ($accountTotal && sizeof($accountTotal) > 0) {
+                    
+                    $this->journal_entries_model->deleteDashboardSummaryFigures('3');
+                    
+                    foreach($accountTotal as $key => $accountValue) {
+                        
+                        $data = array(
+                            'summary_category_id' => '3',
+                            'summary_category_main_type' => $currentDate,
+                            'summary_category_sub_type' => $key,
+                            'summary_value' => $accountValue,
+                            'actioned_user_id' => $this->user_id,
+                            'action_date' => $this->date,
+                            'last_action_status' => 'added'
+                        );
+
+                        $this->journal_entries_model->addDashboardSummaryFigure($data);
+                    }
+                }
+            } else if ($alreadyCalculatedLiabilitiesComparisonDetails && sizeof($alreadyCalculatedLiabilitiesComparisonDetails) > 0) {
+                
+                foreach($alreadyCalculatedLiabilitiesComparisonDetails as $row) {
+                    $accountTotal[$row->summary_category_sub_type] = (float)$row->summary_value;
+                }
+            }
+        } else if ($operationType == "FilterOptions") {
+            
+            $generalLedgerTransactions = $this->journal_entries_model->getAllGeneralLedgerEntries('', '', 'transaction_date', 'asc', '', '', '', '', $locationId);
 		
-		$accountTotal = array();
-		$values = array();
-		$legendEntries = array();
-		if ($generalLedgerTransactions && sizeof($generalLedgerTransactions) > 0) {
-			foreach($generalLedgerTransactions as $generalLedgerTransaction) {
-				$chartOfAccount = $this->chart_of_accounts_model->get($generalLedgerTransaction->chart_of_account_id);
-				$parentId = $chartOfAccount[0]->parent_id;
-				$accountTypeIdRow = $chartOfAccount[0]->account_type;
+            $accountTotal = array();
+            $values = array();
+            $legendEntries = array();
+            if ($generalLedgerTransactions && sizeof($generalLedgerTransactions) > 0) {
+                foreach($generalLedgerTransactions as $generalLedgerTransaction) {
+                    $chartOfAccount = $this->chart_of_accounts_model->get($generalLedgerTransaction->chart_of_account_id);
+                    $parentId = $chartOfAccount[0]->parent_id;
+                    $accountTypeIdRow = $chartOfAccount[0]->account_type;
 
-				if ($accountTypeIdRow == "6") {
-					$requiredParentChartOfAccountFound = false;
-					$secondLevelChartOfAccountId = '';
-					$thirdLevelChartOfAccountId = '';
-					$count = 1;
-					while($parentId != '6') {
+                    if ($accountTypeIdRow == "6") {
+                        $requiredParentChartOfAccountFound = false;
+                        $secondLevelChartOfAccountId = '';
+                        $thirdLevelChartOfAccountId = '';
+                        $count = 1;
+                        while($parentId != '6') {
 
-						if ($parentId == '1') {
-							break;
-						}
+                            if ($parentId == '1') {
+                                break;
+                            }
 
-						if ($count == 1) {
-							$thirdLevelChartOfAccountId = $generalLedgerTransaction->chart_of_account_id;
-							$secondLevelChartOfAccountId = $parentId;
-						} else {
-							$thirdLevelChartOfAccountId = $secondLevelChartOfAccountId;
-							$secondLevelChartOfAccountId = $parentId;
-						}
+                            if ($count == 1) {
+                                $thirdLevelChartOfAccountId = $generalLedgerTransaction->chart_of_account_id;
+                                $secondLevelChartOfAccountId = $parentId;
+                            } else {
+                                $thirdLevelChartOfAccountId = $secondLevelChartOfAccountId;
+                                $secondLevelChartOfAccountId = $parentId;
+                            }
 
-						$chartOfAccount = $this->chart_of_accounts_model->get($parentId);
-						$parentId = $chartOfAccount[0]->parent_id;
-						$count++;
-					}
+                            $chartOfAccount = $this->chart_of_accounts_model->get($parentId);
+                            $parentId = $chartOfAccount[0]->parent_id;
+                            $count++;
+                        }
 
-					if ($parentId == '6') {
-						if ($generalLedgerTransaction->credit_value > 0) {
-							if (!array_key_exists($thirdLevelChartOfAccountId, $accountTotal)) {
-								$accountTotal[$thirdLevelChartOfAccountId] = (float)$generalLedgerTransaction->credit_value;
-							} else {
-								$accountTotal[$thirdLevelChartOfAccountId] = (float)$accountTotal[$thirdLevelChartOfAccountId] + (float)$generalLedgerTransaction->credit_value;
-							}
-						} else if ($generalLedgerTransaction->debit_value > 0) {
-							if (!array_key_exists($thirdLevelChartOfAccountId, $accountTotal)) {
-								$accountTotal[$thirdLevelChartOfAccountId] = -(float)($generalLedgerTransaction->debit_value);
-							} else {
-								$accountTotal[$thirdLevelChartOfAccountId] = (float)$accountTotal[$thirdLevelChartOfAccountId] - (float)$generalLedgerTransaction->debit_value;
-							}
-						}
-					}
-				}
-			}
-		}
+                        if ($parentId == '6') {
+                            if ($generalLedgerTransaction->credit_value > 0) {
+                                if (!array_key_exists($thirdLevelChartOfAccountId, $accountTotal)) {
+                                    $accountTotal[$thirdLevelChartOfAccountId] = (float)$generalLedgerTransaction->credit_value;
+                                } else {
+                                    $accountTotal[$thirdLevelChartOfAccountId] = (float)$accountTotal[$thirdLevelChartOfAccountId] + (float)$generalLedgerTransaction->credit_value;
+                                }
+                            } else if ($generalLedgerTransaction->debit_value > 0) {
+                                if (!array_key_exists($thirdLevelChartOfAccountId, $accountTotal)) {
+                                    $accountTotal[$thirdLevelChartOfAccountId] = -(float)($generalLedgerTransaction->debit_value);
+                                } else {
+                                    $accountTotal[$thirdLevelChartOfAccountId] = (float)$accountTotal[$thirdLevelChartOfAccountId] - (float)$generalLedgerTransaction->debit_value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 		
 		if ($accountTotal && sizeof($accountTotal) > 0) {
 			$count = 1;
@@ -891,58 +1216,146 @@ class General_ledger_controller extends CI_Controller {
 		$fromDate = $this->db->escape_str($this->input->post('from_date'));
 		$toDate = $this->db->escape_str($this->input->post('to_date'));
 		$locationId = $this->db->escape_str($this->input->post('location_id'));
+        $operationType = $this->db->escape_str($this->input->post('operation_type'));
+        
+        $currentDate = date("Y-m-d");
 		$expenseAccountLevelForGraph = 2;
+        
+        if ($operationType == "DashboardLoad") {
+            
+            $alreadyCalculatedTopTenExpenseAccountsComparisonDetails = $this->journal_entries_model->getDashboardSummaryFigures('4', '', '', $currentDate);
+            
+            if (!$alreadyCalculatedTopTenExpenseAccountsComparisonDetails) {
+                
+                $generalLedgerTransactions = $this->journal_entries_model->getAllGeneralLedgerEntries($fromDate, $toDate, 'transaction_date', 'asc', '', '', '', '', $locationId);
 		
-		$generalLedgerTransactions = $this->journal_entries_model->getAllGeneralLedgerEntries($fromDate, $toDate, 'transaction_date', 'asc', '', '', '', '', $locationId);
+                $accountTotal = array();
+                $values = array();
+                $legendEntries = array();
+                if ($generalLedgerTransactions && sizeof($generalLedgerTransactions) > 0) {
+                    foreach($generalLedgerTransactions as $generalLedgerTransaction) {
+                        $chartOfAccount = $this->chart_of_accounts_model->get($generalLedgerTransaction->chart_of_account_id);
+                        $parentId = $chartOfAccount[0]->parent_id;
+                        $accountTypeIdRow = $chartOfAccount[0]->account_type;
+
+                        if ($accountTypeIdRow == "5") {
+                            $requiredParentChartOfAccountFound = false;
+                            $secondLevelChartOfAccountId = '';
+                            $count = 1;
+                            while($parentId != '5') {
+
+                                if ($parentId == '1') {
+                                    break;
+                                }
+
+                                $secondLevelChartOfAccountId = $parentId;
+
+                                $chartOfAccount = $this->chart_of_accounts_model->get($parentId);
+                                $parentId = $chartOfAccount[0]->parent_id;
+                                $count++;
+                            }
+
+                            if ($secondLevelChartOfAccountId == '') {
+                                $secondLevelChartOfAccountId = $generalLedgerTransaction->chart_of_account_id;
+                            }
+
+                            if ($parentId == '5') {
+                                if ($generalLedgerTransaction->debit_value > 0) {
+                                    if (!array_key_exists($secondLevelChartOfAccountId, $accountTotal)) {
+                                        $accountTotal[$secondLevelChartOfAccountId] = (float)$generalLedgerTransaction->debit_value;
+                                    } else {
+                                        $accountTotal[$secondLevelChartOfAccountId] = (float)$accountTotal[$secondLevelChartOfAccountId] + (float)$generalLedgerTransaction->debit_value;
+                                    }
+                                } else if ($generalLedgerTransaction->credit_value > 0) {
+                                    if (!array_key_exists($secondLevelChartOfAccountId, $accountTotal)) {
+                                        $accountTotal[$secondLevelChartOfAccountId] = -(float)($generalLedgerTransaction->credit_value);
+                                    } else {
+                                        $accountTotal[$secondLevelChartOfAccountId] = (float)$accountTotal[$secondLevelChartOfAccountId] - (float)$generalLedgerTransaction->credit_value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if ($accountTotal && sizeof($accountTotal) > 0) {
+                    
+                    $this->journal_entries_model->deleteDashboardSummaryFigures('4');
+                    
+                    foreach($accountTotal as $key => $accountValue) {
+                        
+                        $data = array(
+                            'summary_category_id' => '4',
+                            'summary_category_main_type' => $currentDate,
+                            'summary_category_sub_type' => $key,
+                            'summary_value' => $accountValue,
+                            'actioned_user_id' => $this->user_id,
+                            'action_date' => $this->date,
+                            'last_action_status' => 'added'
+                        );
+
+                        $this->journal_entries_model->addDashboardSummaryFigure($data);
+                    }
+                }
+            } else if ($alreadyCalculatedTopTenExpenseAccountsComparisonDetails && sizeof($alreadyCalculatedTopTenExpenseAccountsComparisonDetails) > 0) {
+                
+                foreach($alreadyCalculatedTopTenExpenseAccountsComparisonDetails as $row) {
+                    $accountTotal[$row->summary_category_sub_type] = (float)$row->summary_value;
+                }
+            }
+        } else if ($operationType == "FilterOptions") {
+            
+            $generalLedgerTransactions = $this->journal_entries_model->getAllGeneralLedgerEntries($fromDate, $toDate, 'transaction_date', 'asc', '', '', '', '', $locationId);
 		
-		$accountTotal = array();
-		$values = array();
-		$legendEntries = array();
-		if ($generalLedgerTransactions && sizeof($generalLedgerTransactions) > 0) {
-			foreach($generalLedgerTransactions as $generalLedgerTransaction) {
-				$chartOfAccount = $this->chart_of_accounts_model->get($generalLedgerTransaction->chart_of_account_id);
-				$parentId = $chartOfAccount[0]->parent_id;
-				$accountTypeIdRow = $chartOfAccount[0]->account_type;
+            $accountTotal = array();
+            $values = array();
+            $legendEntries = array();
+            if ($generalLedgerTransactions && sizeof($generalLedgerTransactions) > 0) {
+                foreach($generalLedgerTransactions as $generalLedgerTransaction) {
+                    $chartOfAccount = $this->chart_of_accounts_model->get($generalLedgerTransaction->chart_of_account_id);
+                    $parentId = $chartOfAccount[0]->parent_id;
+                    $accountTypeIdRow = $chartOfAccount[0]->account_type;
 
-				if ($accountTypeIdRow == "5") {
-					$requiredParentChartOfAccountFound = false;
-					$secondLevelChartOfAccountId = '';
-					$count = 1;
-					while($parentId != '5') {
+                    if ($accountTypeIdRow == "5") {
+                        $requiredParentChartOfAccountFound = false;
+                        $secondLevelChartOfAccountId = '';
+                        $count = 1;
+                        while($parentId != '5') {
 
-						if ($parentId == '1') {
-							break;
-						}
+                            if ($parentId == '1') {
+                                break;
+                            }
 
-						$secondLevelChartOfAccountId = $parentId;
+                            $secondLevelChartOfAccountId = $parentId;
 
-						$chartOfAccount = $this->chart_of_accounts_model->get($parentId);
-						$parentId = $chartOfAccount[0]->parent_id;
-						$count++;
-					}
+                            $chartOfAccount = $this->chart_of_accounts_model->get($parentId);
+                            $parentId = $chartOfAccount[0]->parent_id;
+                            $count++;
+                        }
 
-					if ($secondLevelChartOfAccountId == '') {
-						$secondLevelChartOfAccountId = $generalLedgerTransaction->chart_of_account_id;
-					}
+                        if ($secondLevelChartOfAccountId == '') {
+                            $secondLevelChartOfAccountId = $generalLedgerTransaction->chart_of_account_id;
+                        }
 
-					if ($parentId == '5') {
-						if ($generalLedgerTransaction->debit_value > 0) {
-							if (!array_key_exists($secondLevelChartOfAccountId, $accountTotal)) {
-								$accountTotal[$secondLevelChartOfAccountId] = (float)$generalLedgerTransaction->debit_value;
-							} else {
-								$accountTotal[$secondLevelChartOfAccountId] = (float)$accountTotal[$secondLevelChartOfAccountId] + (float)$generalLedgerTransaction->debit_value;
-							}
-						} else if ($generalLedgerTransaction->credit_value > 0) {
-							if (!array_key_exists($secondLevelChartOfAccountId, $accountTotal)) {
-								$accountTotal[$secondLevelChartOfAccountId] = -(float)($generalLedgerTransaction->credit_value);
-							} else {
-								$accountTotal[$secondLevelChartOfAccountId] = (float)$accountTotal[$secondLevelChartOfAccountId] - (float)$generalLedgerTransaction->credit_value;
-							}
-						}
-					}
-				}
-			}
-		}
+                        if ($parentId == '5') {
+                            if ($generalLedgerTransaction->debit_value > 0) {
+                                if (!array_key_exists($secondLevelChartOfAccountId, $accountTotal)) {
+                                    $accountTotal[$secondLevelChartOfAccountId] = (float)$generalLedgerTransaction->debit_value;
+                                } else {
+                                    $accountTotal[$secondLevelChartOfAccountId] = (float)$accountTotal[$secondLevelChartOfAccountId] + (float)$generalLedgerTransaction->debit_value;
+                                }
+                            } else if ($generalLedgerTransaction->credit_value > 0) {
+                                if (!array_key_exists($secondLevelChartOfAccountId, $accountTotal)) {
+                                    $accountTotal[$secondLevelChartOfAccountId] = -(float)($generalLedgerTransaction->credit_value);
+                                } else {
+                                    $accountTotal[$secondLevelChartOfAccountId] = (float)$accountTotal[$secondLevelChartOfAccountId] - (float)$generalLedgerTransaction->credit_value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 		
 		if ($accountTotal && sizeof($accountTotal) > 0) {
 			arsort($accountTotal);
@@ -1150,75 +1563,209 @@ class General_ledger_controller extends CI_Controller {
 		$fromDate = $this->db->escape_str($this->input->post('from_date'));
 		$toDate = $this->db->escape_str($this->input->post('to_date'));
         $locationId = $this->db->escape_str($this->input->post('location_id'));
+        $operationType = $this->db->escape_str($this->input->post('operation_type'));
 		
-		$debtorsRecords = $this->journal_entries_model->getAllGeneralLedgerEntriesOfMainJournalEntries($fromDate, $toDate, 'transaction_date', 'asc', '', '', '', '102', $locationId , '', 'Yes');
-		$creditorRecords = $this->journal_entries_model->getAllGeneralLedgerEntriesOfMainJournalEntries('', '', 'transaction_date', 'asc', '', '', '', '104', $locationId , '', 'Yes');
-		
-		$debtorList = array();
-		if ($debtorsRecords != null) {
-			foreach ($debtorsRecords as $debtorRecord) {
+        $currentDate = date("Y-m-d");
+        $debtorList = array();
+        $creditorList = array();
+        
+        if ($operationType == "DashboardLoad") {
+            
+            $alreadyCalculatedDebtorComparisonDetails = $this->journal_entries_model->getDashboardSummaryFigures('5', '', '', $currentDate);
+            $alreadyCalculatedCreditorComparisonDetails = $this->journal_entries_model->getDashboardSummaryFigures('6', '', '', $currentDate);
+            
+            if (!$alreadyCalculatedDebtorComparisonDetails && !$alreadyCalculatedCreditorComparisonDetails) {
+                
+                $debtorsRecords = $this->journal_entries_model->getAllGeneralLedgerEntriesOfMainJournalEntries($fromDate, $toDate, 'transaction_date', 'asc', '', '', '', '102', $locationId , '', 'Yes');
+                $creditorRecords = $this->journal_entries_model->getAllGeneralLedgerEntriesOfMainJournalEntries('', '', 'transaction_date', 'asc', '', '', '', '104', $locationId , '', 'Yes');
 
-				$journalEntryId = $debtorRecord->journal_entry_id;
-				$journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
-				$payeePayerId = $journalEntry[0]->payee_payer_id;
-				$debitAmount = $debtorRecord->debit_value;
-				$creditAmount = $debtorRecord->credit_value;
-				
-				if ($debitAmount > 0) {
-					if (!array_key_exists($payeePayerId, $debtorList)) {
-						$debtorList[$payeePayerId] = (float)$debitAmount;
-					} else {
-						$debtorList[$payeePayerId] = (float)$debtorList[$payeePayerId] + (float)$debitAmount;
-					}
-				} else if ($creditAmount > 0) {
-					if (!array_key_exists($payeePayerId, $debtorList)) {
-						$debtorList[$payeePayerId] = -(float)$creditAmount;
-					} else {
-						$debtorList[$payeePayerId] = (float)$debtorList[$payeePayerId] - (float)$creditAmount;
-					}
-				}
-			}
-		}
-		
-		$creditorList = array();
-		if ($creditorRecords != null) {
-			foreach ($creditorRecords as $creditorRecord) {
+                if ($debtorsRecords != null) {
+                    foreach ($debtorsRecords as $debtorRecord) {
 
-				$journalEntryId = $creditorRecord->journal_entry_id;
-				$journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
-				$payeePayerId = $journalEntry[0]->payee_payer_id;
-				$creditAmount = $creditorRecord->credit_value;
-				$debitAmount = $creditorRecord->debit_value;
-				
-				if ($creditAmount > 0) {
-					if (!array_key_exists($payeePayerId, $creditorList)) {
-						$creditorList[$payeePayerId] = (float)$creditAmount;
-					} else {
-						$creditorList[$payeePayerId] = (float)$creditorList[$payeePayerId] + (float)$creditAmount;
-					}
-				} else if ($debitAmount > 0) {
-					if (!array_key_exists($payeePayerId, $creditorList)) {
-						$creditorList[$payeePayerId] = -(float)$debitAmount;
-					} else {
-						$creditorList[$payeePayerId] = (float)$creditorList[$payeePayerId] - (float)$debitAmount;
-					}
-				}
-			}
-		}
+                        $journalEntryId = $debtorRecord->journal_entry_id;
+                        $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+                        $payeePayerId = $journalEntry[0]->payee_payer_id;
+                        $debitAmount = $debtorRecord->debit_value;
+                        $creditAmount = $debtorRecord->credit_value;
+
+                        if ($debitAmount > 0) {
+                            if (!array_key_exists($payeePayerId, $debtorList)) {
+                                $debtorList[$payeePayerId] = (float)$debitAmount;
+                            } else {
+                                $debtorList[$payeePayerId] = (float)$debtorList[$payeePayerId] + (float)$debitAmount;
+                            }
+                        } else if ($creditAmount > 0) {
+                            if (!array_key_exists($payeePayerId, $debtorList)) {
+                                $debtorList[$payeePayerId] = -(float)$creditAmount;
+                            } else {
+                                $debtorList[$payeePayerId] = (float)$debtorList[$payeePayerId] - (float)$creditAmount;
+                            }
+                        }
+                    }
+                }
+                
+                $this->journal_entries_model->deleteDashboardSummaryFigures('5');
+                
+                if ($debtorList && sizeof($debtorList) > 0) {
+                    
+                    foreach($debtorList as $key => $accountValue) {
+                        if ($accountValue > 0.1) {
+                            $data = array(
+                                'summary_category_id' => '5',
+                                'summary_category_main_type' => $currentDate,
+                                'summary_category_sub_type' => $key,
+                                'summary_value' => $accountValue,
+                                'actioned_user_id' => $this->user_id,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'added'
+                            );
+
+                            $this->journal_entries_model->addDashboardSummaryFigure($data);
+                        }
+                    }
+                }
+                
+                if ($creditorRecords != null) {
+                    foreach ($creditorRecords as $creditorRecord) {
+
+                        $journalEntryId = $creditorRecord->journal_entry_id;
+                        $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+                        $payeePayerId = $journalEntry[0]->payee_payer_id;
+                        $creditAmount = $creditorRecord->credit_value;
+                        $debitAmount = $creditorRecord->debit_value;
+
+                        if ($creditAmount > 0) {
+                            if (!array_key_exists($payeePayerId, $creditorList)) {
+                                $creditorList[$payeePayerId] = (float)$creditAmount;
+                            } else {
+                                $creditorList[$payeePayerId] = (float)$creditorList[$payeePayerId] + (float)$creditAmount;
+                            }
+                        } else if ($debitAmount > 0) {
+                            if (!array_key_exists($payeePayerId, $creditorList)) {
+                                $creditorList[$payeePayerId] = -(float)$debitAmount;
+                            } else {
+                                $creditorList[$payeePayerId] = (float)$creditorList[$payeePayerId] - (float)$debitAmount;
+                            }
+                        }
+                    }
+                }
+                
+                $this->journal_entries_model->deleteDashboardSummaryFigures('6');
+                
+                if ($creditorList && sizeof($creditorList) > 0) {
+                    
+                    foreach($creditorList as $key => $accountValue) {
+                        if ($accountValue > 0.1) {
+                            $data = array(
+                                'summary_category_id' => '6',
+                                'summary_category_main_type' => $currentDate,
+                                'summary_category_sub_type' => $key,
+                                'summary_value' => $accountValue,
+                                'actioned_user_id' => $this->user_id,
+                                'action_date' => $this->date,
+                                'last_action_status' => 'added'
+                            );
+
+                            $this->journal_entries_model->addDashboardSummaryFigure($data);
+                        }
+                    }
+                }
+            } else {
+               
+                if ($alreadyCalculatedDebtorComparisonDetails && sizeof($alreadyCalculatedDebtorComparisonDetails) > 0) {
+                
+                    foreach($alreadyCalculatedDebtorComparisonDetails as $row) {
+                        $debtorList[$row->summary_category_sub_type] = (float)$row->summary_value;
+                    }
+                }
+                
+                if ($alreadyCalculatedCreditorComparisonDetails && sizeof($alreadyCalculatedCreditorComparisonDetails) > 0) {
+                
+                    foreach($alreadyCalculatedCreditorComparisonDetails as $row) {
+                        $creditorList[$row->summary_category_sub_type] = (float)$row->summary_value;
+                    }
+                }
+            }
+        } else if ($operationType == "FilterOptions") {
+            
+            $debtorsRecords = $this->journal_entries_model->getAllGeneralLedgerEntriesOfMainJournalEntries($fromDate, $toDate, 'transaction_date', 'asc', '', '', '', '102', $locationId , '', 'Yes');
+            $creditorRecords = $this->journal_entries_model->getAllGeneralLedgerEntriesOfMainJournalEntries('', '', 'transaction_date', 'asc', '', '', '', '104', $locationId , '', 'Yes');
+
+            if ($debtorsRecords != null) {
+                foreach ($debtorsRecords as $debtorRecord) {
+
+                    $journalEntryId = $debtorRecord->journal_entry_id;
+                    $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+                    $payeePayerId = $journalEntry[0]->payee_payer_id;
+                    $debitAmount = $debtorRecord->debit_value;
+                    $creditAmount = $debtorRecord->credit_value;
+
+                    if ($debitAmount > 0) {
+                        if (!array_key_exists($payeePayerId, $debtorList)) {
+                            $debtorList[$payeePayerId] = (float)$debitAmount;
+                        } else {
+                            $debtorList[$payeePayerId] = (float)$debtorList[$payeePayerId] + (float)$debitAmount;
+                        }
+                    } else if ($creditAmount > 0) {
+                        if (!array_key_exists($payeePayerId, $debtorList)) {
+                            $debtorList[$payeePayerId] = -(float)$creditAmount;
+                        } else {
+                            $debtorList[$payeePayerId] = (float)$debtorList[$payeePayerId] - (float)$creditAmount;
+                        }
+                    }
+                }
+            }
+            
+            if ($creditorRecords != null) {
+                foreach ($creditorRecords as $creditorRecord) {
+
+                    $journalEntryId = $creditorRecord->journal_entry_id;
+                    $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+                    $payeePayerId = $journalEntry[0]->payee_payer_id;
+                    $creditAmount = $creditorRecord->credit_value;
+                    $debitAmount = $creditorRecord->debit_value;
+
+                    if ($creditAmount > 0) {
+                        if (!array_key_exists($payeePayerId, $creditorList)) {
+                            $creditorList[$payeePayerId] = (float)$creditAmount;
+                        } else {
+                            $creditorList[$payeePayerId] = (float)$creditorList[$payeePayerId] + (float)$creditAmount;
+                        }
+                    } else if ($debitAmount > 0) {
+                        if (!array_key_exists($payeePayerId, $creditorList)) {
+                            $creditorList[$payeePayerId] = -(float)$debitAmount;
+                        } else {
+                            $creditorList[$payeePayerId] = (float)$creditorList[$payeePayerId] - (float)$debitAmount;
+                        }
+                    }
+                }
+            }
+        }
 		
 		$html = "";
 		$debtorTotal = '0';
+        $dataForExcelExport = array();
 		$html .= "<div class='box-content box-no-padding out-table'>
 		<div class='table-responsive table_data'>
 			<div class='scrollable-area1'>
 				<table class='table table-striped table-bordered debtorList'style='margin-bottom:0;'>
 					<thead>
+                        <div class='export_btn'>
+                            Export to
+                            <button id='download_excel' type='submit' class='btn btn-default btn-xs' title='Excel' name='report_download' 
+                                value='debtorDetails'>
+                                <i class='icon-windows'></i>
+                            </button>
+                        </div>
 						<tr>
 							<th>{$this->lang->line('Debtor')}</th>
 							<th>{$this->lang->line('Balance Amount')}</th>
 						</tr>
 					</thead>
 					<tbody>";
+                            
+                    $fieldList[] = "Debtor Name";
+                    $fieldList[] = "Debt Amount";
 							
 			if ($debtorList != null) {
 				foreach ($debtorList as $key => $value) {
@@ -1239,12 +1786,18 @@ class General_ledger_controller extends CI_Controller {
 								$debtorName = $debtor[0]->people_name;
 							}
 
-							$html .= "<tr>";
-							$html .= "<td style='text-align:left;'>" . $debtorName . "</td>";
-							$html .= "<td style='text-align:right;'>" . number_format($finalDebitValue, 2) . "</td>";
-							$html .= "</tr>";
+                            if ($finalDebitValue > 0.1) {
+                                $html .= "<tr>";
+                                $html .= "<td style='text-align:left;'>" . $debtorName . "</td>";
+                                $html .= "<td style='text-align:right;'>" . number_format($finalDebitValue, 2) . "</td>";
+                                $html .= "</tr>";
 
-							$debtorTotal = $debtorTotal + $finalDebitValue;
+                                $dataSet['debtor_name'] = $debtorName;
+                                $dataSet['amount'] = $finalDebitValue;
+                                $dataForExcelExport[] = $dataSet;
+
+                                $debtorTotal = $debtorTotal + $finalDebitValue;
+                            }
 						}
 					} else {
 						if ($value != "0.00" ) {
@@ -1255,12 +1808,18 @@ class General_ledger_controller extends CI_Controller {
 								$debtorName = $debtor[0]->people_name;
 							}
 
-							$html .= "<tr>";
-							$html .= "<td style='text-align:left;'>" . $debtorName . "</td>";
-							$html .= "<td style='text-align:right;'>" . number_format($value, 2) . "</td>";
-							$html .= "</tr>";
+                            if ($value > 0.1) {
+                                $html .= "<tr>";
+                                $html .= "<td style='text-align:left;'>" . $debtorName . "</td>";
+                                $html .= "<td style='text-align:right;'>" . number_format($value, 2) . "</td>";
+                                $html .= "</tr>";
+                                
+                                $dataSet['debtor_name'] = $debtorName;
+                                $dataSet['amount'] = $value;
+                                $dataForExcelExport[] = $dataSet;
 
-							$debtorTotal = $debtorTotal + $value;
+                                $debtorTotal = $debtorTotal + $value;
+                            }
 						}
 					}
 				}
@@ -1271,6 +1830,9 @@ class General_ledger_controller extends CI_Controller {
 			</div>
 		</div>";
 			
+        $excelExportData = array('reportHeaders' => $fieldList, 'reportData' => $dataForExcelExport);
+        $this->exportReportDataToExcel($excelExportData, "Debtor_List", "Debtor List");
+        
 		echo json_encode(array('html' => $html, 'debtorTotal' => number_format($debtorTotal, 2)));
 	}
 	
@@ -1278,75 +1840,110 @@ class General_ledger_controller extends CI_Controller {
 		$fromDate = $this->db->escape_str($this->input->post('from_date'));
 		$toDate = $this->db->escape_str($this->input->post('to_date'));
         $locationId = $this->db->escape_str($this->input->post('location_id'));
+        $operationType = $this->db->escape_str($this->input->post('operation_type'));
 		
-		$debtorsRecords = $this->journal_entries_model->getAllGeneralLedgerEntriesOfMainJournalEntries($fromDate, $toDate, 'transaction_date', 'asc', '', '', '', '102', $locationId , '', 'Yes');
-		$creditorRecords = $this->journal_entries_model->getAllGeneralLedgerEntriesOfMainJournalEntries('', '', 'transaction_date', 'asc', '', '', '', '104', $locationId , '', 'Yes');
-		
-		$debtorList = array();
-		if ($debtorsRecords != null) {
-			foreach ($debtorsRecords as $debtorRecord) {
+        $currentDate = date("Y-m-d");
+        $debtorList = array();
+        $creditorList = array();
+        
+        if ($operationType == "DashboardLoad") {
+            
+            $alreadyCalculatedDebtorComparisonDetails = $this->journal_entries_model->getDashboardSummaryFigures('5', '', '', $currentDate);
+            $alreadyCalculatedCreditorComparisonDetails = $this->journal_entries_model->getDashboardSummaryFigures('6', '', '', $currentDate);
+            
+            if ($alreadyCalculatedDebtorComparisonDetails && sizeof($alreadyCalculatedDebtorComparisonDetails) > 0) {
+                
+                foreach($alreadyCalculatedDebtorComparisonDetails as $row) {
+                    $debtorList[$row->summary_category_sub_type] = (float)$row->summary_value;
+                }
+            }
 
-				$journalEntryId = $debtorRecord->journal_entry_id;
-				$journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
-				$payeePayerId = $journalEntry[0]->payee_payer_id;
-				$debitAmount = $debtorRecord->debit_value;
-				$creditAmount = $debtorRecord->credit_value;
-				
-				if ($debitAmount > 0) {
-					if (!array_key_exists($payeePayerId, $debtorList)) {
-						$debtorList[$payeePayerId] = (float)$debitAmount;
-					} else {
-						$debtorList[$payeePayerId] = (float)$debtorList[$payeePayerId] + (float)$debitAmount;
-					}
-				} else if ($creditAmount > 0) {
-					if (!array_key_exists($payeePayerId, $debtorList)) {
-						$debtorList[$payeePayerId] = -(float)$creditAmount;
-					} else {
-						$debtorList[$payeePayerId] = (float)$debtorList[$payeePayerId] - (float)$creditAmount;
-					}
-				}
-			}
-		}
-		
-		$creditorList = array();
-		if ($creditorRecords != null) {
-			foreach ($creditorRecords as $creditorRecord) {
+            if ($alreadyCalculatedCreditorComparisonDetails && sizeof($alreadyCalculatedCreditorComparisonDetails) > 0) {
 
-				$journalEntryId = $creditorRecord->journal_entry_id;
-				$journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
-				$payeePayerId = $journalEntry[0]->payee_payer_id;
-				$creditAmount = $creditorRecord->credit_value;
-				$debitAmount = $creditorRecord->debit_value;
-				
-				if ($creditAmount > 0) {
-					if (!array_key_exists($payeePayerId, $creditorList)) {
-						$creditorList[$payeePayerId] = (float)$creditAmount;
-					} else {
-						$creditorList[$payeePayerId] = (float)$creditorList[$payeePayerId] + (float)$creditAmount;
-					}
-				} else if ($debitAmount > 0) {
-					if (!array_key_exists($payeePayerId, $creditorList)) {
-						$creditorList[$payeePayerId] = -(float)$debitAmount;
-					} else {
-						$creditorList[$payeePayerId] = (float)$creditorList[$payeePayerId] - (float)$debitAmount;
-					}
-				}
-			}
-		}
+                foreach($alreadyCalculatedCreditorComparisonDetails as $row) {
+                    $creditorList[$row->summary_category_sub_type] = (float)$row->summary_value;
+                }
+            }
+        } else if ($operationType == "FilterOptions") {
+            
+            $debtorsRecords = $this->journal_entries_model->getAllGeneralLedgerEntriesOfMainJournalEntries($fromDate, $toDate, 'transaction_date', 'asc', '', '', '', '102', $locationId , '', 'Yes');
+            $creditorRecords = $this->journal_entries_model->getAllGeneralLedgerEntriesOfMainJournalEntries('', '', 'transaction_date', 'asc', '', '', '', '104', $locationId , '', 'Yes');
+
+            if ($debtorsRecords != null) {
+                foreach ($debtorsRecords as $debtorRecord) {
+
+                    $journalEntryId = $debtorRecord->journal_entry_id;
+                    $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+                    $payeePayerId = $journalEntry[0]->payee_payer_id;
+                    $debitAmount = $debtorRecord->debit_value;
+                    $creditAmount = $debtorRecord->credit_value;
+
+                    if ($debitAmount > 0) {
+                        if (!array_key_exists($payeePayerId, $debtorList)) {
+                            $debtorList[$payeePayerId] = (float)$debitAmount;
+                        } else {
+                            $debtorList[$payeePayerId] = (float)$debtorList[$payeePayerId] + (float)$debitAmount;
+                        }
+                    } else if ($creditAmount > 0) {
+                        if (!array_key_exists($payeePayerId, $debtorList)) {
+                            $debtorList[$payeePayerId] = -(float)$creditAmount;
+                        } else {
+                            $debtorList[$payeePayerId] = (float)$debtorList[$payeePayerId] - (float)$creditAmount;
+                        }
+                    }
+                }
+            }
+
+            if ($creditorRecords != null) {
+                foreach ($creditorRecords as $creditorRecord) {
+
+                    $journalEntryId = $creditorRecord->journal_entry_id;
+                    $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+                    $payeePayerId = $journalEntry[0]->payee_payer_id;
+                    $creditAmount = $creditorRecord->credit_value;
+                    $debitAmount = $creditorRecord->debit_value;
+
+                    if ($creditAmount > 0) {
+                        if (!array_key_exists($payeePayerId, $creditorList)) {
+                            $creditorList[$payeePayerId] = (float)$creditAmount;
+                        } else {
+                            $creditorList[$payeePayerId] = (float)$creditorList[$payeePayerId] + (float)$creditAmount;
+                        }
+                    } else if ($debitAmount > 0) {
+                        if (!array_key_exists($payeePayerId, $creditorList)) {
+                            $creditorList[$payeePayerId] = -(float)$debitAmount;
+                        } else {
+                            $creditorList[$payeePayerId] = (float)$creditorList[$payeePayerId] - (float)$debitAmount;
+                        }
+                    }
+                }
+            }
+        }
 		
 		$html = "";
 		$creditorTotal = '0';
+        $dataForExcelExport = array();
 		$html .= "<div class='box-content box-no-padding out-table'>
 		<div class='table-responsive table_data'>
 			<div class='scrollable-area1'>
 				<table class='table table-striped table-bordered creditorList'style='margin-bottom:0;'>
 					<thead>
+                        <div class='export_btn'>
+                            Export to
+                            <button id='download_excel' type='submit' class='btn btn-default btn-xs' title='Excel' name='report_download' 
+                                value='creditorDetails'>
+                                <i class='icon-windows'></i>
+                            </button>
+                        </div>
 						<tr>
 							<th>{$this->lang->line('Creditor')}</th>
 							<th>{$this->lang->line('Balance Amount')}</th>
 						</tr>
 					</thead>
 					<tbody>";
+                            
+                    $fieldList[] = "Creditor Name";
+                    $fieldList[] = "Credit Amount";
 							
 			if ($creditorList != null) {
 				foreach ($creditorList as $key => $value) {
@@ -1367,12 +1964,18 @@ class General_ledger_controller extends CI_Controller {
 								$creditorName = $creditor[0]->people_name;
 							}
 
-							$html .= "<tr>";
-							$html .= "<td style='text-align:left;'>" . $creditorName . "</td>";
-							$html .= "<td style='text-align:right;'>" . number_format($finalCreditValue, 2) . "</td>";
-							$html .= "</tr>";
+                            if ($finalCreditValue > 0.1) {
+                                $html .= "<tr>";
+                                $html .= "<td style='text-align:left;'>" . $creditorName . "</td>";
+                                $html .= "<td style='text-align:right;'>" . number_format($finalCreditValue, 2) . "</td>";
+                                $html .= "</tr>";
+                                
+                                $dataSet['creditor_name'] = $creditorName;
+                                $dataSet['amount'] = $finalCreditValue;
+                                $dataForExcelExport[] = $dataSet;
 
-							$creditorTotal = $creditorTotal + $finalCreditValue;
+                                $creditorTotal = $creditorTotal + $finalCreditValue;
+                            }
 						}
 					} else {
 						if ($value != "0.00" ) {
@@ -1383,12 +1986,18 @@ class General_ledger_controller extends CI_Controller {
 								$creditorName = $creditor[0]->people_name;
 							}
 
-							$html .= "<tr>";
-							$html .= "<td style='text-align:left;'>" . $creditorName . "</td>";
-							$html .= "<td style='text-align:right;'>" . number_format($value, 2) . "</td>";
-							$html .= "</tr>";
+                            if ($value > 0.1) {
+                                $html .= "<tr>";
+                                $html .= "<td style='text-align:left;'>" . $creditorName . "</td>";
+                                $html .= "<td style='text-align:right;'>" . number_format($value, 2) . "</td>";
+                                $html .= "</tr>";
+                                
+                                $dataSet['creditor_name'] = $creditorName;
+                                $dataSet['amount'] = $value;
+                                $dataForExcelExport[] = $dataSet;
 
-							$creditorTotal = $creditorTotal + $value;
+                                $creditorTotal = $creditorTotal + $value;
+                            }
 						}
 					}
 				}
@@ -1398,7 +2007,144 @@ class General_ledger_controller extends CI_Controller {
 				</div>
 			</div>
 		</div>";
+            
+        $excelExportData = array('reportHeaders' => $fieldList, 'reportData' => $dataForExcelExport);
+        $this->exportReportDataToExcel($excelExportData, "Creditor_List", "Creditor List");
 			
 		echo json_encode(array('html' => $html, 'creditorTotal' => number_format($creditorTotal, 2)));
+	}
+    
+    public function exportReportDataToExcel($results, $reportName, $reportTitle) {
+
+		$styleThinBlackBorderOutline = array(
+			'borders' => array(
+				'outline' => array(
+					'style' => PHPExcel_Style_Border::BORDER_THIN,
+					'color' => array('argb' => 'FF000000'),
+				),
+			),
+		);
+
+		$reportHeaders = $results['reportHeaders'];
+		$reportHeaderCount = sizeof($reportHeaders);
+		$reportData = $results['reportData'];
+		//echo '<pre>';print_r($reportData);die;
+
+		if (file_exists(dirname(__FILE__) . '/../../../../reportExports/accountsManagerReports/' . $reportName . '_Report.xlsx')) {
+			unlink(dirname(__FILE__) . '/../../../../reportExports/accountsManagerReports/' . $reportName . '_Report.xlsx');
+		}
+
+		$columnLetters = $this->getExcelColumnLetters($reportHeaderCount);
+
+		$objPHPExcel = new PHPExcel();
+		$objPHPExcel->setActiveSheetIndex(0);
+		$objPHPExcel->getActiveSheet()->setTitle('Report Results');
+		$objPHPExcel->getActiveSheet()->getPageSetup()->setOrientation(PHPExcel_Worksheet_PageSetup::ORIENTATION_LANDSCAPE);
+
+		if ($reportHeaderCount <= 4) {
+			$objPHPExcel->getActiveSheet()->getPageSetup()->setPaperSize(PHPExcel_Worksheet_PageSetup::PAPERSIZE_A4);
+		} else if ($reportHeaderCount <= 8) {
+			$objPHPExcel->getActiveSheet()->getPageSetup()->setPaperSize(PHPExcel_Worksheet_PageSetup::PAPERSIZE_LETTER);
+		} else if ($reportHeaderCount <= 12) {
+			$objPHPExcel->getActiveSheet()->getPageSetup()->setPaperSize(PHPExcel_Worksheet_PageSetup::PAPERSIZE_TABLOID);
+		} else if ($reportHeaderCount <= 16) {
+			$objPHPExcel->getActiveSheet()->getPageSetup()->setPaperSize(PHPExcel_Worksheet_PageSetup::PAPERSIZE_D);
+		} else if ($reportHeaderCount > 16) {
+			$objPHPExcel->getActiveSheet()->getPageSetup()->setPaperSize(PHPExcel_Worksheet_PageSetup::PAPERSIZE_E);
+		}
+
+		$objPHPExcel->getActiveSheet()->getRowDimension(1)->setRowHeight(30);
+		$objPHPExcel->getActiveSheet()->getRowDimension(2)->setRowHeight(15);
+		$objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setSize(15);
+		$objPHPExcel->getActiveSheet()->getStyle('A1')->getFont()->setBold(true);
+		$objPHPExcel->getActiveSheet()->getStyle('A1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID);
+		$objPHPExcel->getActiveSheet()->getStyle('A1')->getFill()->getStartColor()->setARGB('FF00BFFF');
+		$objPHPExcel->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+		$objPHPExcel->getActiveSheet()->getStyle('A1')->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+		$objPHPExcel->getActiveSheet()->mergeCells('A1:' . end($columnLetters) . '1');
+		$objPHPExcel->getActiveSheet()->mergeCells('A2:' . end($columnLetters) . '2');
+
+		$objPHPExcel->getActiveSheet()->setCellValue('A1', $reportTitle);
+
+		$objPHPExcel->getActiveSheet()->getRowDimension(1)->setRowHeight(30);
+		$objPHPExcel->getActiveSheet()->getStyle($columnLetters[1] . "3:" . end($columnLetters) . "3")->getFont()->setSize(10);
+		$objPHPExcel->getActiveSheet()->getStyle($columnLetters[1] . "3:" . end($columnLetters) . "3")->getFont()->setColor( new PHPExcel_Style_Color( PHPExcel_Style_Color::COLOR_WHITE ) );
+		$objPHPExcel->getActiveSheet()->getStyle($columnLetters[1] . "3:" . end($columnLetters) . "3")->getFont()->setBold(true);
+		$objPHPExcel->getActiveSheet()->getStyle($columnLetters[1] . "3:" . end($columnLetters) . "3")->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID);
+		$objPHPExcel->getActiveSheet()->getStyle($columnLetters[1] . "3:" . end($columnLetters) . "3")->getFill()->getStartColor()->setARGB('FF00BFFF');
+		$objPHPExcel->getActiveSheet()->getStyle($columnLetters[1] . "3:" . end($columnLetters) . "3")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+		$objPHPExcel->getActiveSheet()->getStyle($columnLetters[1] . "3:" . end($columnLetters) . "3")->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+		$objPHPExcel->getActiveSheet()->fromArray($reportHeaders, null, 'A3');
+
+		$count = 4;
+		if ($reportData) {
+			foreach ($reportData as $data) {
+				$objPHPExcel->getActiveSheet()->fromArray($data, null, 'A' . $count);
+				$objPHPExcel->getActiveSheet()->getStyle('A' . $count . ':' . end($columnLetters) . $count)->applyFromArray($styleThinBlackBorderOutline);
+				$count++;
+			}
+		}
+
+		foreach ($columnLetters as $letter) {
+			$objPHPExcel->getActiveSheet()->getStyle($letter . '4:' . $letter . ($count-1))->applyFromArray($styleThinBlackBorderOutline);
+		}
+
+		// Do your stuff here
+		$writer = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+		$filePath = dirname(__FILE__) . '/../../../../reportExports/accountsManagerReports/' . $reportName . '_Report.xlsx';
+
+		$writer->save($filePath);
+		chmod($filePath,0777); // CHMOD file
+
+		return $reportName . '_Report';
+	}
+    
+    public function getExcelColumnLetters($reportHeaderCount) {
+		$columnLettersAvailable = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+			'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z');
+		//echo "<pre>";print_r($columnLettersAvailable);die;
+
+		$columnLetters = array();
+		$innerCountFirstLetter = 1;
+		$innerCountSecondtLetter = 1;
+		for ($count = 1; $count <= $reportHeaderCount; $count++) {
+			if ($count <= 26 && $reportHeaderCount <= 26) {
+				$columnLetters[$count] = $columnLettersAvailable[$count-1];
+			} else if ($count > 26 && $reportHeaderCount > 26) {
+				$columnLetters[$count] = $columnLettersAvailable[$innerCountFirstLetter-1] . $columnLettersAvailable[$innerCountSecondtLetter-1];
+				$innerCountSecondtLetter++;
+				if ($innerCountSecondtLetter > 26) {
+					$innerCountSecondtLetter = 1;
+					$innerCountFirstLetter++;
+				}
+			}
+		}
+
+		return $columnLetters;
+	}
+    
+    public function downloadReportResuls() {
+		$reportName = $this->input->post('report_download');
+
+		if ($reportName == "debtorDetails") {
+			$this->downloadDebtorDataToExcel();
+		} else if ($reportName == "creditorDetails") {
+			$this->downloadCreditorDataToExcel();
+		}
+	}
+    
+    public function downloadDebtorDataToExcel() {
+		$data = file_get_contents(base_url() . "reportExports/accountsManagerReports/Debtor_List_Report.xlsx"); // Read the file's contents
+		$name = 'Debtor_List_Report.xlsx';
+
+		force_download($name, $data);
+	}
+    
+    public function downloadCreditorDataToExcel() {
+		$data = file_get_contents(base_url() . "reportExports/accountsManagerReports/Creditor_List_Report.xlsx"); // Read the file's contents
+		$name = 'Creditor_List_Report.xlsx';
+
+		force_download($name, $data);
 	}
 }
