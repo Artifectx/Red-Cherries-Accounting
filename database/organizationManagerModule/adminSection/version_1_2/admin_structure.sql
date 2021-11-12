@@ -20,3 +20,21 @@ CREATE TABLE `ogm_admin_welfare_company_accounts_for_cheque_payment` (
   `last_action_status` varchar(100) NOT NULL,
   PRIMARY KEY (`account_for_payment_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Alter `ogm_admin_people` Table*/
+ALTER TABLE `ogm_admin_people`
+    ADD COLUMN `gender` varchar(20) DEFAULT '' AFTER `birth_day`,
+    ADD COLUMN `grade` varchar(30) DEFAULT '' AFTER `worker_terminated_date`,
+    ADD COLUMN `class` varchar(30) DEFAULT '' AFTER `grade`,
+    ADD COLUMN `guardian_name` varchar(255) DEFAULT '' AFTER `class`,
+    ADD COLUMN `guardian_tn_country_code` varchar(10) DEFAULT '' AFTER `guardian_name`,
+    ADD COLUMN `guardian_telephone_number` varchar(25) DEFAULT '' AFTER `guardian_tn_country_code`;
+
+/*Alter `ogm_admin_people_history` Table*/
+ALTER TABLE `ogm_admin_people_history`
+    ADD COLUMN `gender` varchar(20) DEFAULT '' AFTER `birth_day`,
+    ADD COLUMN `grade` varchar(30) DEFAULT '' AFTER `worker_terminated_date`,
+    ADD COLUMN `class` varchar(30) DEFAULT '' AFTER `grade`,
+    ADD COLUMN `guardian_name` varchar(255) DEFAULT '' AFTER `class`,
+    ADD COLUMN `guardian_tn_country_code` varchar(10) DEFAULT '' AFTER `guardian_name`,
+    ADD COLUMN `guardian_telephone_number` varchar(25) DEFAULT '' AFTER `guardian_tn_country_code`;
