@@ -38,3 +38,21 @@ ALTER TABLE `ogm_admin_people_history`
     ADD COLUMN `guardian_name` varchar(255) DEFAULT '' AFTER `class`,
     ADD COLUMN `guardian_tn_country_code` varchar(10) DEFAULT '' AFTER `guardian_name`,
     ADD COLUMN `guardian_telephone_number` varchar(25) DEFAULT '' AFTER `guardian_tn_country_code`;
+
+/*Alter `ogm_admin_people` Table*/
+ALTER TABLE `ogm_admin_people`
+    CHANGE COLUMN `birth_day` `birth_day` date DEFAULT '0000-00-00',
+    CHANGE COLUMN `location_id` `location_id` int(11) DEFAULT '0',
+    CHANGE COLUMN `vehicle_id` `vehicle_id` int(11) DEFAULT '0',
+    CHANGE COLUMN `login_status` `login_status` int(11) DEFAULT '0',
+    CHANGE COLUMN `worker_registered_date` `worker_registered_date` date DEFAULT '0000-00-00',
+    CHANGE COLUMN `worker_terminated_date` `worker_terminated_date` date DEFAULT '0000-00-00';
+
+/*Alter `ogm_admin_people_history` Table*/
+ALTER TABLE `ogm_admin_people_history`
+    CHANGE COLUMN `birth_day` `birth_day` date DEFAULT '0000-00-00',
+    CHANGE COLUMN `location_id` `location_id` int(11) DEFAULT '0',
+    CHANGE COLUMN `vehicle_id` `vehicle_id` int(11) DEFAULT '0',
+    CHANGE COLUMN `login_status` `login_status` int(11) DEFAULT '0',
+    CHANGE COLUMN `worker_registered_date` `worker_registered_date` date DEFAULT '0000-00-00',
+    CHANGE COLUMN `worker_terminated_date` `worker_terminated_date` date DEFAULT '0000-00-00';

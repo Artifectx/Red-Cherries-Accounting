@@ -187,7 +187,7 @@ class Peoples_controller extends CI_Controller {
 					$faxNumber = $faxArray[1];
 				}
 
-				$locationId = '';
+				$locationId = '0';
 				$peopleType = $this->db->escape_str($this->input->post('people_type'));
 				$locationIds = $this->db->escape_str($this->input->post('location_ids'));
 

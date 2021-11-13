@@ -27,14 +27,9 @@ class Common_functions {
 		
 		$this->CI =& get_instance();
         
-        //get database
-		$session_data = $this->CI->session->userdata('logged_in_stock');
-		$this->database = $session_data['database'];
-        
-        $params = array('databaseName' => $this->database);
-		$this->CI->load->library('user_library/User_management', $params);
+		$this->CI->load->library('user_library/User_management');
 
-		$this->userManagement = new User_management($params);
+		$this->userManagement = new User_management();
 		
 		//get user permission
 		$this->CI->data = $this->CI->userManagement->getUserPermissions($this->CI->data);
