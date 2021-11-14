@@ -71,6 +71,8 @@ class General_ledger_controller extends CI_Controller {
 		$this->load->model('systemManagerModule/common_model', '', TRUE);
         
         $this->load->helper('download');
+        
+        $this->export = true;
 
 		//Get system module header
 		$id = '1';
@@ -147,22 +149,40 @@ class General_ledger_controller extends CI_Controller {
 
 		if(isset($this->data['ACM_Bookkeeping_View_General_Ledger_Permissions'])) {
 			$html = "";
+            $fieldList = array();
+            $dataForExcelExport = array();
 			$html .= "<div class='box-content box-no-padding out-table'>
 		<div class='table-responsive table_data'>
 			<div class='scrollable-area1'>
 				<table class='table table-striped table-bordered'style='margin-bottom:0;'>
-					<thead>
-						<tr>
-							<th>{$this->lang->line('Date')}</th>
-							<th>{$this->lang->line('Journal Entry Reference No')}</th>";
+					<thead>";
+                        if ($this->export==true) {
+				$html .= "  <div class='export_btn'>
+								Export to
+								<button id='download_excel' type='submit' class='btn btn-default btn-xs' title='Excel' name='report_download' 
+									value='generalLedgerList'>
+									<i class='icon-windows'></i>
+								</button>
+							</div>";
+						}
+			    $html .= "<tr>
+							<th>{$this->lang->line('Date')}</th>";
+                            $fieldList[] = "Date";
+				$html .= "	<th>{$this->lang->line('Journal Entry Reference No')}</th>";
+                            $fieldList[] = "Journal Entry Reference No";
 							if ($this->isAccountsManagementForLocationsEnabled()) {
 				$html .= "      <th>{$this->lang->line('Location')}</th>";
+                                $fieldList[] = "Location";
 							}
-				$html .= "  <th>{$this->lang->line('Prime Entry Book Name')}</th>
-							<th>{$this->lang->line('Chart of Account')}</th>
-							<th>{$this->lang->line('Debit Amount')}</th>
-							<th>{$this->lang->line('Credit Amount')}</th>
-						</tr>
+				$html .= "  <th>{$this->lang->line('Prime Entry Book Name')}</th>";
+                            $fieldList[] = "Prime Entry Book Name";
+				$html .= "	<th>{$this->lang->line('Chart of Account')}</th>";
+                            $fieldList[] = "Chart of Account";
+				$html .= "	<th>{$this->lang->line('Debit Amount')}</th>";
+                            $fieldList[] = "Debit Amount";
+				$html .= "	<th>{$this->lang->line('Credit Amount')}</th>";
+                            $fieldList[] = "Credit Amount";
+				$html .= "</tr>
 					</thead>
 					<tbody>";
 
@@ -237,15 +257,24 @@ class General_ledger_controller extends CI_Controller {
 						$chartOfAccountName = $chartOfAccount[0]->text;
 						$html .= "<tr>";
 						$html .= "<td>" . $row->transaction_date . "</td>";
+                        $dataSet['transaction_date'] = $row->transaction_date;
 						$html .= "<td>" . $journalEntry[0]->reference_no . "</td>";
+                        $dataSet['reference_no'] = $row->reference_no;
 					if ($this->isAccountsManagementForLocationsEnabled()) {
 						$html .= "<td>" . $row->location_name . "</td>";
+                        $dataSet['location_name'] = $row->location_name;
 					}
 						$html .= "<td>" . $primeEntryBookName . "</td>";
+                        $dataSet['prime_entry_book_name'] = $primeEntryBookName;
 						$html .= "<td>" . $chartOfAccountName . "</td>";
+                        $dataSet['chart_of_account_name'] = $chartOfAccountName;
 						$html .= "<td>" . $row->debit_value . "</td>";
+                        $dataSet['debit_value'] = $row->debit_value;
 						$html .= "<td>" . $row->credit_value . "</td>";
+                        $dataSet['credit_value'] = $row->credit_value;
 						$html .= "</tr>";
+                        
+                        $dataForExcelExport[] = $dataSet;
 					}
 				}
 			}
@@ -254,6 +283,10 @@ class General_ledger_controller extends CI_Controller {
 				</div>
 			</div>
 		</div>";
+            
+            $excelExportData = array('reportHeaders' => $fieldList, 'reportData' => $dataForExcelExport);
+			$this->exportReportDataToExcel($excelExportData, "General_Ledger", "General Ledger");
+            
 			echo $html;
 		}
 	}
@@ -2131,6 +2164,8 @@ class General_ledger_controller extends CI_Controller {
 			$this->downloadDebtorDataToExcel();
 		} else if ($reportName == "creditorDetails") {
 			$this->downloadCreditorDataToExcel();
+		} else if ($reportName == "generalLedgerList") {
+			$this->downloadGeneralLedgerDataToExcel();
 		}
 	}
     
@@ -2144,6 +2179,13 @@ class General_ledger_controller extends CI_Controller {
     public function downloadCreditorDataToExcel() {
 		$data = file_get_contents(base_url() . "reportExports/accountsManagerReports/Creditor_List_Report.xlsx"); // Read the file's contents
 		$name = 'Creditor_List_Report.xlsx';
+
+		force_download($name, $data);
+	}
+    
+    public function downloadGeneralLedgerDataToExcel() {
+		$data = file_get_contents(base_url() . "reportExports/accountsManagerReports/General_Ledger_Report.xlsx"); // Read the file's contents
+		$name = 'General_Ledger_Report.xlsx';
 
 		force_download($name, $data);
 	}

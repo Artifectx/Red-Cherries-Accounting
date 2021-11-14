@@ -40,7 +40,10 @@
 				<div class='msg_data'></div>
 
 				<div id='table'>
-					<form class='form form-horizontal'>
+					<!--<form class='form form-horizontal'>-->
+                    <?php echo form_open('accountsManagerModule/bookkeepingSection/general_ledger_controller/downloadReportResuls', 
+                                    array('class' => 'form form-horizontal validate-form','id' => 'general_ledger_form', 
+                                    'style' => 'margin-bottom: 0;', 'enctype' => 'multipart/form-data')) ?>
 						<div class='row'>
 							<div class='col-sm-12'>
 								<div class='box bordered-box <?php echo BOXHEADER; ?>-border' style='margin-bottom:0;'>
@@ -157,9 +160,8 @@
 								</div>
 							</div>
 						</div>
-					</div>
+                    </form>
 				</div>
-
 			</div>
 		</div>
 
