@@ -1382,6 +1382,10 @@
             TransactionAmountTotal = transactionTotal.toFixed(2);
         }
     }
+    
+    function printDetailedVoucher(makePaymentId) {
+        MakePayment.printDetailedVoucher(makePaymentId);
+    }
 	
 	var MakePayment = {
 		cancelData: function () {
@@ -2449,6 +2453,22 @@
 						$("#third_party_cheque_date_edit").val(response.thirdPartyChequeDate);
 						$("#third_party_cheque_payment_amount_edit").val(response.thirdPartyChequePaymentAmount);
 					}
+				}
+			});
+		},
+        
+        printDetailedVoucher : function(makePaymentId) {
+
+			$.ajax({
+				type: "POST",
+				url: "<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/make_payment_controller/printDetailedVoucher",
+				data: {
+					'make_payment_id' : makePaymentId,
+					<?php echo $this->security->get_csrf_token_name(); ?>:'<?php echo $this->security->get_csrf_hash(); ?>'
+				},
+				dataType: 'json',
+				success:function (response) {
+                    
 				}
 			});
 		},

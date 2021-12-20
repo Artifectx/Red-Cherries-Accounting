@@ -6445,6 +6445,12 @@ class Make_payment_controller extends CI_Controller {
 															<i class='icon-save'></i>
 															{$this->lang->line('Edit')}
 														</button> ";
+                                                $html .= "  <a href='make_payment_controller/printDetailedVoucher/{$row->make_payment_id}' target='_blank'>
+                                                            <button class='btn btn-info save' type='button' id='print_detailed_voucher'>
+                                                                <i class='icon-print'></i>
+                                                                    {$this->lang->line('Print Voucher')}
+                                                            </button>
+                                                        </a>";
 											}
 								$html.="            <button class='btn btn-warning cancel' onclick='closeMakePaymentEditForm({$row->make_payment_id});' type='button'>
 												<i class='icon-remove'></i>
@@ -6653,6 +6659,609 @@ class Make_payment_controller extends CI_Controller {
 		}
 		
 		return $journalEntryId;
+	}
+    
+    public function printDetailedVoucher($makePaymentId=null) {
+		
+        $html = "";
+		$htmlMakePayment = '';
+        $htmlItemHeader = '';
+		$pdf = new Pdf_reports(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+		$pdf->SetCreator(PDF_CREATOR);
+		$pdf->AddPage();
+		$pdf->SetX(15);
+		$pdf->SetY(30);
+        
+		if ($makePaymentId == '') {
+			$makePaymentId = $this->db->escape_str($this->input->post('make_payment_id'));
+		}
+        
+		$makePayment = $this->make_payment_model->getMakePaymentById($makePaymentId);
+		
+		$actionedUserId = $makePayment[0]->actioned_user_id;
+		$actionedUser = $this->peoples_model->getById($actionedUserId);
+        
+        $actionedUserName = '';
+        if ($actionedUser && sizeof($actionedUser) > 0) {
+            $actionedUserName = $actionedUser[0]->people_name;
+        }
+		
+        $payeeId = $makePayment[0]->payee_id;
+        $locationId = $makePayment[0]->location_id;
+        
+        $locationName = '';
+        $location = $this->locations_model->getById($locationId);
+        
+        if ($location && sizeof($location) > 0) {
+            $locationName = $location[0]->location_name;
+        }
+        
+        $payeeName = '';
+        $address = '';
+        $payee = $this->peoples_model->getById($payeeId);
+        
+        if ($payee && sizeof($payee) > 0) {
+            $payeeName = $payee[0]->people_name;
+            $address = $payee[0]->people_address;
+        }
+        
+        $date = date("F j, Y, g:i a");
+        
+        $pdf->SetFont('Helvetica', 'B', 12);
+
+		$htmlMakePayment = "<style>
+						table.outer_table {
+							margin: 5px 0px 5px 0px;
+							padding: 5px 0px 5px 0px;
+						}
+
+						table.inner_table_for_title {
+							margin: 2px 5px 2px 5px;
+							padding: 2px 5px 2px 5px;
+							-webkit-border-radius: 4px;
+							-moz-border-radius: 4px;
+							border-radius: 4px;
+							text-align:center;
+							overflow: hidden;
+						}
+
+						table.inner_table {
+							margin: 2px 5px 2px 5px;
+							padding: 2px 5px 2px 5px;
+						}
+
+						table.left_right_border_only {
+							border-collapse:collapse; 
+							margin-bottom:0px;
+						}
+
+						table.left_right_border_only tr {
+							border:none;
+						}
+
+						table.left_right_border_only td {
+							border-left:solid 1px #f00;
+							border-right:solid 1px #f00;
+						}
+					</style>";
+        
+        $payeeOutstandingBalance = "0.00";
+        
+        $debtorList = array();
+        $creditorList = array();
+        
+        $debtorsRecords = $this->journal_entries_model->getAllGeneralLedgerEntriesOfMainJournalEntries('', '', 'transaction_date', 'asc', '', '', '', '102', $locationId , $payeeId, 'Yes');
+        $creditorRecords = $this->journal_entries_model->getAllGeneralLedgerEntriesOfMainJournalEntries('', '', 'transaction_date', 'asc', '', '', '', '104', $locationId , $payeeId, 'Yes');
+
+        if ($debtorsRecords != null) {
+            foreach ($debtorsRecords as $debtorRecord) {
+
+                $journalEntryId = $debtorRecord->journal_entry_id;
+                $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+                $payeePayerId = $journalEntry[0]->payee_payer_id;
+                $debitAmount = $debtorRecord->debit_value;
+                $creditAmount = $debtorRecord->credit_value;
+
+                if ($debitAmount > 0) {
+                    if (!array_key_exists($payeePayerId, $debtorList)) {
+                        $debtorList[$payeePayerId] = (float)$debitAmount;
+                    } else {
+                        $debtorList[$payeePayerId] = (float)$debtorList[$payeePayerId] + (float)$debitAmount;
+                    }
+                } else if ($creditAmount > 0) {
+                    if (!array_key_exists($payeePayerId, $debtorList)) {
+                        $debtorList[$payeePayerId] = -(float)$creditAmount;
+                    } else {
+                        $debtorList[$payeePayerId] = (float)$debtorList[$payeePayerId] - (float)$creditAmount;
+                    }
+                }
+            }
+        }
+
+        if ($creditorRecords != null) {
+            foreach ($creditorRecords as $creditorRecord) {
+
+                $journalEntryId = $creditorRecord->journal_entry_id;
+                $journalEntry = $this->journal_entries_model->getJournalEntryById($journalEntryId);
+                $payeePayerId = $journalEntry[0]->payee_payer_id;
+                $creditAmount = $creditorRecord->credit_value;
+                $debitAmount = $creditorRecord->debit_value;
+
+                if ($creditAmount > 0) {
+                    if (!array_key_exists($payeePayerId, $creditorList)) {
+                        $creditorList[$payeePayerId] = (float)$creditAmount;
+                    } else {
+                        $creditorList[$payeePayerId] = (float)$creditorList[$payeePayerId] + (float)$creditAmount;
+                    }
+                } else if ($debitAmount > 0) {
+                    if (!array_key_exists($payeePayerId, $creditorList)) {
+                        $creditorList[$payeePayerId] = -(float)$debitAmount;
+                    } else {
+                        $creditorList[$payeePayerId] = (float)$creditorList[$payeePayerId] - (float)$debitAmount;
+                    }
+                }
+            }
+        }
+		
+        if ($creditorList != null) {
+            foreach ($creditorList as $key => $value) {
+                if (array_key_exists($key, $debtorList)) {
+                    $creditValue = $value;
+                    $debitValue = $debtorList[$key];
+
+                    if ($creditValue > $debitValue) {
+                        $payeeOutstandingBalance = $creditValue - $debitValue;
+                    }
+                } else {
+                    if ($value != "0.00" ) {
+                        $payeeOutstandingBalance = $value;
+                    }
+                }
+            }
+        }
+        
+        $paymentMethodList = $this->make_payment_model->getMakePaymentMethodList($makePaymentId);
+        
+        $chequePaymentTotal = '0.00';
+        
+        if ($paymentMethodList && sizeof($paymentMethodList) > 0) {
+
+            foreach ($paymentMethodList as $paymentMethodRecord) {
+
+                $paymentMethod = $paymentMethodRecord->payment_method;
+                $chequeId = $paymentMethodRecord->cheque_id;
+
+                if ($chequeId != '0') {
+                    if ($paymentMethod == "Cheque Payment" || $paymentMethod == "Second Party Cheque Payment" || $paymentMethod == "Third Party Cheque Payment") {
+                        $cheque = $this->payments_model->getExpenseChequeById($chequeId);
+
+                        if ($cheque && sizeof($cheque) > 0) {
+                            $chequePaymentTotal = $chequePaymentTotal + $cheque[0]->amount;
+                        }
+                    }
+                }
+            }
+        }
+        
+        $payeeOutstandingBalance = $payeeOutstandingBalance - $chequePaymentTotal;
+        
+        if($makePayment && sizeof($makePayment) > 0) {
+
+			$htmlMakePayment.=' <table class="outer_table" border="0">';
+			$htmlMakePayment.='     <tr>';
+			$htmlMakePayment.='         <td rowspan="2">';
+			$htmlMakePayment.='             <table width="95%" border="0.5" class="inner_table">';
+			$htmlMakePayment.='                 <tr>
+                                                    <td style="font-weight:bold; font-size:9px"><strong>' . $this->lang->line("Paid To") . ' : </strong></td>
+                                                    <td  style="font-weight:normal; font-size:8px">' . $payeeName . '</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="font-weight:bold; font-size:9px"><strong>' . $this->lang->line('Address') . ' : </strong></td>
+                                                    <td  style="font-weight:normal; font-size:8px">'.
+                                                        str_replace("\\n", '<br>',trim($address)) .
+                                                    '</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="font-weight:bold; font-size:9px"><strong>' . $this->lang->line('Outstanding Balance') . ' : </strong></td>
+                                                    <td  style="font-weight:normal; font-size:8px">' . number_format($payeeOutstandingBalance, 2) . '</td>
+                                                </tr>';
+			$htmlMakePayment.='                 <tr>
+                                                    <td style="font-weight:bold; font-size:9px"><strong>' . $this->lang->line('Remark') . ' : </strong></td>
+                                                    <td style="font-weight:normal; font-size:8px">' . $makePayment[0]->remark . '</td>
+                                                </tr>';
+			$htmlMakePayment.='                 <tr>
+                                                    <td style="font-weight:bold; font-size:9px"><strong>' . $this->lang->line('Printed Date and Time') . ' : </strong></td>
+                                                    <td style="font-weight:normal; font-size:8px">' . $date . '</td>
+                                                </tr>';
+            $htmlMakePayment.='                 <tr>
+                                                    <td style="font-weight:bold; font-size:9px"><strong>' . $this->lang->line('Prepared By') . ' : </strong></td>
+                                                    <td style="font-weight:normal; font-size:8px">' . $actionedUserName . '</td>
+                                                </tr>'; 
+		 $htmlMakePayment.="                </table>";
+		 $htmlMakePayment.="            </td>";
+
+		 $htmlMakePayment.='            <td style="vertical-align:top;">'
+                         . '                <div>';
+		 $htmlMakePayment.='                    <table width="98%" border="0.5" class="inner_table_for_title">';
+		 $htmlMakePayment.='                         <tr>';
+		 $htmlMakePayment.='                             <td style="font-weight:bold; font-size:12px">' . $this->lang->line('Payment Voucher') . '</td>';       
+		 $htmlMakePayment.='                         </tr>';
+		 $htmlMakePayment.='                    </table>';
+		 $htmlMakePayment.='                </div>'
+                         . '            </td>';
+		 $htmlMakePayment.='        </tr>';
+
+		 $htmlMakePayment.='        <tr>';
+		 $htmlMakePayment.='            <td>';
+		 $htmlMakePayment.='                <table width="98%" border="0.5" class="inner_table">';
+		 $htmlMakePayment.='                    <tr>
+                                                    <td style="font-weight:bold; font-size:9px"><strong>' . $this->lang->line('Payment No') . ' : </strong></td>
+                                                    <td style="font-weight:normal; font-size:8px">' . $makePayment[0]->reference_no . '</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="font-weight:bold; font-size:9px"><strong>' . $this->lang->line('Date'). ' : </strong></td>
+                                                    <td style="font-weight:normal; font-size:8px">' . $makePayment[0]->date . '</td>
+                                                </tr>';
+		 $htmlMakePayment.='                    <tr>
+                                                    <td style="font-weight:bold; font-size:9px"><strong>' . $this->lang->line('Location') . ' : </strong></td>
+                                                    <td style="font-weight:normal; font-size:8px">' . $locationName . '</td>
+                                                </tr>';
+            
+            $htmlMakePayment.="             </table>";
+            $htmlMakePayment.="         </td>";
+            $htmlMakePayment.="     </tr>";
+            $htmlMakePayment.=" </table>";
+
+			$pdf->writeHTML($htmlMakePayment, true, false, true, false, '');
+		}
+        
+        $htmlPaymentReferenceHeader =' <table border="0">';
+        $htmlPaymentReferenceHeader.='    <tr>';
+        $htmlPaymentReferenceHeader.='        <td><span style="font-weight:bold; font-size:8px">' . $this->lang->line('Payment for GRNs') . '</span></td>';
+        $htmlPaymentReferenceHeader.='    </tr>';
+        $htmlPaymentReferenceHeader.=' </table';
+			
+		$pdf->writeHTML($htmlPaymentReferenceHeader, true, false, true, false, '');
+
+        $htmlPaymentReference  ='<table border="0.5" style="margin-bottom:0px;">';
+        $htmlPaymentReference .='   <thead>';
+        $htmlPaymentReference .='       <tr style="color:#000000;">';
+        $htmlPaymentReference .='           <th style="height:15px; vertical-align:bottom; text-align:center; width:10%;"><span style="font-weight:bold; font-size:8px">#</span></th>';
+        $htmlPaymentReference .='           <th style="height:15px; vertical-align:bottom; text-align:center; width:30%;"><span style="font-weight:bold; font-size:8px">'
+                                .$this->lang->line('GRN No').'</span></th>';
+        $htmlPaymentReference .='           <th style="height:15px; vertical-align:bottom; text-align:center; width:30%;"><span style="font-weight:bold; font-size:8px">'
+                                .$this->lang->line('Amount').'</span></th>';
+        $htmlPaymentReference .='           <th style="height:15px; vertical-align:bottom; text-align:center; width:30%;"><span style="font-weight:bold; font-size:8px">'
+                                .$this->lang->line('Balance').'</span></th>';
+        $htmlPaymentReference .='       </tr>
+                                    </thead>
+                                    <tbody>';
+        $htmlPaymentReference .='       <tr>';
+        $htmlPaymentReference .='           <td colspan="4">';
+        $htmlPaymentReference .='               <table class="left_right_border_only" style="margin-bottom:0px;">';     
+        
+        $paymentReferenceList = $this->make_payment_model->getMakePaymentReferenceTransactionList($makePaymentId);
+        $referenceTransactionTotalAmount = '0.00';
+        $referenceTransactionList = array();
+
+        if ($paymentReferenceList && sizeof($paymentReferenceList) > 0) {
+
+            $paymentReferenceCount = 1;
+            
+            foreach ($paymentReferenceList as $paymentReference) {
+
+                $referenceTransactionTypeId = $paymentReference->reference_transaction_type_id;
+
+                $referenceJournalEntryId = $paymentReference->reference_journal_entry_id;
+                $referenceJournalEntry = $this->journal_entries_model->getJournalEntryById($referenceJournalEntryId);
+                $description = $referenceJournalEntry[0]->description;
+
+                $referenceNo = '';
+                $transactionAmount = 0;
+                $transactionBalanceAmount = 0;
+
+                $referenceTransactionId = $paymentReference->reference_transaction_id;
+                $transactionAmount = $paymentReference->claim_amount;
+
+                if ($referenceTransactionTypeId == '1') {
+                    $purchaseNote = $this->purchase_note_model->getPurchaseNoteById($referenceTransactionId);
+
+                    if ($purchaseNote && sizeof($purchaseNote) > 0) {
+                        $referenceNo = $purchaseNote[0]->reference_no;
+
+                        if ($transactionAmount == '0.00') {
+                            $transactionAmount = $purchaseNote[0]->amount;
+                        }
+
+                        $transactionBalanceAmount = $purchaseNote[0]->balance_payment;
+                    }
+
+                    //$generalLedgerTransaction = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
+                    $referenceTransactionTotalAmount = $referenceTransactionTotalAmount + $transactionBalanceAmount;
+                } else if ($referenceTransactionTypeId == '2') {
+                    $salesNote = $this->sales_note_model->getSalesNoteById($referenceTransactionId);
+
+                    if ($salesNote && sizeof($salesNote) > 0) {
+                        $referenceNo = $salesNote[0]->reference_no;
+
+                        if ($transactionAmount == '0.00') {
+                            $transactionAmount = $salesNote[0]->amount_payable;
+                        }
+
+                        $transactionBalanceAmount = $salesNote[0]->balance_payment;
+                    }
+
+                    //$generalLedgerTransaction = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
+                    $referenceTransactionTotalAmount = $referenceTransactionTotalAmount + $transactionBalanceAmount;
+                } else if ($referenceTransactionTypeId == '3') {
+                    $supplierReturnNote = $this->supplier_return_note_model->getSupplierReturnNoteById($referenceTransactionId);
+
+                    if ($supplierReturnNote && sizeof($supplierReturnNote) > 0) {
+                        $referenceNo = $supplierReturnNote[0]->reference_no;
+
+                        if ($transactionAmount == '0.00') {
+                            $transactionAmount = $supplierReturnNote[0]->amount;
+                        }
+
+                        $transactionBalanceAmount = $supplierReturnNote[0]->balance_payment;
+                    }
+
+                    //$generalLedgerTransaction = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
+                    $referenceTransactionTotalAmount = $referenceTransactionTotalAmount + $transactionBalanceAmount;
+                } else if ($referenceTransactionTypeId == '4') {
+                    $customerReturnNote = $this->customer_return_note_model->getCustomerReturnNoteById($referenceTransactionId);
+
+                    if ($customerReturnNote && sizeof($customerReturnNote) > 0) {
+                        $referenceNo = $customerReturnNote[0]->reference_no;
+
+                        if ($transactionAmount == '0.00') {
+                            $transactionAmount = $customerReturnNote[0]->amount;
+                        }
+
+                        $transactionBalanceAmount = $customerReturnNote[0]->balance_payment;
+                    }
+
+                    //$generalLedgerTransaction = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
+                    $referenceTransactionTotalAmount = $referenceTransactionTotalAmount + $transactionBalanceAmount;
+                } else if ($referenceTransactionTypeId == '5') {
+                    $finishGoodGoodReceiveNote = $this->good_receive_note_fg_model->getGRNById($referenceTransactionId);
+
+                    if ($finishGoodGoodReceiveNote && sizeof($finishGoodGoodReceiveNote) > 0) {
+                        $referenceNo = $finishGoodGoodReceiveNote[0]->reference_no;
+
+                        if ($transactionAmount == '0.00') {
+                            $transactionAmount = $finishGoodGoodReceiveNote[0]->grn_total_payable;
+                        }
+
+                        $transactionBalanceAmount = $finishGoodGoodReceiveNote[0]->balance_payment;
+                    }
+
+                    //$generalLedgerTransaction = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
+                    $referenceTransactionTotalAmount = $referenceTransactionTotalAmount + $transactionBalanceAmount;
+                } else if ($referenceTransactionTypeId == '6') {
+                    $finishGoodSupplierReturn = $this->supplier_return_fg_model->getSupplierReturnById($referenceTransactionId);
+
+                    if ($finishGoodSupplierReturn && sizeof($finishGoodSupplierReturn) > 0) {
+                        $referenceNo = $finishGoodSupplierReturn[0]->reference_no;
+
+                        if ($transactionAmount == '0.00') {
+                            $transactionAmount = $finishGoodSupplierReturn[0]->amount;
+                        }
+
+                        $transactionBalanceAmount = $finishGoodSupplierReturn[0]->balance_payment;
+                    }
+
+                    //$generalLedgerTransaction = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
+                    $referenceTransactionTotalAmount = $referenceTransactionTotalAmount + $transactionBalanceAmount;
+                } else if ($referenceTransactionTypeId == '7') {
+                    $rawMaterialGoodReceiveNote = $this->good_receive_note_rm_model->getGRNById($referenceTransactionId);
+
+                    if ($rawMaterialGoodReceiveNote && sizeof($rawMaterialGoodReceiveNote) > 0) {
+                        $referenceNo = $rawMaterialGoodReceiveNote[0]->reference_no;
+
+                        if ($transactionAmount == '0.00') {
+                            $transactionAmount = $rawMaterialGoodReceiveNote[0]->amount;
+                        }
+
+                        $transactionBalanceAmount = $rawMaterialGoodReceiveNote[0]->balance_payment;
+                    }
+
+                    //$generalLedgerTransaction = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
+                    $referenceTransactionTotalAmount = $referenceTransactionTotalAmount + $transactionBalanceAmount;
+                } else if ($referenceTransactionTypeId == '8') {
+                    $rawMaterialSupplierReturn = $this->supplier_return_rm_model->getSupplierReturnById($referenceTransactionId);
+
+                    if ($rawMaterialSupplierReturn && sizeof($rawMaterialSupplierReturn) > 0) {
+                        $referenceNo = $rawMaterialSupplierReturn[0]->reference_no;
+
+                        if ($transactionAmount == '0.00') {
+                            $transactionAmount = $rawMaterialSupplierReturn[0]->amount;
+                        }
+
+                        $transactionBalanceAmount = $rawMaterialSupplierReturn[0]->balance_payment;
+                    }
+
+                    //$generalLedgerTransaction = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
+                    $referenceTransactionTotalAmount = $referenceTransactionTotalAmount + $transactionBalanceAmount;
+                } else if ($referenceTransactionTypeId == '9') {
+                    $salesInvoice = $this->sales_invoice_model->getSalesInvoiceById($referenceTransactionId);
+
+                    if ($salesInvoice && sizeof($salesInvoice) > 0) {
+                        $referenceNo = $salesInvoice[0]->reference_no;
+
+                        if ($transactionAmount == '0.00') {
+                            $transactionAmount = $salesInvoice[0]->total_amount;
+                        }
+
+                        $transactionBalanceAmount = $salesInvoice[0]->invoice_balance_payment;
+                    }
+
+                    //$generalLedgerTransaction = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
+                    $referenceTransactionTotalAmount = $referenceTransactionTotalAmount + $transactionBalanceAmount;
+                } else if ($referenceTransactionTypeId == '10') {
+                    $salesReturn = $this->sales_return_model->getSalesReturnById($referenceTransactionId);
+
+                    if ($salesReturn && sizeof($salesReturn) > 0) {
+                        $referenceNo = $salesReturn[0]->reference_no;
+
+                        if ($transactionAmount == '0.00') {
+                            $transactionAmount = $salesReturn[0]->amount;
+                        }
+
+                        $transactionBalanceAmount = $salesReturn[0]->balance_payment;
+                    }
+
+                    //$generalLedgerTransaction = $this->journal_entries_model->getGeneralLedgerTransactionsByJournalEntryId($referenceJournalEntryId);
+                    $referenceTransactionTotalAmount = $referenceTransactionTotalAmount + $transactionBalanceAmount;
+                } else if ($referenceTransactionTypeId == '11') {
+                    $journalEntry = $this->journal_entries_model->getJournalEntryById($referenceJournalEntryId);
+                    $transactionBalanceAmount = $journalEntry[0]->balance_amount;
+                    $referenceTransactionTotalAmount = $referenceTransactionTotalAmount + $transactionBalanceAmount;
+                }
+
+        $htmlPaymentReference .= '                  <tr>';
+        $htmlPaymentReference .= '                      <td style="text-align:center; width:10%; padding-right:10px;"><span style="font-weight:normal; font-size:8px;">' . $paymentReferenceCount . '</span></td>';
+        $htmlPaymentReference .= '                      <td style="text-align:center; width:30%; padding-right:10px;"><span style="font-weight:normal; font-size:8px;">' . $referenceNo . '</span></td>';
+        $htmlPaymentReference .= '                      <td style="text-align:right; width: 30%;"><span style="font-weight:normal; font-size:8px">'.number_format($transactionAmount, 2).'</span></td>';
+        $htmlPaymentReference .= '                      <td style="text-align:right; width: 30%;"><span style="font-weight:normal; font-size:8px">'.number_format($transactionBalanceAmount, 2).'</span></td>';
+        $htmlPaymentReference .= '                  </tr>';
+        
+                $paymentReferenceCount++;
+            }
+        }
+        
+        $htmlPaymentReference .= '              </table>';
+		$htmlPaymentReference .= '          </td>';
+        $htmlPaymentReference .= '      </tr>';
+		$htmlPaymentReference .= '  </tbody>
+                                </table>';
+        
+        $pdf->writeHTML($htmlPaymentReference, true, false, true, false, '');
+        
+        $htmlPaymentMethodHeader =' <table border="0">';
+        $htmlPaymentMethodHeader.='    <tr>';
+        $htmlPaymentMethodHeader.='        <td><span style="font-weight:bold; font-size:8px">' . $this->lang->line('Payment Details') . '</span></td>';
+        $htmlPaymentMethodHeader.='    </tr>';
+        $htmlPaymentMethodHeader.=' </table';
+			
+		$pdf->writeHTML($htmlPaymentMethodHeader, true, false, true, false, '');
+        
+        $htmlPaymentMethod  ='<table border="0.5" style="margin-bottom:0px;">';
+        $htmlPaymentMethod .='   <thead>';
+        $htmlPaymentMethod .='       <tr style="color:#000000;">';
+        $htmlPaymentMethod .='           <th style="height:15px; vertical-align:bottom; text-align:center; width:20%;"><span style="font-weight:bold; font-size:8px">#</span></th>';
+        $htmlPaymentMethod .='           <th style="height:15px; vertical-align:bottom; text-align:center; width:40%;"><span style="font-weight:bold; font-size:8px">'
+                                .$this->lang->line('Payment Type').'</span></th>';
+        $htmlPaymentMethod .='           <th style="height:15px; vertical-align:bottom; text-align:center; width:40%;"><span style="font-weight:bold; font-size:8px">'
+                                .$this->lang->line('Amount').'</span></th>';
+        $htmlPaymentMethod .='       </tr>
+                                </thead>
+                                <tbody>';
+        
+        $htmlPaymentMethod .='       <tr>';
+        $htmlPaymentMethod .='           <td colspan="3">';
+        $htmlPaymentMethod .='               <table class="left_right_border_only" style="margin-bottom:0px;">';
+        
+        $makePaymentTotal = '0.00';
+
+        if ($paymentMethodList && sizeof($paymentMethodList) > 0) {
+
+            $paymentMethodCount = 1;
+            
+            foreach ($paymentMethodList as $paymentMethodRecord) {
+
+                $paymentMethod = $paymentMethodRecord->payment_method;
+                $cashPaymentId = $paymentMethodRecord->cash_payment_id;
+                $chequeId = $paymentMethodRecord->cheque_id;
+
+                $chequeNumber = '';
+                $amount = '0.00';
+
+                if ($cashPaymentId != '0') {
+                    if ($paymentMethod == "Cash Payment") {
+                        $cashPayment = $this->payments_model->getCashPaymentById($cashPaymentId);
+
+                        if ($cashPayment && sizeof($cashPayment) > 0) {
+                            $amount = $cashPayment[0]->amount;
+                        }
+                    }
+                }
+
+                if ($chequeId != '0') {
+                    if ($paymentMethod == "Cheque Payment") {
+                        $cheque = $this->payments_model->getExpenseChequeById($chequeId);
+
+                        if ($cheque && sizeof($cheque) > 0) {
+                            $chequeNumber = $cheque[0]->cheque_number;
+                            $amount = $cheque[0]->amount;
+                        }
+                    } else if ($paymentMethod == "Second Party Cheque Payment" || $paymentMethod == "Third Party Cheque Payment") {
+                        $cheque = $this->payments_model->getExpenseChequeById($chequeId);
+
+                        if ($cheque && sizeof($cheque) > 0) {
+                            $chequeNumber = $cheque[0]->cheque_number;
+                            $amount = $cheque[0]->amount;
+                        }
+                    }
+                }
+
+                $makePaymentTotal = $makePaymentTotal + $amount;
+
+            $htmlPaymentMethod .= '  <tr>';
+            $htmlPaymentMethod .= '      <td style="text-align:center; width:20%; padding-right:10px;"><span style="font-weight:normal; font-size:8px;">' . $paymentMethodCount . '</span></td>';
+            
+            if ($paymentMethod == "Cheque Payment" || $paymentMethod == "Second Party Cheque Payment" || $paymentMethod == "Third Party Cheque Payment") {
+            $htmlPaymentMethod .= '      <td style="text-align:center; width:40%; padding-right:10px;"><span style="font-weight:normal; font-size:8px;">' . $paymentMethod . ' (' . $chequeNumber . ')</span></td>';
+            } else {
+            $htmlPaymentMethod .= '      <td style="text-align:center; width:40%; padding-right:10px;"><span style="font-weight:normal; font-size:8px;">' . $paymentMethod . '</span></td>'; 
+            }
+            $htmlPaymentMethod .= '      <td style="text-align:right; width: 40%;"><span style="font-weight:normal; font-size:8px">'.number_format($amount, 2).'</span></td>';
+            $htmlPaymentMethod .= '  </tr>';
+            
+                $paymentMethodCount++;
+            }
+        }
+        
+        $htmlPaymentMethod .= '              </table>';
+		$htmlPaymentMethod .= '          </td>';
+        $htmlPaymentMethod .= '      </tr>';
+        $htmlPaymentMethod .= '      <tr>';
+        $htmlPaymentMethod .= '          <td colspan="2" style="height: 15px; text-align:right; width: 60%;"><span style="font-weight:bold; font-style: italic; font-size:7px">'
+                                        .$this->lang->line('Total Amount').'</span></td>';
+        $htmlPaymentMethod .= '          <td style="height: 15px; text-align:right; width: 40%;">'
+                                . '          <table style="margin-bottom:0;">'
+                                . "              <thead></thead>"
+                                . "              <tbody>"
+                                . "                  <tr>"
+                                . '                      <td style="height: 15px;"><span style="font-size:8px">' . number_format($makePaymentTotal, 2) . '</span></td>'
+                                . "                  </tr>"
+                                . "              </tbody>"
+                                . "          </table>"
+                                . "      </td>";
+        $htmlPaymentMethod .= '      </tr>';
+		$htmlPaymentMethod .= '  </tbody>
+                            </table>';
+        
+        $pdf->writeHTML($htmlPaymentMethod, true, false, true, false, '');
+        	
+		$html .= "<br><br>";
+		$html .= '<table border="0.5">'
+				. "<thead></thead>"
+				. "<tbody>"
+				. "<tr>"
+				. '<td style="text-align:center; height: 40px; font-size:8px; vertical-align:bottom;">'. $this->lang->line('Prepared By') . "</td>"
+				. '<td style="text-align:center; height: 40px; font-size:8px; vertical-align:bottom;">'. $this->lang->line('Checked By'). "</td>"
+				. '<td style="text-align:center; height: 40px; font-size:8px; vertical-align:bottom;">'. $this->lang->line('Authorised By'). "</td>"
+				. '<td style="text-align:center; height: 40px; font-size:8px; vertical-align:bottom;">'. $this->lang->line('Received By'). "</td>"
+				. "</tr>"
+				. "</tbody>"
+				. "</table>";
+        
+        $pdf->writeHTML($html, true, false, true, false, '');
+
+		$pdf->lastPage();
+		$pdf_file_name = 'PaymentVoucher.pdf';
+		$pdf->Output($pdf_file_name, 'I');
 	}
 
 	//check user permission

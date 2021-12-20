@@ -239,7 +239,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$currentDate = date('Y-m-d');
 		
 		if ($year == '' || $year == '0') {
-			$year = date('Y'); 
+			$currentFinancialYear = date('Y'); 
 		}
 		
 		$financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
@@ -247,14 +247,14 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
 		$financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
 
-		$currentFinancialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+		$currentFinancialYearEndDateToCompare = ($currentFinancialYear) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 
 		if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($currentFinancialYearEndDateToCompare) < strtotime($currentDate)) {
-			$currentFinancialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-			$currentFinancialYearEndDate = ($year + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+			$currentFinancialYearStartDate = $currentFinancialYear . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+			$currentFinancialYearEndDate = ($currentFinancialYear + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 		} else {
-			$currentFinancialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-			$currentFinancialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+			$currentFinancialYearStartDate = ($currentFinancialYear - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+			$currentFinancialYearEndDate = $currentFinancialYear . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 		}
         
         $onlyCompletedTransactions = '';
@@ -1560,7 +1560,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$currentDate = date('Y-m-d');
 		
 		if ($year == '' || $year == '0') {
-			$year = date('Y'); 
+			$currentFinancialYear = date('Y'); 
 		}
 		
 		$financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
@@ -1568,18 +1568,18 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
 		$financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
 
-		$currentFinancialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+		$currentFinancialYearEndDateToCompare = ($currentFinancialYear) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 
 		if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($currentFinancialYearEndDateToCompare) < strtotime($currentDate)) {
-			$currentFinancialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-			$currentFinancialYearEndDate = ($year + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+			$currentFinancialYearStartDate = $currentFinancialYear . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+			$currentFinancialYearEndDate = ($currentFinancialYear + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 		} else {
             if ($financialYearStartMonth > 1 || $financialYearStartDay > 1) {
-                $currentFinancialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-                $currentFinancialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                $currentFinancialYearStartDate = ($currentFinancialYear - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                $currentFinancialYearEndDate = $currentFinancialYear . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
             } else {
-                $currentFinancialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-                $currentFinancialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+                $currentFinancialYearStartDate = $currentFinancialYear . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+                $currentFinancialYearEndDate = $currentFinancialYear . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
             }
 		}
 		
@@ -2297,7 +2297,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$currentDate = date('Y-m-d');
 		
 		if ($year == '' || $year == '0') {
-			$year = date('Y'); 
+			$currentFinancialYear = date('Y'); 
 		}
 		
 		$financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
@@ -2305,14 +2305,14 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
 		$financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
 
-		$currentFinancialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+		$currentFinancialYearEndDateToCompare = ($currentFinancialYear) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 
 		if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($currentFinancialYearEndDateToCompare) < strtotime($currentDate)) {
-			$currentFinancialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-			$currentFinancialYearEndDate = ($year + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+			$currentFinancialYearStartDate = $currentFinancialYear . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+			$currentFinancialYearEndDate = ($currentFinancialYear + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 		} else {
-			$currentFinancialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-			$currentFinancialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+			$currentFinancialYearStartDate = ($currentFinancialYear - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+			$currentFinancialYearEndDate = $currentFinancialYear . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 		}
 
 		if ($locationId != '0' && $fromDate != '' && $toDate != '') {
@@ -3237,7 +3237,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$currentDate = date('Y-m-d');
 		
 		if ($year == '' || $year == '0') {
-			$year = date('Y'); 
+			$currentFinancialYear = date('Y'); 
 		}
 		
 		$financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
@@ -3245,14 +3245,14 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
 		$financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
 
-		$currentFinancialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+		$currentFinancialYearEndDateToCompare = ($currentFinancialYear) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 
 		if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($currentFinancialYearEndDateToCompare) < strtotime($currentDate)) {
-			$currentFinancialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-			$currentFinancialYearEndDate = ($year + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+			$currentFinancialYearStartDate = $currentFinancialYear . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+			$currentFinancialYearEndDate = ($currentFinancialYear + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 		} else {
-			$currentFinancialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-			$currentFinancialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+			$currentFinancialYearStartDate = ($currentFinancialYear - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+			$currentFinancialYearEndDate = $currentFinancialYear . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 		}
 
         if ($locationId != '0' && $debtorId != '0' && $fromDate != '' && $toDate != '') {
@@ -3988,7 +3988,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$currentDate = date('Y-m-d');
 		
 		if ($year == '' || $year == '0') {
-			$year = date('Y'); 
+			$currentFinancialYear = date('Y'); 
 		}
 		
 		$financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
@@ -3996,14 +3996,14 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
 		$financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
 
-		$currentFinancialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+		$currentFinancialYearEndDateToCompare = ($currentFinancialYear) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 
 		if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($currentFinancialYearEndDateToCompare) < strtotime($currentDate)) {
-			$currentFinancialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-			$currentFinancialYearEndDate = ($year + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+			$currentFinancialYearStartDate = $currentFinancialYear . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+			$currentFinancialYearEndDate = ($currentFinancialYear + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 		} else {
-			$currentFinancialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-			$currentFinancialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+			$currentFinancialYearStartDate = ($currentFinancialYear - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+			$currentFinancialYearEndDate = $currentFinancialYear . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 		}
 
 		if ($locationId != '0' && $creditorId != '0' && $fromDate != '' && $toDate != '') {
@@ -4829,7 +4829,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$currentDate = date('Y-m-d');
 		
 		if ($year == '' || $year == '0') {
-			$year = date('Y'); 
+			$currentFinancialYear = date('Y'); 
 		}
 		
 		$financialYearStartMonth = $this->system_configurations_model->getFinancialYearStartMonthNo();
@@ -4837,14 +4837,14 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$financialYearEndMonth = $this->system_configurations_model->getFinancialYearEndMonthNo();
 		$financialYearEndDay = $this->system_configurations_model->getFinancialYearEndDayNo();
 
-		$currentFinancialYearEndDateToCompare = ($year) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+		$currentFinancialYearEndDateToCompare = ($currentFinancialYear) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 
 		if (($financialYearStartMonth > 1 || $financialYearStartDay > 1) && strtotime($currentFinancialYearEndDateToCompare) < strtotime($currentDate)) {
-			$currentFinancialYearStartDate = $year . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-			$currentFinancialYearEndDate = ($year + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+			$currentFinancialYearStartDate = $currentFinancialYear . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+			$currentFinancialYearEndDate = ($currentFinancialYear + 1) . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 		} else {
-			$currentFinancialYearStartDate = ($year - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
-			$currentFinancialYearEndDate = $year . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
+			$currentFinancialYearStartDate = ($currentFinancialYear - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
+			$currentFinancialYearEndDate = $currentFinancialYear . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 		}
 		
 		if ($locationId != '0' && $fromDate != '' && $toDate != '') {
@@ -4861,7 +4861,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, $currentFinancialYearStartDate, $currentFinancialYearEndDate, '', $locationId, '', 'Yes', '', 'No');
 		} else if ($locationId == '0' && $year != '0') {
 			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, $currentFinancialYearStartDate, $currentFinancialYearEndDate, '', '', '', 'Yes', '', 'No');
-		} else if ($locationId != '0' && $reportDate != '0') {
+		} else if ($locationId != '0' && $reportDate != '') {
 			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, $currentFinancialYearStartDate, $reportDate, '', $locationId, '', 'Yes', '', 'No');
 		}
 
