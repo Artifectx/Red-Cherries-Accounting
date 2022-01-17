@@ -57,7 +57,7 @@ fclose( $fh );
 			</fieldset>
 		</form>
 		<div class="copy_right">
-			Copyright © 2021 Red Cherries Accounting Version <?php echo $_GET['version']; ?> By Artifectx
+			Copyright © 2022 Red Cherries Accounting Version <?php echo $_GET['version']; ?> By Artifectx
 		</div>
 	</body>
 </html>

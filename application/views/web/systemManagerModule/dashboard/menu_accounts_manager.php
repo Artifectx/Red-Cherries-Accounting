@@ -129,12 +129,13 @@
 				<?php
 					}
 
-					if(isset($ACM_Bookkeeping_View_Journal_Entry_Permissions) || isset($ACM_Bookkeeping_View_General_Ledger_Permissions) || 
-					   isset($ACM_Bookkeeping_View_Purchase_Note_Permissions) || isset($ACM_Bookkeeping_View_Sales_Note_Permissions) ||
-					   isset($ACM_Bookkeeping_View_Customer_Return_Note_Permissions) || isset($ACM_Bookkeeping_View_Supplier_Return_Note_Permissions) ||
-					   isset($ACM_Bookkeeping_View_Receive_Payment_Permissions) || isset($ACM_Bookkeeping_View_Make_Payment_Permissions) ||
-					   isset($ACM_Bookkeeping_View_Cheques_Permissions) || isset($ACM_Bookkeeping_View_Account_Balance_Permissions) ||
-					   isset($ACM_Bookkeeping_View_Stakeholder_Account_Balance_Permissions) || isset($ACM_Bookkeeping_View_Opening_Balances_Permissions)) {
+					if(isset($ACM_Bookkeeping_View_Journal_Entry_Permissions) || isset($ACM_Bookkeeping_View_Journal_Entry_Bulk_Upload_Permissions) || 
+                       isset($ACM_Bookkeeping_View_General_Ledger_Permissions) || isset($ACM_Bookkeeping_View_Purchase_Note_Permissions) || 
+                       isset($ACM_Bookkeeping_View_Sales_Note_Permissions) || isset($ACM_Bookkeeping_View_Customer_Return_Note_Permissions) || 
+                       isset($ACM_Bookkeeping_View_Supplier_Return_Note_Permissions) || isset($ACM_Bookkeeping_View_Receive_Payment_Permissions) || 
+                       isset($ACM_Bookkeeping_View_Make_Payment_Permissions) || isset($ACM_Bookkeeping_View_Cheques_Permissions) || 
+                       isset($ACM_Bookkeeping_View_Account_Balance_Permissions) || isset($ACM_Bookkeeping_View_Stakeholder_Account_Balance_Permissions) || 
+                       isset($ACM_Bookkeeping_View_Opening_Balances_Permissions)) {
 				?>
 					<li class=''>
 						<a class='dropdown-collapse menuBox' href='#'><i class='icon-book'></i>
@@ -150,6 +151,16 @@
 									<a href='<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/journal_entries_controller'>
 										<i class='icon-caret-right'></i>
 										<span><?php echo $this->lang->line('Journal Entries') ?></span>
+									</a>
+								</li>
+								<?php
+							}
+                            if(isset($ACM_Bookkeeping_View_Journal_Entry_Bulk_Upload_Permissions)) {
+								?>
+								<li class='<?php if ($li_class_journal_entry_bulk_upload) echo $li_class_journal_entry_bulk_upload; else ''; ?>'>
+									<a href='<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/journal_entry_bulk_upload_controller'>
+										<i class='icon-caret-right'></i>
+										<span><?php echo $this->lang->line('Journal Entry Bulk Upload') ?></span>
 									</a>
 								</li>
 								<?php

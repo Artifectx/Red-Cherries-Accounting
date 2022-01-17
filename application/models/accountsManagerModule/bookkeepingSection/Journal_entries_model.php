@@ -137,6 +137,13 @@ class Journal_entries_model extends CI_Model {
 		return true;
 	}
     
+    public function deleteJournalEntryBulkUploadEntries($id) {
+		$this->db->where('bulk_upload_id', $id);
+		$this->db->limit(100000);
+		$this->db->delete('acm_bookkeeping_journal_entries');
+		return true;
+	}
+    
     public function deleteDashboardSummaryFigures($summaryCategoryId, $summaryCategoryMainType=null, $summaryCategorySubType=null) {
 		$this->db->where('summary_category_id', $summaryCategoryId);
         
@@ -320,6 +327,19 @@ class Journal_entries_model extends CI_Model {
         $this->db->where('acm_bookkeeping_journal_entries.last_action_status !=','deleted');
 		$this->db->limit(10000);
 		$query = $this->db->get('acm_bookkeeping_journal_entries');
+		if ($query->num_rows() > 0) {
+			return $query->result();
+		} else {
+			return false;
+		}
+	}
+    
+    public function getJournalEntryByReferenceNo($referenceNo) {
+        $this->db->where('reference_no', $referenceNo);
+        $this->db->where('acm_bookkeeping_journal_entries.last_action_status !=','deleted');
+		$this->db->limit(1000000);
+		$query = $this->db->get('acm_bookkeeping_journal_entries');
+        //echo $this->db->last_query();die;
 		if ($query->num_rows() > 0) {
 			return $query->result();
 		} else {

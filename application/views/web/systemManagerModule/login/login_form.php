@@ -83,7 +83,7 @@
 							<div class='text-center'>
 								<a href='#' role="button" data-toggle="modal">
 									<i class='icon-user1'></i>
-									<strong>Red Cherries Accounting Version <?php echo $version_no ?><br>Copyright &copy; 2021 Red Cherries Accounting By Artifectx<?php //echo $this->lang->line('Sign up')?></strong>
+									<strong>Red Cherries Accounting Version <?php echo $version_no ?><br>Copyright &copy; 2022 Red Cherries Accounting By Artifectx<?php //echo $this->lang->line('Sign up')?></strong>
 								</a>
 							</div>
 						</div>

@@ -432,12 +432,13 @@
 								<?php
 									}
 
-									if(isset($ACM_Bookkeeping_View_Journal_Entry_Permissions) || isset($ACM_Bookkeeping_View_General_Ledger_Permissions) ||
-									   isset($ACM_Bookkeeping_View_Purchase_Note_Permissions) || isset($ACM_Bookkeeping_View_Sales_Note_Permissions) ||
-								       isset($ACM_Bookkeeping_View_Customer_Return_Note_Permissions) || isset($ACM_Bookkeeping_View_Supplier_Return_Note_Permissions) || 
-								       isset($ACM_Bookkeeping_View_Receive_Payment_Permissions) || isset($ACM_Bookkeeping_View_Make_Payment_Permissions) || 
-                                       isset($ACM_Bookkeeping_View_Cheques_Permissions) || isset($ACM_Bookkeeping_View_Account_Balance_Permissions) ||
-									   isset($ACM_Bookkeeping_View_Stakeholder_Account_Balance_Permissions) || isset($ACM_Bookkeeping_View_Opening_Balances_Permissions)) {
+									if(isset($ACM_Bookkeeping_View_Journal_Entry_Permissions)|| isset($ACM_Bookkeeping_View_Journal_Entry_Bulk_Upload_Permissions) || 
+                                       isset($ACM_Bookkeeping_View_General_Ledger_Permissions) || isset($ACM_Bookkeeping_View_Purchase_Note_Permissions) || 
+                                       isset($ACM_Bookkeeping_View_Sales_Note_Permissions) || isset($ACM_Bookkeeping_View_Customer_Return_Note_Permissions) || 
+                                       isset($ACM_Bookkeeping_View_Supplier_Return_Note_Permissions) || isset($ACM_Bookkeeping_View_Receive_Payment_Permissions) || 
+                                       isset($ACM_Bookkeeping_View_Make_Payment_Permissions) || isset($ACM_Bookkeeping_View_Cheques_Permissions) || 
+                                       isset($ACM_Bookkeeping_View_Account_Balance_Permissions) || isset($ACM_Bookkeeping_View_Stakeholder_Account_Balance_Permissions) || 
+                                       isset($ACM_Bookkeeping_View_Opening_Balances_Permissions)) {
 									?>
 										<div class='box'>
 											<div class='row'>
@@ -459,6 +460,19 @@
 																				<i><img src="<?php echo base_url(); ?>assets/images/icons/journal_entry.png"
 																						alt=""/></i>
 																				<span><span><?php echo $this->lang->line('Journal Entries') ?></span></span>
+																			</a>
+																		</li>
+																		<?php
+																	}
+                                                                    if(isset($ACM_Bookkeeping_View_Journal_Entry_Bulk_Upload_Permissions)) {
+																		?>
+																		<li>
+																			<a class="tip"
+																			   href="<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/journal_entry_bulk_upload_controller"
+																			   title="<?php echo $this->lang->line('Journal Entry Bulk Upload') ?>">
+																				<i><img src="<?php echo base_url(); ?>assets/images/icons/journal_entry_upload.png"
+																						alt=""/></i>
+																				<span><span><?php echo $this->lang->line('Journal Entry Bulk Upload') ?></span></span>
 																			</a>
 																		</li>
 																		<?php
