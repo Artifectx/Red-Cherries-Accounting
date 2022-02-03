@@ -480,6 +480,88 @@
 					<div class='row'>
 						<div class='col-sm-12'>
 							<div class='box bordered-box <?php echo BOXHEADER; ?>-border' style='margin-bottom:0;'>
+                                <div class='box'>
+                                    <div class='box-header'>
+                                        <div class='title'><?php echo $this->lang->line('Search Journal Entries') ?></div>
+                                    </div>
+                                    <div class='box-content'>
+                                        <div class='form-group'>
+                                            <div class='col-sm-12 controls'>
+                                                <label style="text-align: left;" class='control-label col-sm-4' ><?php echo $this->lang->line('From Date') ?></label>
+                                                <label style="text-align: left;" class='control-label col-sm-4' ><?php echo $this->lang->line('To Date') ?></label>
+                                            </div>
+                                        </div>
+                                        <br>
+                                        <div class='form-group'>
+                                            <div class='col-sm-12 controls'>
+                                                <div class='col-sm-4 controls'>
+                                                    <div class='input-group date' id="from_date_picker">
+                                                        <input class='form-control' id='from_date' data-format='YYYY-MM-DD' placeholder='<?php echo $this->lang->line('From Date') ?>' type='text'>
+                                                        <span class='input-group-addon'>
+                                                            <span class="glyphicon glyphicon-calendar"></span>
+                                                        </span>
+                                                        <div id="from_dateError" class="red"></div>
+                                                    </div>
+                                                </div>
+                                                <div class='col-sm-4 controls'>
+                                                    <div class='input-group date' id="to_date_picker">
+                                                        <input class='form-control' id='to_date' data-format='YYYY-MM-DD' placeholder='<?php echo $this->lang->line('To Date') ?>' type='text'>
+                                                        <span class='input-group-addon'>
+                                                            <span class="glyphicon glyphicon-calendar"></span>
+                                                        </span>
+                                                        <div id="to_dateError" class="red"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <br>
+                                        <div class='form-group'>
+                                            <div class='col-sm-12 controls'>
+                                                <label style="text-align: left;" class='control-label col-sm-4' ><?php echo $this->lang->line('Prime Entry Book') ?></label>
+                                                 <?php 
+                                                    if ($systemConfigData['accounts_management_for_locations'] == "Yes") { ?>
+                                                        <div class='form-group'>
+                                                            <div class='col-sm-12 controls'>
+                                                                <label style="text-align: left;" class='control-label col-sm-4' ><?php echo $this->lang->line('Location') ?></label>
+                                                            </div>
+                                                        </div>
+                                                <?php
+                                                    }
+                                                ?>
+                                            </div>
+                                        </div>
+                                        <br>
+                                        <div class='form-group'>
+                                            <div class='col-sm-12 controls'>
+                                                <div class='col-sm-4 controls'>
+                                                    <select id="prime_entry_book_name_search_init" class="form-control"><option><?php echo $this->lang->line('-- Select --') ?></option></select>
+                                                    <!--Prime entry books drop down-->
+                                                    <div id="prime_entry_book_name_search_dropdown">
+                                                    </div>
+                                                    <!--End Prime entry books drop down-->
+                                                    <div id="prime_entry_book_search_idError" class="red"></div>
+                                                </div>
+                                                <?php 
+                                                if ($systemConfigData['accounts_management_for_locations'] == "Yes") { ?>
+                                                    <div class='col-sm-12 controls'>
+                                                        <div class='col-sm-3 controls' id='journal_entry_location_div'>
+                                                            <select class='form-control' id='location_search'>
+
+                                                            </select>
+                                                            <div id='location_searchError' class='red'></div>
+                                                        </div>
+                                                    </div>
+                                                <?php 
+                                                } ?>
+                                                <div class='col-sm-1 controls'>
+                                                    <button class='btn btn-success' id="btnSearch" type='button' onclick="searchJournalEntries();"><?php echo $this->lang->line('Search') ?></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <br><br>
+                                    </div>
+                                </div>
+                                
 								<?php
 								if (isset($ACM_Bookkeeping_Add_Journal_Entry_Permissions)) { ?>
 									<button class='btn btn-success btn-sm new'
@@ -524,6 +606,15 @@
 
 	$(document).ready(function () {
         $(".msg_instant").hide();
+        
+        $("#from_date_picker").datetimepicker({
+			format: 'YYYY-MM-DD'
+		});
+        
+		$("#to_date_picker").datetimepicker({
+			format: 'YYYY-MM-DD'
+		});
+        
 		$("#datepicker_transaction_date").datetimepicker({
 			format: 'YYYY-MM-DD'
 		});
@@ -1078,6 +1169,11 @@
 		
 		JournalEntry.getPayeePayerList(payeePayerType, "");
 	}
+    
+    function searchJournalEntries() {
+		$("#month_selector").hide();
+		getTableData("", "");
+	}
 	
 	var JournalEntry = {
 		
@@ -1612,6 +1708,11 @@
                     $('#prime_entry_book_name_init').hide();
                     $("#prime_entry_book_name_dropdown").html(response);
                     $("#prime_entry_book_id").select2();
+                    
+                    $('#prime_entry_book_name_search_init').hide();
+                    $("#prime_entry_book_name_search_dropdown").html(response);
+                    $("#prime_entry_book_name_search_dropdown").find("#prime_entry_book_id").prop({ id: "prime_entry_book_search_id"});
+                    $("#prime_entry_book_search_id").select2();
                 }
 			});
 		},
@@ -2021,12 +2122,37 @@
 	//get all data
 	function getTableData(year, month) {
 		$(".loader").show();
+        
+        var fromDate = '';
+        var toDate = '';
+        var primeEntryBookId = '';
+		var locationId = '';
+        
+        fromDate = $("#from_date").val();
+        toDate = $("#to_date").val();
+
+		if ($("#prime_entry_book_search_id").val() != '0') {
+			primeEntryBookId = $("#prime_entry_book_search_id").val()
+		} else {
+			primeEntryBookId = '';
+		}
+
+		if ($("#location").length) {
+			locationId = $("#location").val();
+		} else {
+			locationId = '';
+		}
+        
 		$.ajax({
 			type: "POST",
 			url: "<?php echo base_url(); ?>accountsManagerModule/bookkeepingSection/journal_entries_controller/getTableData",
 			data: {
 				'year' : year,
 				'month' : month,
+                'from_date' : fromDate,
+				'to_date' : toDate,
+				'prime_entry_book_id' : primeEntryBookId,
+				'location_id' : locationId,
 				'<?php echo $this->security->get_csrf_token_name(); ?>':'<?php echo $this->security->get_csrf_hash(); ?>'
 			},
 			dataType: 'html',

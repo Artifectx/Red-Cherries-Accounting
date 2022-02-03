@@ -207,7 +207,7 @@ class Journal_entries_model extends CI_Model {
 		return true;
 	}
 
-	public function getAllJournalEntries($fromDate, $toDate, $orderField=null, $orderType=null, $locationId=null) {
+	public function getAllJournalEntries($fromDate, $toDate, $orderField=null, $orderType=null, $locationId=null, $primeEntryBookId=null) {
         
         if ($orderField != '' && $orderType != '') {
             $this->db->order_by($orderField, $orderType);
@@ -221,6 +221,10 @@ class Journal_entries_model extends CI_Model {
         if ($locationId != '') {
             $this->db->where('acm_bookkeeping_journal_entries.location_id', $locationId);
         }
+        
+        if($primeEntryBookId != '') {
+			$this->db->where('acm_bookkeeping_journal_entries.prime_entry_book_id', $primeEntryBookId);
+		}
         
 		$query = $this->db->get('acm_bookkeeping_journal_entries');
         

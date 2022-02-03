@@ -716,11 +716,12 @@ class Opening_balances_controller extends CI_Controller {
 		$count = 2;
 		$chartOfAccountNames = '';
 		while ($openingBalancesWorksheet->getCell('A' . $count)->getValue() != '') {
-			$chartOfAccountNames[$count] = $openingBalancesWorksheet->getCell('A' . $count)->getValue();
-			$payeePayerCodes[$count] = $openingBalancesWorksheet->getCell('B' . $count)->getValue();
-            $debitAmounts[$count] = $openingBalancesWorksheet->getCell('D' . $count)->getValue();
-            $creditAmounts[$count] = $openingBalancesWorksheet->getCell('E' . $count)->getValue();
-            $descriptions[$count] = $openingBalancesWorksheet->getCell('F' . $count)->getValue();
+            $chartOfAccountCodes[$count] = $openingBalancesWorksheet->getCell('A' . $count)->getValue();
+			$chartOfAccountNames[$count] = $openingBalancesWorksheet->getCell('B' . $count)->getValue();
+			$payeePayerCodes[$count] = $openingBalancesWorksheet->getCell('C' . $count)->getValue();
+            $debitAmounts[$count] = $openingBalancesWorksheet->getCell('E' . $count)->getValue();
+            $creditAmounts[$count] = $openingBalancesWorksheet->getCell('F' . $count)->getValue();
+            $descriptions[$count] = $openingBalancesWorksheet->getCell('G' . $count)->getValue();
 			$count++;
 		}
 		
@@ -736,6 +737,24 @@ class Opening_balances_controller extends CI_Controller {
             $errorCount = 1;
             
 			foreach ($chartOfAccountNames as $chartOfAccountName) {
+                
+                $chartOfAccountCodeFound = false;
+				
+				if ($chartOfAccountList && sizeof($chartOfAccountList) > 0) {
+					foreach ($chartOfAccountList as $chartOfAccount) {
+						if ($chartOfAccount->chart_of_account_code == $chartOfAccountCodes[$count]) {
+							$chartOfAccountCodeFound = true;
+							$chartOfAccountIds[$count] = $chartOfAccount->chart_of_account_id;
+							break;
+						}
+					}
+
+					if ($chartOfAccountCodes[$count] != '' && !$chartOfAccountCodeFound) {
+						$openingBalancesSheetErrors[$errorCount . "-" . $count] = '"Chart of Account Code" ' . $chartOfAccountCodes[$count] . ' is invalid';
+                        $errorsFound = true;
+                        $errorCount++;
+					}
+				}
                 
                 $chartOfAccountFound = false;
 				
@@ -773,7 +792,9 @@ class Opening_balances_controller extends CI_Controller {
                         $errorsFound = true;
                         $errorCount++;
 					}
-				}
+				} else {
+                    $payeePayerIds[$count] = '';
+                }
                 
                 if ($debitAmounts[$count] != '') {
 					if (!filter_var($debitAmounts[$count], FILTER_VALIDATE_FLOAT)) {

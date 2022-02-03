@@ -1045,10 +1045,25 @@ class Journal_entries_controller extends CI_Controller {
 			
 			$year = $this->db->escape_str($this->input->post('year'));
 			$month = $this->db->escape_str($this->input->post('month'));
+            $fromDateSearch = $this->db->escape_str($this->input->post('from_date'));
+            $toDateSearch = $this->db->escape_str($this->input->post('to_date'));
+            $primeEntryBookId = $this->db->escape_str($this->input->post('prime_entry_book_id'));
+            $locationId = $this->db->escape_str($this->input->post('location_id'));
 			
-			$length = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-			$fromDate = $year . '-' . $month . '-1';
-			$toDate = $year . '-' . $month . '-' . $length;
+			if ($fromDateSearch == '' && $toDateSearch == '') {
+                if ($year == '' && $month == '') {
+                    $year = date("Y");
+                    $month = date('m');
+                }
+                
+                $length = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+                $fromDate = $year . '-' . $month . '-1';
+                $toDate = $year . '-' . $month . '-' . $length;
+                
+            } else {
+                $fromDate = $fromDateSearch;
+                $toDate = $toDateSearch;
+            }
 			
 			$html = "";
 			$html .= "<div class='box-content box-no-padding out-table'>
@@ -1070,7 +1085,7 @@ class Journal_entries_controller extends CI_Controller {
 					</thead>
 					<tbody>";
 
-			$journalEntries = $this->journal_entries_model->getAllJournalEntries($fromDate, $toDate, 'transaction_date', 'desc');
+			$journalEntries = $this->journal_entries_model->getAllJournalEntries($fromDate, $toDate, 'transaction_date', 'desc', $locationId, $primeEntryBookId);
 
 			if ($journalEntries != null) {
 				foreach ($journalEntries as $row) {
