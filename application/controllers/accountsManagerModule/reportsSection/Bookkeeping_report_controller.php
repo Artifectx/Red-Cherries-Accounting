@@ -235,10 +235,18 @@ class Bookkeeping_report_controller extends CI_Controller {
 	public function getTrialBalanceDataFromDB($reportDate, $fromDate, $toDate, $year, $month, $week, $generateAs, $locationId, $accountingMethod){
 		$trialBalanceRecords = '';
 		$html='';
+		$currentDate = '';
 		
-		$currentDate = date('Y-m-d');
-		
-		if ($year == '' || $year == '0') {
+        if ($reportDate != '') {
+            $currentDate = $reportDate;
+            $currentFinancialYear = date('Y', strtotime($reportDate));
+        } else if ($fromDate != '' && $toDate != '') {
+            $currentDate = $toDate;
+            $currentFinancialYear = date('Y', strtotime($toDate));
+        } else if ($year != '' && $year != '0') {
+            $currentFinancialYear = $year;
+        } else {
+            $currentDate = date('Y-m-d');
 			$currentFinancialYear = date('Y'); 
 		}
 		
@@ -256,6 +264,9 @@ class Bookkeeping_report_controller extends CI_Controller {
 			$currentFinancialYearStartDate = ($currentFinancialYear - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
 			$currentFinancialYearEndDate = $currentFinancialYear . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 		}
+        
+        $currentFinancialYearStartDate = date('Y-m-d', strtotime($currentFinancialYearStartDate));
+        $currentFinancialYearEndDate = date('Y-m-d', strtotime($currentFinancialYearEndDate));
         
         $onlyCompletedTransactions = '';
         
@@ -283,10 +294,10 @@ class Bookkeeping_report_controller extends CI_Controller {
 
 		if ($locationId != '0' && $reportDate == '' && $year != '0' && $month != '0' && $week != '-- Select --') {
 			$weekBreakdown = explode(":", $week);
-			$trialBalanceRecords = $this->journal_entries_model->getFilteredJournalEntries(trim($accountingMethod, $weekBreakdown[0]), trim($weekBreakdown[1]), '', '', $locationId, '', $onlyCompletedTransactions, '', 'No');
+			$trialBalanceRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, trim($weekBreakdown[0]), trim($weekBreakdown[1]), '', '', $locationId, '', $onlyCompletedTransactions, '', 'No');
 		} else if ($locationId == '0' && $reportDate == '' && $year != '0' && $month != '0' && $week != '-- Select --') {
 			$weekBreakdown = explode(":", $week);
-			$trialBalanceRecords = $this->journal_entries_model->getFilteredJournalEntries(trim($accountingMethod, $weekBreakdown[0]), trim($weekBreakdown[1]), '', '', '', '', $onlyCompletedTransactions, '', 'No');
+			$trialBalanceRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, trim($weekBreakdown[0]), trim($weekBreakdown[1]), '', '', '', '', $onlyCompletedTransactions, '', 'No');
 		} else if ($locationId != '0' && $reportDate == '' && $year != '0' && $month != '0' && $week == '-- Select --') {
 			$numberOfDays = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 			$trialBalanceRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, $year . "-" . $month ."-01", $year . "-" . $month ."-" . $numberOfDays, '', $locationId, '', $onlyCompletedTransactions, '', 'No');
@@ -1469,12 +1480,11 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$year = $this->db->escape_str($this->input->post('year'));
 		$month = $this->db->escape_str($this->input->post('month'));
 		$week = $this->db->escape_str($this->input->post('week'));
-		$generateAs = $this->db->escape_str($this->input->post('generate_as'));
 
-		$this->generateBalanceSheetReportAsPDF($reportDate, $fromDate, $toDate, $year, $month, $week, $generateAs, $locationId, $accountingMethod);
+		$this->generateBalanceSheetReportAsPDF($reportDate, $fromDate, $toDate, $year, $month, $week, $locationId, $accountingMethod);
 	}
 
-	public function generateBalanceSheetReportAsPDF($reportDate, $fromDate, $toDate, $year, $month, $week, $generateAs, $locationId, $accountingMethod) {
+	public function generateBalanceSheetReportAsPDF($reportDate, $fromDate, $toDate, $year, $month, $week, $locationId, $accountingMethod) {
 		$pdf = new Pdf_reports(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 		$pdf->SetCreator(PDF_CREATOR);
 		$pdf->AddPage();
@@ -1539,7 +1549,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$html.="</tr>
 				</thead>";
 
-		$html .= $this->getBalanceSheetDataFromDB($reportDate, $fromDate, $toDate, $year, $month, $week, $generateAs, $locationId, $accountingMethod);
+		$html .= $this->getBalanceSheetDataFromDB($reportDate, $fromDate, $toDate, $year, $month, $week, $locationId, $accountingMethod);
 
 		$html.="</table>";
 		$pdf->writeHTML($html, true, false, true, false, '');
@@ -1553,13 +1563,21 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$pdf->Output($pdf_file_name, 'FD');
 	}
 
-	public function getBalanceSheetDataFromDB($reportDate, $fromDate, $toDate, $year, $month, $week, $generateAs, $locationId, $accountingMethod){
+	public function getBalanceSheetDataFromDB($reportDate, $fromDate, $toDate, $year, $month, $week, $locationId, $accountingMethod){
 		$balanceSheetRecords = '';
 		$html='';
+		$currentDate = '';
 		
-		$currentDate = date('Y-m-d');
-		
-		if ($year == '' || $year == '0') {
+        if ($reportDate != '') {
+            $currentDate = $reportDate;
+            $currentFinancialYear = date('Y', strtotime($reportDate));
+        } else if ($fromDate != '' && $toDate != '') {
+            $currentDate = $toDate;
+            $currentFinancialYear = date('Y', strtotime($toDate));
+        } else if ($year != '' && $year != '0') {
+            $currentFinancialYear = $year;
+        } else {
+            $currentDate = date('Y-m-d');
 			$currentFinancialYear = date('Y'); 
 		}
 		
@@ -1582,6 +1600,9 @@ class Bookkeeping_report_controller extends CI_Controller {
                 $currentFinancialYearEndDate = $currentFinancialYear . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
             }
 		}
+        
+        $currentFinancialYearStartDate = date('Y-m-d', strtotime($currentFinancialYearStartDate));
+        $currentFinancialYearEndDate = date('Y-m-d', strtotime($currentFinancialYearEndDate));
 		
 		if ($locationId != '0' && $fromDate != '' && $toDate != '') {
 			$balanceSheetRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, $fromDate, $toDate, '', $locationId, "", "Yes", "", "No");
@@ -1603,10 +1624,10 @@ class Bookkeeping_report_controller extends CI_Controller {
 
 		if ($locationId != '0' && $reportDate == '' && $year != '0' && $month != '0' && $week != '-- Select --') {
 			$weekBreakdown = explode(":", $week);
-			$balanceSheetRecords = $this->journal_entries_model->getFilteredJournalEntries(trim($accountingMethod, $weekBreakdown[0]), trim($weekBreakdown[1]), "", "", $locationId, "", "", "", "No");
+			$balanceSheetRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, trim($weekBreakdown[0]), trim($weekBreakdown[1]), "", "", $locationId, "", "", "", "No");
 		} else if ($locationId == '0' && $reportDate == '' && $year != '0' && $month != '0' && $week != '-- Select --') {
 			$weekBreakdown = explode(":", $week);
-			$balanceSheetRecords = $this->journal_entries_model->getFilteredJournalEntries(trim($accountingMethod, $weekBreakdown[0]), trim($weekBreakdown[1]), "", "", "", "", "", "", "No");
+			$balanceSheetRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, trim($weekBreakdown[0]), trim($weekBreakdown[1]), "", "", "", "", "", "", "No");
 		} else if ($locationId != '0' && $reportDate == '' && $year != '0' && $month != '0' && $week == '-- Select --') {
 			$numberOfDays = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 			$balanceSheetRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, $year . "-" . $month ."-01", $year . "-" . $month ."-" . $numberOfDays, "", $locationId, "", "", "", "No");
@@ -1870,7 +1891,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 			}
 
 			//Equity Details
-			$netProfit = $this->calculateProfitAndLoss($reportDate, $fromDate, $toDate, $year, $month, $week, $generateAs, $locationId, $accountingMethod);
+			$netProfit = $this->calculateProfitAndLoss($reportDate, $fromDate, $toDate, $year, $month, $week, $locationId, $accountingMethod);
 			$netProfitAddedToReport = false;
 			
 			foreach ($equityChartOfAccounts as $equityChartOfAccount) {
@@ -2202,12 +2223,11 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$year = $this->db->escape_str($this->input->post('year'));
 		$month = $this->db->escape_str($this->input->post('month'));
 		$week = $this->db->escape_str($this->input->post('week'));
-		$generateAs = $this->db->escape_str($this->input->post('generate_as'));
 
-		$this->generateProfitAndLossReportAsPDF($reportDate, $fromDate, $toDate, $year, $month, $week, $generateAs, $locationId, $accountingMethod);
+		$this->generateProfitAndLossReportAsPDF($reportDate, $fromDate, $toDate, $year, $month, $week, $locationId, $accountingMethod);
 	}
 
-	public function generateProfitAndLossReportAsPDF($reportDate, $fromDate, $toDate, $year, $month, $week, $generateAs, $locationId, $accountingMethod) {
+	public function generateProfitAndLossReportAsPDF($reportDate, $fromDate, $toDate, $year, $month, $week, $locationId, $accountingMethod) {
 		$pdf = new Pdf_reports(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 		$pdf->SetCreator(PDF_CREATOR);
 		$pdf->AddPage();
@@ -2276,7 +2296,7 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$html.="</tr>
 				</thead>";
 
-		$html .= $this->getProfitAndLossDataFromDB($reportDate, $fromDate, $toDate, $year, $month, $week, $generateAs, $locationId, $accountingMethod);
+		$html .= $this->getProfitAndLossDataFromDB($reportDate, $fromDate, $toDate, $year, $month, $week, $locationId, $accountingMethod);
 
 		$html.="</table>";
 		$pdf->writeHTML($html, true, false, true, false, '');
@@ -2290,13 +2310,21 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$pdf->Output($pdf_file_name, 'FD');
 	}
 
-	public function getProfitAndLossDataFromDB($reportDate, $fromDate, $toDate, $year, $month, $week, $generateAs, $locationId, $accountingMethod){
+	public function getProfitAndLossDataFromDB($reportDate, $fromDate, $toDate, $year, $month, $week, $locationId, $accountingMethod){
 		$profitAndLossRecords = '';
 		$html='';
-		
-		$currentDate = date('Y-m-d');
-		
-		if ($year == '' || $year == '0') {
+		$currentDate = '';
+        
+        if ($reportDate != '') {
+            $currentDate = $reportDate;
+            $currentFinancialYear = date('Y', strtotime($reportDate));
+        } else if ($fromDate != '' && $toDate != '') {
+            $currentDate = $toDate;
+            $currentFinancialYear = date('Y', strtotime($toDate));
+        } else if ($year != '' && $year != '0') {
+            $currentFinancialYear = $year;
+        } else {
+            $currentDate = date('Y-m-d');
 			$currentFinancialYear = date('Y'); 
 		}
 		
@@ -2314,6 +2342,9 @@ class Bookkeeping_report_controller extends CI_Controller {
 			$currentFinancialYearStartDate = ($currentFinancialYear - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
 			$currentFinancialYearEndDate = $currentFinancialYear . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 		}
+        
+        $currentFinancialYearStartDate = date('Y-m-d', strtotime($currentFinancialYearStartDate));
+        $currentFinancialYearEndDate = date('Y-m-d', strtotime($currentFinancialYearEndDate));
 
 		if ($locationId != '0' && $fromDate != '' && $toDate != '') {
 			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, $fromDate, $toDate, "", $locationId, "", "Yes", "", "No");
@@ -2328,17 +2359,17 @@ class Bookkeeping_report_controller extends CI_Controller {
 		} else if ($locationId != '0' && $year != '0' && $month == '0') {
 			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, $currentFinancialYearStartDate, $currentFinancialYearEndDate, "", $locationId, "", "Yes", "", "No");
 		} else if ($locationId == '0' && $year != '0' && $month == '0') {
-			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, $currentFinancialYearStartDate, $year . $currentFinancialYearEndDate, "", "", "", "Yes", "", "No");
+			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, $currentFinancialYearStartDate, $currentFinancialYearEndDate, "", "", "", "Yes", "", "No");
 		} else if ($locationId != '0' && $reportDate != '') {
 			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, $currentFinancialYearStartDate, $reportDate, "", $locationId, "", "Yes", "", "No");
 		}
 
 		if ($locationId != '0' && $reportDate == '' && $year != '0' && $month != '0' && $week != '-- Select --') {
 			$weekBreakdown = explode(":", $week);
-			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries(trim($accountingMethod, $weekBreakdown[0]), trim($weekBreakdown[1]), "", $locationId, "", "Yes", "", "No");
+			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, trim($weekBreakdown[0]), trim($weekBreakdown[1]), "", $locationId, "", "Yes", "", "No");
 		} else if ($locationId == '0' && $reportDate == '' && $year != '0' && $month != '0' && $week != '-- Select --') {
 			$weekBreakdown = explode(":", $week);
-			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries(trim($accountingMethod, $weekBreakdown[0]), trim($weekBreakdown[1]), "", "", "", "Yes", "", "No");
+			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, trim($weekBreakdown[0]), trim($weekBreakdown[1]), "", "", "", "Yes", "", "No");
 		} else if ($locationId != '0' && $reportDate == '' && $year != '0' && $month != '0' && $week == '-- Select --') {
 			$numberOfDays = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, $year . "-" . $month ."-01", $year . "-" . $month ."-" . $numberOfDays, "", $locationId, "", "Yes", "", "No");
@@ -3233,10 +3264,18 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$debtorsRecords = '';
 		$html='';
 		$htmlSummary = '';
-		
-		$currentDate = date('Y-m-d');
-		
-		if ($year == '' || $year == '0') {
+		$currentDate = '';
+        
+        if ($reportDate != '') {
+            $currentDate = $reportDate;
+            $currentFinancialYear = date('Y', strtotime($reportDate));
+        } else if ($fromDate != '' && $toDate != '') {
+            $currentDate = $toDate;
+            $currentFinancialYear = date('Y', strtotime($toDate));
+        } else if ($year != '' && $year != '0') {
+            $currentFinancialYear = $year;
+        } else {
+            $currentDate = date('Y-m-d');
 			$currentFinancialYear = date('Y'); 
 		}
 		
@@ -3254,6 +3293,9 @@ class Bookkeeping_report_controller extends CI_Controller {
 			$currentFinancialYearStartDate = ($currentFinancialYear - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
 			$currentFinancialYearEndDate = $currentFinancialYear . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 		}
+        
+        $currentFinancialYearStartDate = date('Y-m-d', strtotime($currentFinancialYearStartDate));
+        $currentFinancialYearEndDate = date('Y-m-d', strtotime($currentFinancialYearEndDate));
 
         if ($locationId != '0' && $debtorId != '0' && $fromDate != '' && $toDate != '') {
             $debtorsRecords = $this->journal_entries_model->getAllGeneralLedgerEntriesOfMainJournalEntries($fromDate, $toDate, 'transaction_date', 'asc', '', '', '', '102', $locationId, $debtorId);
@@ -3984,10 +4026,18 @@ class Bookkeeping_report_controller extends CI_Controller {
 		$creditorsRecords = '';
 		$html = '';
 		$htmlSummary = '';
-		
-		$currentDate = date('Y-m-d');
-		
-		if ($year == '' || $year == '0') {
+		$currentDate = '';
+        
+        if ($reportDate != '') {
+            $currentDate = $reportDate;
+            $currentFinancialYear = date('Y', strtotime($reportDate));
+        } else if ($fromDate != '' && $toDate != '') {
+            $currentDate = $toDate;
+            $currentFinancialYear = date('Y', strtotime($toDate));
+        } else if ($year != '' && $year != '0') {
+            $currentFinancialYear = $year;
+        } else {
+            $currentDate = date('Y-m-d');
 			$currentFinancialYear = date('Y'); 
 		}
 		
@@ -4005,6 +4055,9 @@ class Bookkeeping_report_controller extends CI_Controller {
 			$currentFinancialYearStartDate = ($currentFinancialYear - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
 			$currentFinancialYearEndDate = $currentFinancialYear . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 		}
+        
+        $currentFinancialYearStartDate = date('Y-m-d', strtotime($currentFinancialYearStartDate));
+        $currentFinancialYearEndDate = date('Y-m-d', strtotime($currentFinancialYearEndDate));
 
 		if ($locationId != '0' && $creditorId != '0' && $fromDate != '' && $toDate != '') {
 			$creditorsRecords = $this->journal_entries_model->getAllGeneralLedgerEntriesOfMainJournalEntries($fromDate, $toDate, 'transaction_date', 'asc', '', '', '', '104', $locationId, $creditorId);
@@ -4823,12 +4876,20 @@ class Bookkeeping_report_controller extends CI_Controller {
 		return $chartOfAccountName;
 	}
 	
-	public function calculateProfitAndLoss($reportDate, $fromDate, $toDate, $year, $month, $week, $generateAs, $locationId, $accountingMethod) {
+	public function calculateProfitAndLoss($reportDate, $fromDate, $toDate, $year, $month, $week, $locationId, $accountingMethod) {
 		$profitAndLossRecords = '';
+		$currentDate = '';
 		
-		$currentDate = date('Y-m-d');
-		
-		if ($year == '' || $year == '0') {
+		if ($reportDate != '') {
+            $currentDate = $reportDate;
+            $currentFinancialYear = date('Y', strtotime($reportDate));
+        } else if ($fromDate != '' && $toDate != '') {
+            $currentDate = $toDate;
+            $currentFinancialYear = date('Y', strtotime($toDate));
+        } else if ($year != '' && $year != '0') {
+            $currentFinancialYear = $year;
+        } else {
+            $currentDate = date('Y-m-d');
 			$currentFinancialYear = date('Y'); 
 		}
 		
@@ -4846,6 +4907,9 @@ class Bookkeeping_report_controller extends CI_Controller {
 			$currentFinancialYearStartDate = ($currentFinancialYear - 1) . "-" . $financialYearStartMonth . "-" . $financialYearStartDay;
 			$currentFinancialYearEndDate = $currentFinancialYear . "-" . $financialYearEndMonth . "-" . $financialYearEndDay;
 		}
+        
+        $currentFinancialYearStartDate = date('Y-m-d', strtotime($currentFinancialYearStartDate));
+        $currentFinancialYearEndDate = date('Y-m-d', strtotime($currentFinancialYearEndDate));
 		
 		if ($locationId != '0' && $fromDate != '' && $toDate != '') {
 			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, $fromDate, $toDate, '', $locationId, '', 'Yes', '', 'No');
@@ -4872,8 +4936,10 @@ class Bookkeeping_report_controller extends CI_Controller {
 			$weekBreakdown = explode(":", $week);
 			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, trim($weekBreakdown[0]), trim($weekBreakdown[1]), '', '', '', 'Yes', '', 'No');
 		} else if ($locationId != '0' && $reportDate == '' && $year != '0' && $month != '0' && $week == '-- Select --') {
+            $numberOfDays = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, $year . "-" . $month ."-01", $year . "-" . $month ."-" . $numberOfDays, '', $locationId, '', 'Yes', '', 'No');
 		} else if ($locationId == '0' && $reportDate == '' && $year != '0' && $month != '0' && $week == '-- Select --') {
+            $numberOfDays = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 			$profitAndLossRecords = $this->journal_entries_model->getFilteredJournalEntries($accountingMethod, $year . "-" . $month ."-01", $year . "-" . $month ."-" . $numberOfDays, '', '', '', 'Yes', '', 'No');
 		}
 
@@ -5097,7 +5163,9 @@ class Bookkeeping_report_controller extends CI_Controller {
 
 				if (!empty($resultChartOfAccountIds)) {
 					foreach ($resultChartOfAccountIds as $resultChartOfAccountId) {
-						$revenueChartOfAccountsTotal = $revenueChartOfAccountsTotal + $resultChartOfAccountValues[$resultChartOfAccountId];
+                        if (array_key_exists($resultChartOfAccountId, $resultChartOfAccountValues)) {
+                            $revenueChartOfAccountsTotal = $revenueChartOfAccountsTotal + $resultChartOfAccountValues[$resultChartOfAccountId];
+                        }
 					}
 				}
 			}
@@ -5191,7 +5259,9 @@ class Bookkeeping_report_controller extends CI_Controller {
 				if (!empty($resultChartOfAccountIds)) {
 					$grossProfitCalculatingChartOfAccountDetailExists = true;
 					foreach ($resultChartOfAccountIds as $resultChartOfAccountId) {
-						$grossProfitChartOfAccountsTotal = $grossProfitChartOfAccountsTotal - $resultChartOfAccountValues[$resultChartOfAccountId];
+                        if (array_key_exists($resultChartOfAccountId, $resultChartOfAccountValues)) {
+                            $grossProfitChartOfAccountsTotal = $grossProfitChartOfAccountsTotal - $resultChartOfAccountValues[$resultChartOfAccountId];
+                        }
 					}
 				}
 			}
@@ -5284,7 +5354,9 @@ class Bookkeeping_report_controller extends CI_Controller {
 				
 				if (!empty($resultChartOfAccountIds)) {
 					foreach ($resultChartOfAccountIds as $resultChartOfAccountId) {
-						$operatingActivitiesChartOfAccountsTotal = $operatingActivitiesChartOfAccountsTotal - $resultChartOfAccountValues[$resultChartOfAccountId];
+                        if (array_key_exists($resultChartOfAccountId, $resultChartOfAccountValues)) {
+                            $operatingActivitiesChartOfAccountsTotal = $operatingActivitiesChartOfAccountsTotal - $resultChartOfAccountValues[$resultChartOfAccountId];
+                        }
 					}
 				}
 			}
@@ -5377,7 +5449,9 @@ class Bookkeeping_report_controller extends CI_Controller {
 
 				if (!empty($resultChartOfAccountIds)) {
 					foreach ($resultChartOfAccountIds as $resultChartOfAccountId) {
-						$profitChartOfAccountTotal = $profitChartOfAccountTotal - $resultChartOfAccountValues[$resultChartOfAccountId];
+                        if (array_key_exists($resultChartOfAccountId, $resultChartOfAccountValues)) {
+                            $profitChartOfAccountTotal = $profitChartOfAccountTotal - $resultChartOfAccountValues[$resultChartOfAccountId];
+                        }
 					}
 				}
 			}
@@ -5471,7 +5545,9 @@ class Bookkeeping_report_controller extends CI_Controller {
 				if (!empty($resultChartOfAccountIds)) {
 					$netProfitCalculatingChartOfAccountDetailExists = true;
 					foreach ($resultChartOfAccountIds as $resultChartOfAccountId) {
-						$netProfitChartOfAccountTotal = $netProfitChartOfAccountTotal - $resultChartOfAccountValues[$resultChartOfAccountId];
+                        if (array_key_exists($resultChartOfAccountId, $resultChartOfAccountValues)) {
+                            $netProfitChartOfAccountTotal = $netProfitChartOfAccountTotal - $resultChartOfAccountValues[$resultChartOfAccountId];
+                        }
 					}
 				}
 			}

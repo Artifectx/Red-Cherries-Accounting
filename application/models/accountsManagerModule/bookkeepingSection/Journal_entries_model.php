@@ -388,7 +388,7 @@ class Journal_entries_model extends CI_Model {
 		}
 		
 		$this->db->limit(100000);
-		$query = $this->db->get('acm_bookkeeping_gl_transactions');
+		$query = $this->db->get('acm_bookkeeping_gl_transactions_for_previous_years');
 		if ($query->num_rows() > 0) {
 			return $query->result();
 		} else {
@@ -489,8 +489,8 @@ class Journal_entries_model extends CI_Model {
 	}
 	
 	public function getAllGeneralLedgerEntriesOfMainJournalEntries($defaultSearchFromDate, $defaultSearchToDate, $order_field, $order_type, $fromDate=null, $toDate=null, $primeEntryBookId=null, $chartOfAccountId=null, $locationId=null, $payeePayerId=null, $retriveAllRecords=null) {
-		$this->db->order_by('acm_bookkeeping_gl_transactions.' . $order_field, $order_type);
-		$this->db->join('acm_bookkeeping_journal_entries', 'acm_bookkeeping_journal_entries.journal_entry_id=acm_bookkeeping_gl_transactions.journal_entry_id','left');
+		$this->db->order_by('acm_bookkeeping_gl_transactions_for_previous_years.' . $order_field, $order_type);
+		$this->db->join('acm_bookkeeping_journal_entries', 'acm_bookkeeping_journal_entries.journal_entry_id=acm_bookkeeping_gl_transactions_for_previous_years.journal_entry_id','left');
 		$this->db->join('ogm_admin_locations', 'ogm_admin_locations.location_id=acm_bookkeeping_journal_entries.location_id','left');
 
 		if ($defaultSearchFromDate != '' && $defaultSearchToDate != '') {
@@ -511,7 +511,7 @@ class Journal_entries_model extends CI_Model {
 		}
 
 		if($chartOfAccountId) {
-			$this->db->where('acm_bookkeeping_gl_transactions.chart_of_account_id', $chartOfAccountId);
+			$this->db->where('acm_bookkeeping_gl_transactions_for_previous_years.chart_of_account_id', $chartOfAccountId);
 		}
 
 		if($locationId) {
@@ -527,14 +527,14 @@ class Journal_entries_model extends CI_Model {
 		}
 		
 		if ($chartOfAccountId == '104') {
-			$this->db->where('acm_bookkeeping_gl_transactions.transaction_complete =','Yes');
+			$this->db->where('acm_bookkeeping_gl_transactions_for_previous_years.transaction_complete =','Yes');
 		}
 		
-		$this->db->where('acm_bookkeeping_gl_transactions.last_action_status !=','deleted');
+		$this->db->where('acm_bookkeeping_gl_transactions_for_previous_years.last_action_status !=','deleted');
 
 		$this->db->limit(10000000);
 		
-		$query = $this->db->get('acm_bookkeeping_gl_transactions');
+		$query = $this->db->get('acm_bookkeeping_gl_transactions_for_previous_years');
 		
 		//echo $this->db->last_query();die;
 		if ($query->num_rows() > 0) {
@@ -571,7 +571,7 @@ class Journal_entries_model extends CI_Model {
                     if ($journalEntry->remark == "OB") {
                         $conditionOB ="SELECT GLTransaction.gl_transaction_id, GLTransaction.chart_of_account_id, GLTransaction.journal_entry_id, GLTransaction.prime_entry_book_id, ChartOfAccount.parent_id, GLTransaction.debit_value AS debit_amount, "
                             ."GLTransaction.credit_value AS credit_amount, GLTransaction.transaction_complete AS transaction_complete "
-                            ."FROM `acm_bookkeeping_gl_transactions` AS GLTransaction "
+                            ."FROM `acm_bookkeeping_gl_transactions_for_previous_years` AS GLTransaction "
                             ."LEFT JOIN acm_admin_chart_of_accounts AS ChartOfAccount ON GLTransaction.chart_of_account_id = ChartOfAccount.chart_of_account_id "
                             ."LEFT JOIN acm_bookkeeping_journal_entries AS JournalEntry ON GLTransaction.journal_entry_id = JournalEntry.journal_entry_id "
                             ."WHERE GLTransaction.last_action_status != 'deleted' "
@@ -615,7 +615,7 @@ class Journal_entries_model extends CI_Model {
                                 
                                 $referenceCondition ="SELECT GLTransaction.gl_transaction_id, GLTransaction.chart_of_account_id, GLTransaction.journal_entry_id, GLTransaction.prime_entry_book_id, ChartOfAccount.parent_id, GLTransaction.debit_value AS debit_amount, "
                                     ."GLTransaction.credit_value AS credit_amount, GLTransaction.transaction_complete AS transaction_complete "
-                                    ."FROM `acm_bookkeeping_gl_transactions` AS GLTransaction "
+                                    ."FROM `acm_bookkeeping_gl_transactions_for_previous_years` AS GLTransaction "
                                     ."LEFT JOIN acm_admin_chart_of_accounts AS ChartOfAccount ON GLTransaction.chart_of_account_id = ChartOfAccount.chart_of_account_id "
                                     ."LEFT JOIN acm_bookkeeping_journal_entries AS JournalEntry ON GLTransaction.journal_entry_id = JournalEntry.journal_entry_id "
                                     ."WHERE GLTransaction.last_action_status != 'deleted' "
@@ -649,7 +649,7 @@ class Journal_entries_model extends CI_Model {
                         
                         $mainCondition ="SELECT GLTransaction.gl_transaction_id, GLTransaction.chart_of_account_id, GLTransaction.journal_entry_id, GLTransaction.prime_entry_book_id, ChartOfAccount.parent_id, GLTransaction.debit_value AS debit_amount, "
                             ."GLTransaction.credit_value AS credit_amount, GLTransaction.transaction_complete AS transaction_complete "
-                            ."FROM `acm_bookkeeping_gl_transactions` AS GLTransaction "
+                            ."FROM `acm_bookkeeping_gl_transactions_for_previous_years` AS GLTransaction "
                             ."LEFT JOIN acm_admin_chart_of_accounts AS ChartOfAccount ON GLTransaction.chart_of_account_id = ChartOfAccount.chart_of_account_id "
                             ."LEFT JOIN acm_bookkeeping_journal_entries AS JournalEntry ON GLTransaction.journal_entry_id = JournalEntry.journal_entry_id "
                             ."WHERE GLTransaction.last_action_status != 'deleted' "
@@ -684,7 +684,7 @@ class Journal_entries_model extends CI_Model {
                         if (!in_array($journalEntry->reference_no, $mustExcludeJournalEntryReferenceNo)) {
                             $otherCondition ="SELECT GLTransaction.gl_transaction_id, GLTransaction.chart_of_account_id, GLTransaction.journal_entry_id, GLTransaction.prime_entry_book_id, ChartOfAccount.parent_id, GLTransaction.debit_value AS debit_amount, "
                                 ."GLTransaction.credit_value AS credit_amount, GLTransaction.transaction_complete AS transaction_complete "
-                                ."FROM `acm_bookkeeping_gl_transactions` AS GLTransaction "
+                                ."FROM `acm_bookkeeping_gl_transactions_for_previous_years` AS GLTransaction "
                                 ."LEFT JOIN acm_admin_chart_of_accounts AS ChartOfAccount ON GLTransaction.chart_of_account_id = ChartOfAccount.chart_of_account_id "
                                 ."LEFT JOIN acm_bookkeeping_journal_entries AS JournalEntry ON GLTransaction.journal_entry_id = JournalEntry.journal_entry_id "
                                 ."WHERE GLTransaction.last_action_status != 'deleted' "
@@ -725,14 +725,14 @@ class Journal_entries_model extends CI_Model {
             if ($doNotUseGroupBy == "No") {
                 $condition = "SELECT GLTransaction.chart_of_account_id, ChartOfAccount.parent_id, SUM(GLTransaction.debit_value) AS debit_amount, "
                             ."SUM(GLTransaction.credit_value) AS credit_amount, GLTransaction.transaction_complete AS transaction_complete "
-                            ."FROM `acm_bookkeeping_gl_transactions` AS GLTransaction "
+                            ."FROM `acm_bookkeeping_gl_transactions_for_previous_years` AS GLTransaction "
                             ."LEFT JOIN acm_admin_chart_of_accounts AS ChartOfAccount ON GLTransaction.chart_of_account_id = ChartOfAccount.chart_of_account_id "
                             ."LEFT JOIN acm_bookkeeping_journal_entries AS JournalEntry ON GLTransaction.journal_entry_id = JournalEntry.journal_entry_id "
                             ."WHERE GLTransaction.last_action_status != 'deleted' ";
             } else {
                 $condition = "SELECT GLTransaction.chart_of_account_id, ChartOfAccount.parent_id, GLTransaction.debit_value AS debit_amount, "
                             ."GLTransaction.credit_value AS credit_amount, GLTransaction.transaction_complete AS transaction_complete "
-                            ."FROM `acm_bookkeeping_gl_transactions` AS GLTransaction "
+                            ."FROM `acm_bookkeeping_gl_transactions_for_previous_years` AS GLTransaction "
                             ."LEFT JOIN acm_admin_chart_of_accounts AS ChartOfAccount ON GLTransaction.chart_of_account_id = ChartOfAccount.chart_of_account_id "
                             ."LEFT JOIN acm_bookkeeping_journal_entries AS JournalEntry ON GLTransaction.journal_entry_id = JournalEntry.journal_entry_id "
                             ."WHERE GLTransaction.last_action_status != 'deleted' ";

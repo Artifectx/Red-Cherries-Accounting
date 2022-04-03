@@ -156,6 +156,7 @@ class Cheque_list_controller extends CI_Controller {
                             );
 
                             $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $data);
+                            $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $chartOfAccountId, $data);
                         }
                     }
                     
@@ -173,6 +174,7 @@ class Cheque_list_controller extends CI_Controller {
                             );
 
                             $this->journal_entries_model->editGeneralLedgerTransaction($referenceJournalEntryId, $chartOfAccountId, $data);
+                            $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($referenceJournalEntryId, $chartOfAccountId, $data);
                         }
                     }
                 }
@@ -200,6 +202,7 @@ class Cheque_list_controller extends CI_Controller {
                             );
 
                             $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $data);
+                            $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $chartOfAccountId, $data);
                         }
                     }
                 }
@@ -230,6 +233,7 @@ class Cheque_list_controller extends CI_Controller {
                             );
 
                             $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $data);
+                            $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $chartOfAccountId, $data);
                         }
                     }
                     
@@ -247,6 +251,7 @@ class Cheque_list_controller extends CI_Controller {
                             );
 
                             $this->journal_entries_model->editGeneralLedgerTransaction($referenceJournalEntryId, $chartOfAccountId, $data);
+                            $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($referenceJournalEntryId, $chartOfAccountId, $data);
                         }
                     }
                 }
@@ -345,6 +350,7 @@ class Cheque_list_controller extends CI_Controller {
                                     );
 
                                     $this->journal_entries_model->editGeneralLedgerTransaction($referenceJournalEntryId, $chartOfAccountId, $data);
+                                    $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($referenceJournalEntryId, $chartOfAccountId, $data);
                                 }
                             }
                         }
@@ -374,6 +380,7 @@ class Cheque_list_controller extends CI_Controller {
                             );
 
                             $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $data);
+                            $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $chartOfAccountId, $data);
                         }
                     }
                     
@@ -391,6 +398,7 @@ class Cheque_list_controller extends CI_Controller {
                             );
 
                             $this->journal_entries_model->editGeneralLedgerTransaction($referenceJournalEntryId, $chartOfAccountId, $data);
+                            $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($referenceJournalEntryId, $chartOfAccountId, $data);
                         }
                     }
                 }
@@ -431,6 +439,7 @@ class Cheque_list_controller extends CI_Controller {
                                 );
 
                                 $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $data);
+                                $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $chartOfAccountId, $data);
                             }
                         }
                     }
@@ -518,6 +527,7 @@ class Cheque_list_controller extends CI_Controller {
                         );
 
                         $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $data);
+                        $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $chartOfAccountId, $data);
                     }
                 }
             }
@@ -803,6 +813,7 @@ class Cheque_list_controller extends CI_Controller {
                                                             );
 
                                                             $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $data);
+                                                            $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $chartOfAccountId, $data);
                                                         }
                                                     }
                                                 }
@@ -822,6 +833,7 @@ class Cheque_list_controller extends CI_Controller {
                                                     );
 
                                                     $this->journal_entries_model->editGeneralLedgerTransaction($referenceJournalEntryId, $chartOfAccountId, $data);
+                                                    $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($referenceJournalEntryId, $chartOfAccountId, $data);
                                                 }
                                             }
                                         }
@@ -878,6 +890,7 @@ class Cheque_list_controller extends CI_Controller {
                                                 );
                                                 
                                                 $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $data);
+                                                $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $chartOfAccountId, $data);
                                             }
                                         }
                                     }
@@ -897,6 +910,7 @@ class Cheque_list_controller extends CI_Controller {
                                         );
 
                                         $this->journal_entries_model->editGeneralLedgerTransaction($referenceJournalEntryId, $chartOfAccountId, $data);
+                                        $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($referenceJournalEntryId, $chartOfAccountId, $data);
                                     }
                                 }
                             } else {
@@ -951,6 +965,7 @@ class Cheque_list_controller extends CI_Controller {
                                                 );
 
                                                 $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $data);
+                                                $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $chartOfAccountId, $data);
                                             }
                                         }
                                     }

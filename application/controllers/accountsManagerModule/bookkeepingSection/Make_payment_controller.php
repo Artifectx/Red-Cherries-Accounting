@@ -2638,6 +2638,7 @@ class Make_payment_controller extends CI_Controller {
                                                 );
 
                                                 $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $generalLedgerTransaction);
+                                                $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $chartOfAccountId, $generalLedgerTransaction);
                                             }
                                         }
 
@@ -2678,6 +2679,7 @@ class Make_payment_controller extends CI_Controller {
                                                 );
 
                                                 $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $generalLedgerTransaction);
+                                                $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $chartOfAccountId, $generalLedgerTransaction);
                                             }
                                         }
 
@@ -5434,6 +5436,7 @@ class Make_payment_controller extends CI_Controller {
                                             );
 
                                             $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $generalLedgerTransaction);
+                                            $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $chartOfAccountId, $generalLedgerTransaction);
                                         }
                                     }
 
@@ -5474,6 +5477,7 @@ class Make_payment_controller extends CI_Controller {
                                             );
 
                                             $this->journal_entries_model->editGeneralLedgerTransaction($journalEntryId, $chartOfAccountId, $generalLedgerTransaction);
+                                            $this->journal_entries_model->editGeneralLedgerTransactionToPreviousYear($journalEntryId, $chartOfAccountId, $generalLedgerTransaction);
                                         }
                                     }
 

@@ -231,7 +231,7 @@
 								<div class='form-group'>
 									<div class='col-sm-12 controls'>
 										<label style="text-align : left" class='control-label col-sm-4' ><?php echo $this->lang->line('Week') ?></label>
-										<label style="text-align : left" class='control-label col-sm-4' ><?php echo $this->lang->line('Generate As') ?></label>
+										<label style="text-align : left" class='control-label col-sm-4' id="generate_as_label"><?php echo $this->lang->line('Generate As') ?></label>
 									</div>
 								</div>
 								<div class='form-group'>
@@ -241,7 +241,7 @@
 											<div id="week_dropdown"></div>
 											<div id="weekError" class="red"></div>
 										</div>
-										<div class='col-sm-4 controls'>
+										<div class='col-sm-4 controls' id="generate_as_div">
 											<select id="generate_as" class="form-control">
 												<option value="0"><?php echo $this->lang->line('-- Select --') ?></option>
 												<option value="1"><?php echo $this->lang->line('Monthly') ?></option>
@@ -579,6 +579,8 @@
 			$("#year_month_filters").show();
             $("#summary_report_checkbox").hide();
 			$("#week_generate_as_filters").show();
+            $("#generate_as_label").hide();
+            $("#generate_as_div").hide();
 			$("#cancelled_sales_notes_checkbox").hide();
 			$("#accounting_method_label").show();
 			$("#accounting_method_div").show();
@@ -717,6 +719,8 @@
 			$("#year_month_filters").show();
             $("#summary_report_checkbox").hide();
 			$("#week_generate_as_filters").show();
+            $("#generate_as_label").hide();
+            $("#generate_as_div").hide();
 			$("#cancelled_sales_notes_checkbox").hide();
 			$("#accounting_method_label").show();
 			$("#accounting_method_div").show();
@@ -745,12 +749,11 @@
 			var year = $("#year").val();
 			var month = $("#month").val();
 			var week = $("#week option:selected").text();
-			var generateAs = $("#generate_as").val();
 			var locationId = $("#location").val();
 			var accountingMethod = AccountingMethod;
 
 			if (callOption == "search") {
-				BookkeepingReport.getBalanceSheetDetails(date, fromDate, toDate, year, month, week, generateAs, locationId, accountingMethod);
+				BookkeepingReport.getBalanceSheetDetails(date, fromDate, toDate, year, month, week, locationId, accountingMethod);
 
 				$(".loader").hide();
 
@@ -781,6 +784,8 @@
 			$("#year_month_filters").show();
             $("#summary_report_checkbox").hide();
 			$("#week_generate_as_filters").show();
+            $("#generate_as_label").hide();
+            $("#generate_as_div").hide();
 			$("#cancelled_sales_notes_checkbox").hide();
 			$("#accounting_method_label").show();
 			$("#accounting_method_div").show();
@@ -809,12 +814,11 @@
 			var year = $("#year").val();
 			var month = $("#month").val();
 			var week = $("#week option:selected").text();
-			var generateAs = $("#generate_as").val();
 			var locationId = $("#location").val();
 			var accountingMethod = AccountingMethod;
 
 			if (callOption == "search") {
-				BookkeepingReport.getProfitAndLossDetails(date, fromDate, toDate, year, month, week, generateAs, locationId, accountingMethod);
+				BookkeepingReport.getProfitAndLossDetails(date, fromDate, toDate, year, month, week, locationId, accountingMethod);
 
 				$(".loader").hide();
 
@@ -1246,7 +1250,7 @@
 		},
 		
 		//get balance sheet details
-		getBalanceSheetDetails: function (date, fromDate, toDate, year, month, week, generateAs, locationId, accountingMethod){
+		getBalanceSheetDetails: function (date, fromDate, toDate, year, month, week, locationId, accountingMethod){
 			if (validateForm_FromDateAndToDate()) {
 				$("#report_result").empty();
 				$("#pdf_report_details_div").show();
@@ -1261,7 +1265,6 @@
 						'year' : year,
 						'month' : month,
 						'week' : week,
-						'generate_as' : generateAs,
 						'location_id' : locationId,
 						'accounting_method' : accountingMethod,
 						'<?php echo $this->security->get_csrf_token_name(); ?>':'<?php echo $this->security->get_csrf_hash(); ?>'
@@ -1274,7 +1277,7 @@
 		},
 		
 		//get profit and loss details
-		getProfitAndLossDetails: function (date, fromDate, toDate, year, month, week, generateAs, locationId, accountingMethod){
+		getProfitAndLossDetails: function (date, fromDate, toDate, year, month, week, locationId, accountingMethod){
 			if (validateForm_FromDateAndToDate()) {
 				$("#report_result").empty();
 				$("#pdf_report_details_div").show();
@@ -1289,7 +1292,6 @@
 						'year' : year,
 						'month' : month,
 						'week' : week,
-						'generate_as' : generateAs,
 						'location_id' : locationId,
 						'accounting_method' : accountingMethod,
 						'<?php echo $this->security->get_csrf_token_name(); ?>':'<?php echo $this->security->get_csrf_hash(); ?>'
